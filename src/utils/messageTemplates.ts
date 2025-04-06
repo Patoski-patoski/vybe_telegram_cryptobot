@@ -142,13 +142,11 @@ Please confirm this transfer.`,
         TOKEN_HOLDER: `📊 *Rank*: %index%
 
 * Owner Name:* %ownerName%
-* Owner Mint:* %tokenMint%
- 
-* Address:* %ownerAddress%
 
+* Address:* %ownerAddress%
 * Token Balance:* %formattedBalance%
 
-* Total % supply held:* %formattedSupply%%
+* Total % supply held:* %formattedSupply%
 
 * Token balance* %formattedValue%`,
                 

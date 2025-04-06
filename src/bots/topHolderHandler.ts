@@ -1,7 +1,14 @@
-// Description: This file contains the TopTokenHandler class, which handles the /holder command in a Telegram bot. It fetches and displays the top 10 token holders for a given mint address using the Vybe API.
-// It formats the token balance and value to USD and sends the information to the Telegram chat. The class extends the BaseHandler class, which provides common functionality for handling bot commands.
-// Description: This file contains the TopTokenHandler class, which handles the /holder command in a Telegram bot. It fetches and displays the top 10 token holders for a given mint address using the Vybe API.
 // src/bots/topHolderHandler.ts
+
+/**
+ * Description: This file contains the TopTokenHandler class, which handles the
+ * /holder command in a Telegram bot. It fetches and displays the top 10 
+ * token holders for a given mint address using the Vybe API.
+ * It formats the token balance and value to USD and sends the information
+ * to the Telegram chat. The class extends the BaseHandler class, which
+ * provides common functionality for handling bot commands.
+ * 
+ */
 
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
@@ -27,7 +34,6 @@ export class TopTokenHandler extends BaseHandler {
         }
 
         const commandParts = text.split(" ");
-        console.log("commandParts", commandParts);
         if (commandParts.length < 2) { 
             await this.bot.sendMessage(chatId,
                 "Please provide a mint address. Usage: /holder mintAddress"
@@ -36,28 +42,24 @@ export class TopTokenHandler extends BaseHandler {
         }
         const mintAddress = commandParts[1]; // Extract mint address from command
         const limit: number = Number(commandParts[2]);
+
         if (limit && isNaN(limit)) {
             await this.bot.sendMessage(chatId,
                 "Invalid limit. Please provide a valid number for the limit."
             );
             return;
         }
-        if (limit > 10) {
+        if (limit && limit > 10) {
             await this.bot.sendMessage(chatId,
                 "Limit exceeded. Please provide a limit of 10 or less." +
-                "\nExample: /holder mintAddress 10",
+                "\nExample: /holder {mintAddress} 10",
                 {
                     parse_mode: 'Markdown',
-                    disable_web_page_preview: true,
                     reply_markup: {
                         inline_keyboard: [
                             [{
                                 text: '🔗 View more Holders on our AlphaVybe website',
-                                url: `https://api.vybenetwork.xyz/token/${mintAddress}/top-holders`
-                            }],
-                            [{
-                                text: '🔄 Back',
-                                callback_data: 'check_kyc_status'
+                                url: `https://docs.vybenetwork.com/reference/get_top_holders`
                             }],
                             [{ text: '🔙 Back', callback_data: 'commands' }]
                         ]
@@ -75,12 +77,19 @@ export class TopTokenHandler extends BaseHandler {
         }
         // Fetch top token holders from the API using the provided mint address
         const topHoldersResponse: GetTopHoldersResponse = await
-            this.api.getTopTokenHolder(mintAddress, limit);
+            this.api.getTopTokenHolder(mintAddress, limit? limit : 5);
+
+        console.log("topHoldersResponse", topHoldersResponse);
 
         if (topHoldersResponse && topHoldersResponse.data) {
             const topHolders: TopHolder[] = topHoldersResponse.data;
+
+            // Sort topHolders by rank
+            topHolders.sort((a, b) => a.rank - b.rank);
+            console.log("topHolders", topHolders);
+            
             const fetching = await this.bot.sendMessage(chatId,
-                "Fetching top token holders...",
+                "⏳ Fetching top token holders...",
             );
             // Remove the message after fetching
             setTimeout( async () => {
@@ -89,36 +98,42 @@ export class TopTokenHandler extends BaseHandler {
 
             const mintSymbol = topHolders[0].tokenSymbol;
             await this.bot.sendMessage(chatId,
-                `📊 *Token Symbol*: ${mintSymbol}*:\n*MintAddress:* \`\`\`${mintAddress}\`\`\`\n`,
+                `Token Symbol: *${mintSymbol}*\n*MintAddress:* \`\`\`\n${mintAddress}\n\`\`\``,
                 { parse_mode: "MarkdownV2" }
             );
             await this.bot.sendMessage(chatId,
-                `*Top ${limit} Holders:*`,
+                `*Top ${isNaN(limit)? 5: limit} Holders:*`,
                 { parse_mode: "MarkdownV2" }
             );
 
-            topHolders.forEach((holder, index) => {
-                // Format the token balance and value to USD
-                const formattedBalance = formatUsdValue(holder.balance);
-                const formattedValue = formatUsdValue(holder.valueUsd);
-                const formattedSupply = formatUsdValue(holder.percentageOfSupplyHeld);
 
-                const Holdermessages = BOT_MESSAGES.TOKEN_HOLDER
-                    .replace("%index%", `\`${index + 1}\``)
-                    .replace("%ownerName%", `\`${holder.ownerName || "N/A"}\``)
-                    .replace("%formattedBalance%", `\`${formattedBalance}\``)
-                    .replace("%formattedSupply%", `\`${formattedSupply}\``)
-                    .replace("%formattedValue%", `\`${formattedValue}\``)
-                    // .replace("%tokenMint%", `\`\`\`\n${holder.balance}\n\`\`\`\n`)
-                    .replace("%ownerAddress%", `\`${holder.ownerAddress}\``);
-                
-                
-                this.bot.sendMessage(chatId,
-                    Holdermessages,
-                    {parse_mode: "MarkdownV2"}
-                );
-            });
-          
+            for (let index = 0; index < (isNaN(limit) ? 5 : limit); index++) {
+                if (topHolders[index]) {
+                    const holder = topHolders[index];
+                    // Format the token balance and value to USD
+                    const formattedBalance = formatUsdValue(holder.balance);
+                    const formattedValue = formatUsdValue(holder.valueUsd);
+                    const formattedSupply = formatUsdValue(holder.percentageOfSupplyHeld);
+
+                    const Holdermessages = BOT_MESSAGES.TOKEN_HOLDER
+                        .replace("%index%", `\`${index + 1}\``)
+                        .replace("%ownerName%", `\`${holder.ownerName || "N/A"}\``)
+                        .replace("%formattedBalance%", `\`${formattedBalance}\``)
+                        .replace("%formattedSupply%", `\`${formattedSupply}%\``)
+                        .replace("%formattedValue%", `\`${formattedValue}\``)
+                        .replace("%ownerAddress%", `\`\`\`\n${holder.ownerAddress}\n\`\`\``);
+
+                    
+                    // To avoid rate limiting or "message flooding" warnings from Telegram,
+                    await new Promise(resolve => setTimeout(resolve, 500)); // 0.5 sec
+                    
+                    await this.bot.sendMessage(chatId,
+                        Holdermessages,
+                        {parse_mode: "MarkdownV2"}
+                    );
+                }
+            }
+
         } else {
             await this.bot.sendMessage(chatId, "Failed to fetch top token holders.");
         }

@@ -56,11 +56,11 @@ export class VybeApiService {
     // Get top Token Holders
     async getTopTokenHolder(mintAddress: string, limit: number = 5): Promise<GetTopHoldersResponse> {
         // Validate mint address format
-        // if (!isValidMintAddress(mintAddress)) {
-        //     const msg = `Invalid mint address: ${mintAddress} is not a valid base58 encoded Solana Pubkey`;
-        //     logger.error(msg);
-        //     throw new Error(msg);
-        // }
+        if (!isValidMintAddress(mintAddress)) {
+            const msg = `Invalid mint address: ${mintAddress} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
 
         const topHolderURL = `/token/${mintAddress}/top-holders?limit=${limit}`;
 
@@ -80,7 +80,6 @@ export class VybeApiService {
                     throw new Error(`Mint address not found: ${mintAddress}`);
             }
 
-            console.log("Response data", response.data);
             return response.data as GetTopHoldersResponse;
 
         } catch (error: any) {

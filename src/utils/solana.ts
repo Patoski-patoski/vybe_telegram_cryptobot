@@ -8,7 +8,7 @@ import { PublicKey } from "@solana/web3.js";
 export function isValidMintAddress(mintAddress: string): boolean {
     try {
         const pubkey = new PublicKey(mintAddress);
-        return PublicKey.isOnCurve(pubkey); // Optional: can remove for looser validation
+        return pubkey.toBase58() === mintAddress; // Check if the base58 representation matches the input
     } catch {
         return false;
     }
