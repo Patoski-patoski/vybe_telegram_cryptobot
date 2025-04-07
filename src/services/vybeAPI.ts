@@ -11,8 +11,10 @@ import axios, {
 import logger from "../config/logger";
 import {
     TopHolder,
-    GetTopHoldersResponse
+    GetTopHoldersResponse,
+    GetRecentTransferResponse,
 } from "../interfaces/vybeApiInterface";
+import { response } from "express";
 
 dotenv.config();
 
@@ -63,7 +65,6 @@ export class VybeApiService {
         }
 
         const topHolderURL = `/token/${mintAddress}/top-holders?limit=${limit}`;
-
         try {
             const response = await this.api.get(topHolderURL);
 
@@ -85,6 +86,41 @@ export class VybeApiService {
         } catch (error: any) {
             logger.error(`Failed to get top token holders for ${mintAddress}`, { error });
             throw new Error(`Failed to get top token holders: ${error.message}`);
+        }
+    }
+    async getRecentTransfers(
+        mintAddress?: string,
+        senderAddress?: string,
+        receiverAddress?: string,
+        tx_signature?: string,
+        limit: number = 5
+    ): Promise<GetRecentTransferResponse> {
+        // Validate limit
+        if (limit <= 0 || limit > 10) {
+            throw new Error("Limit must be between 1 and 100");
+        }
+
+        // Clean up parameters by removing undefined values
+        const params = {
+            ...(mintAddress && { mintAddress }),
+            ...(senderAddress && { senderAddress }),
+            ...(receiverAddress && { receiverAddress }),
+            ...(tx_signature && { tx_signature }),
+            limit
+        };
+        console.log("params", params);
+        try {
+            const response = await this.api.get("/token/transfers", { params });
+            return response.data as GetRecentTransferResponse;
+        } catch (error: any) {
+            logger.error(`Failed to fetch recent transfers: ${error.message}`, { error });
+            if (error.response) {
+                throw new Error(`
+                    API error (${error.response.status}): 
+                    ${error.response.data.message
+                    || 'Unknown error'}`);
+            }
+            throw new Error(`Failed to fetch recent transfers: ${error.message}`);
         }
     }
 

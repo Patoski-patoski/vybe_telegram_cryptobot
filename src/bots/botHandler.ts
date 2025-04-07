@@ -3,6 +3,7 @@ import TelegramBot from "node-telegram-bot-api";
 import { getConfig } from "../config/config";
 import { VybeApiService } from "../services/vybeAPI";
 import { TopTokenHandler } from "./topHolderHandler";
+import { RecentTransferHandler } from "./recentTransfersHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class BotHandler {
@@ -11,6 +12,7 @@ export class BotHandler {
 
     // Handler instances
     private tokenHolderHandler: TopTokenHandler;
+    private recentTransferHandler: RecentTransferHandler;
 
     constructor() {
         const config = getConfig();
@@ -18,6 +20,7 @@ export class BotHandler {
         this.api = new VybeApiService();
 
         this.tokenHolderHandler = new TopTokenHandler(this.bot, this.api);
+        this.recentTransferHandler = new RecentTransferHandler(this.bot, this.api);
         this.setUpCommands();
     }
 
@@ -27,8 +30,9 @@ export class BotHandler {
 
     private setUpCommands() {
         const cmds = [
-            { cmd: /\/holder/, handler: this.tokenHolderHandler.handleTopToken.bind(this.tokenHolderHandler) },
             { cmd: /\/start/, handler: this.handleStart.bind(this) },
+            { cmd: /\/holder/, handler: this.tokenHolderHandler.handleTopToken.bind(this.tokenHolderHandler) },
+            { cmd: /\/transfers/, handler: this.recentTransferHandler.handleTransfers.bind(this.recentTransferHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {

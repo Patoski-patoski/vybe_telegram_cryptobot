@@ -14,3 +14,32 @@ export interface TopHolder {
 export interface GetTopHoldersResponse {
     data: TopHolder[];           // An array of top holders
 }
+
+export interface RecentTransfer {
+    signature: string;
+    callingMetadata: CallingMetadata[];
+    senderTokenAccount: string | null;
+    senderAddress: string;
+    receiverTokenAccount: string | null;
+    receiverAddress: string;
+    mintAddress: string;
+    feePayer: string;
+    decimal: number;
+    amount: number;
+    slot: number;
+    blockTime: number;
+    price: string;
+    calculatedAmount: string;
+    valueUsd: string;
+}
+
+interface CallingMetadata {
+    callingInstructions: number[];
+    ixName: string;
+    callingProgram: string;
+    programName: string;
+}
+
+export interface GetRecentTransferResponse {
+    transfers: RecentTransfer[];           // An array of recent transfers
+}
