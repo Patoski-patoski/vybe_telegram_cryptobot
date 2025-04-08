@@ -8,7 +8,7 @@
  * and formatting the output message. It extends the BaseHandler class,
  * which provides common functionality for handling bot commands.
  *
- * @module recentTransfersHandler
+ * @module recentTransfersHandler @extends BaseHandler
  * 
  * @requires node-telegram-bot-api
  * @requires ../bots/baseHandler
@@ -22,7 +22,6 @@ import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
 import { timeAgo } from "../utils/time";
 import { GetRecentTransferResponse, RecentTransfer } from "../interfaces/vybeApiInterface";
-
 
 export class RecentTransferHandler extends BaseHandler {
 

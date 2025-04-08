@@ -10,11 +10,10 @@ import axios, {
 
 import logger from "../config/logger";
 import {
-    TopHolder,
     GetTopHoldersResponse,
     GetRecentTransferResponse,
+    WhaleWatchParams,
 } from "../interfaces/vybeApiInterface";
-import { response } from "express";
 
 dotenv.config();
 
@@ -30,7 +29,7 @@ export class VybeApiService {
                 'x-api-key': config.vybe.apiKey,
                 'User-Agent': 'Vybe-Telegram-Bot/1.0.0'
             },
-            
+
             timeout: 15000,
             validateStatus: (status) => status < 500 // Handle 4xx errors in catch block
 
@@ -121,6 +120,31 @@ export class VybeApiService {
                     || 'Unknown error'}`);
             }
             throw new Error(`Failed to fetch recent transfers: ${error.message}`);
+        }
+    }
+
+    async getWhaleTransfers(params: WhaleWatchParams): Promise<GetRecentTransferResponse> {
+        try {
+            // Clean up parameters by removing undefined values
+            const apiParams = Object.entries(params).reduce((acc, [key, value]) => {
+                if (value !== undefined) acc[key] = value;
+                return acc;
+
+            }, {} as Record<string, any>);
+
+            if (!apiParams.sortByDesc && !apiParams.sortByDesc) {
+                apiParams.sortByDesc = 'amount';
+            }
+
+            const response = await this.api.get("/token/transfers", { params: apiParams });
+            return response.data as GetRecentTransferResponse;
+
+        } catch (error: any) {
+            logger.error(`Failed to fetch whale transfers: ${error.message}`, { error });
+            if (error.response) {
+                throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
+            }
+            throw new Error(`Failed to fetch whale transfers: ${error.message}`);
         }
     }
 

@@ -21,9 +21,11 @@ export class BaseHandler {
             await this.bot.setMyCommands([
                 { command: 'start', description: 'Initialize the bot' },
                 { command: 'transfers', description: 'Retrieve a comprehensive list of token transfer transactions'},
-                { command: 'wallets', description: 'List all wallets' },
-                { command: 'balance', description: 'Check wallet balance' },
                 { command: 'holder', description: 'View Token holders\n"Example: /holder mintAddress 10"' },
+                { command: 'whalealert', description: 'Set up alerts for large transfers' },
+                { command: 'listwhalealerts', description: 'View your active whale alerts' },
+                { command: 'removewhalealert', description: 'Remove a whale alert' },
+                { command: 'checkwhales', description: 'Check recent large transfers' },
                 { command: 'help', description: 'Get commands and info' },
             ]);
         } catch (error) {

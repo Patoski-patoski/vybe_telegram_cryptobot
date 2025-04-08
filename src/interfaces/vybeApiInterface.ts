@@ -12,7 +12,7 @@ export interface TopHolder {
 }
 
 export interface GetTopHoldersResponse {
-    data: TopHolder[];           // An array of top holders
+    data: TopHolder[];    // An array of top holders
 }
 
 export interface RecentTransfer {
@@ -31,6 +31,7 @@ export interface RecentTransfer {
     price: string;
     calculatedAmount: string;
     valueUsd: string;
+    tokenSymbol?: string;
 }
 
 interface CallingMetadata {
@@ -41,5 +42,23 @@ interface CallingMetadata {
 }
 
 export interface GetRecentTransferResponse {
-    transfers: RecentTransfer[];           // An array of recent transfers
+    transfers: RecentTransfer[];    // An array of recent transfers
+}
+
+export interface WhaleWatchParams {
+  mintAddress?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  timeStart?: number;
+  timeEnd?: number;
+  sortByDesc?: 'amount' | 'blockTime' | 'slot';
+  limit?: number;
+}
+
+
+// Define settings interface for whale alerts
+export interface WhaleAlertSettings {
+    minAmount: number;
+    tokens: string[]; // Array of token mint addresses to monitor
+    chatId: number;
 }
