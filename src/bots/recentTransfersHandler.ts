@@ -45,6 +45,7 @@ export class RecentTransferHandler extends BaseHandler {
 
         // Parse the limit (default to 5)
         const limit = Number(parts[2] || 5);
+        console.log("Limit:", limit);
         if (isNaN(limit) || limit <= 0) {
             return this.bot.sendMessage(chatId,
                 "Invalid limit. Please provide a positive number for the limit.");

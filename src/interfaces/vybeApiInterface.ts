@@ -65,8 +65,8 @@ export interface WhaleAlertSettings {
 }
 
 export interface TokenHolderTimeSeries {
-    timestamp: number;
-    holderCount: number;
+    holdersTimestamp: number;
+    nHolders: number;
     totalSupply: string;
     topHolders: {
         address: string;

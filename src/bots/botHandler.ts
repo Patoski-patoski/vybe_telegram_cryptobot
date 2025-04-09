@@ -6,6 +6,7 @@ import { TopTokenHandler } from "./topHolderHandler";
 import { RecentTransferHandler } from "./recentTransfersHandler";
 import { WhaleWatcherHandler } from "./whaleWatchHandler";
 import { TokenHolderAnalysisHandler } from "./tokenHolderAnalysisHandler";
+import { HolderDistributionHandler } from "./holderDistributionHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class BotHandler {
@@ -17,6 +18,7 @@ export class BotHandler {
     private recentTransferHandler: RecentTransferHandler;
     private whaleWatcherHandler: WhaleWatcherHandler;
     private tokenHolderAnalysisHandler: TokenHolderAnalysisHandler;
+    private holderDistributionHandler: HolderDistributionHandler;
 
     constructor() {
         const config = getConfig();
@@ -28,6 +30,7 @@ export class BotHandler {
         this.recentTransferHandler = new RecentTransferHandler(this.bot, this.api);
         this.whaleWatcherHandler = new WhaleWatcherHandler(this.bot, this.api);
         this.tokenHolderAnalysisHandler = new TokenHolderAnalysisHandler(this.bot, this.api);
+        this.holderDistributionHandler = new HolderDistributionHandler(this.bot, this.api);
 
         // Setup commands
         this.setUpCommands();
@@ -40,7 +43,7 @@ export class BotHandler {
     private setUpCommands() {
         const cmds = [
             { cmd: /\/start/, handler: this.handleStart.bind(this) },
-            { cmd: /\/holder/, handler: this.tokenHolderHandler.handleTopToken.bind(this.tokenHolderHandler) },
+            { cmd: /\/top_holders/, handler: this.tokenHolderHandler.handleTopToken.bind(this.tokenHolderHandler) },
             { cmd: /\/transfers/, handler: this.recentTransferHandler.handleTransfers.bind(this.recentTransferHandler) },
             // Whale commands
             { cmd: /\/whalealert/, handler: this.whaleWatcherHandler.handleSetWhaleAlert.bind(this.whaleWatcherHandler) },
@@ -48,6 +51,7 @@ export class BotHandler {
             { cmd: /\/removewhalealert/, handler: this.whaleWatcherHandler.handleRemoveWhaleAlert.bind(this.whaleWatcherHandler) },
             { cmd: /\/checkwhales/, handler: this.whaleWatcherHandler.handleCheckWhales.bind(this.whaleWatcherHandler) },
             { cmd: /\/holders/, handler: this.tokenHolderAnalysisHandler.handleTokenHolderAnalysis.bind(this.tokenHolderAnalysisHandler) },
+            { cmd: /\/holder_distribution/, handler: this.holderDistributionHandler.handleHolderDistribution.bind(this.holderDistributionHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {

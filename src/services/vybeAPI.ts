@@ -67,7 +67,9 @@ export class VybeApiService {
      * @returns A Promise that resolves to a {@link GetTopHoldersResponse} containing the
      *          top token holders for the specified mint address.
      */
-    async getTopTokenHolder(mintAddress: string, limit: number = 5): Promise<GetTopHoldersResponse> {
+    async getTopTokenHolder(
+        mintAddress: string,
+        limit?: number): Promise<GetTopHoldersResponse> {
         // Validate mint address format
         if (!isValidMintAddress(mintAddress)) {
             const msg = `Invalid mint address: ${mintAddress} is not a valid base58 encoded Solana Pubkey`;
@@ -75,9 +77,14 @@ export class VybeApiService {
             throw new Error(msg);
         }
 
-        const topHolderURL = `/token/${mintAddress}/top-holders?limit=${limit}`;
+        // Clean up parameters by removing undefined values
+        const params = {
+            ...(limit && { limit }),
+        };
+
+        const topHolderURL = `/token/${mintAddress}/top-holders`;
         try {
-            const response = await this.api.get(topHolderURL);
+            const response = await this.api.get(topHolderURL, { params });
 
             switch (response.status) {
                 case 400:

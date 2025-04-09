@@ -90,13 +90,6 @@ Network: %network%
 Walletaddress: %walletAddress%
 Balance: %balance%
 Symbol: %symbol%`,
-        TRANSFER_NOT_AUTHENTICATED: '❌ You\'re offline. Please login first using /login to use the transfer feature',
-        HISTORY_NOT_AUTHENTICATED: '❌ You\'re offline. Please login first using /login to view your transaction history',
-        HISTORY_NO_TRANSACTIONS: '📪 No transactions found.\n\n Send some funds to see your history.',
-        WALLET_NOT_AUTHENTICATED: '❌ You\'re offline. Please login first using /login to access wallet features',
-        KYC_NOT_AUTHENTICATED: '❌ You\'re offline. Please login first using /login to view your KYC status',
-        ADD_RECIPIENT_NOT_AUTHENTICATED: '❌ You\'re offline. Please login first using /login to add a recipient',
-
 
 
         TRANSFER_EMAIL_INTRO: `📤 *Send Funds by Email*
@@ -109,36 +102,52 @@ Please follow these steps:
 3. Select purpose
 4. Review and confirm`,
 
-        TRANSFER_ENTER_EMAIL: '📧 Please enter the recipient\'s email address:',
-        TRANSFER_INVALID_EMAIL: '❌ Invalid email address. Please enter a valid email.',
 
-        TRANSFER_ENTER_AMOUNT: '💰 Please enter the amount to send:',
-        TRANSFER_INVALID_AMOUNT: '❌ Invalid amount. Please enter a positive number (e.g., 10.50).',
+        TOPTOKENHOLDERS_HELP: `Usage: /top_holders <token_mint_address> [limit]\n +
+                "Example: /top_holders EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 10\n" +
+                "Limit: 1-100"
+                
+                Output:
 
-        TRANSFER_SELECT_PURPOSE: `🏷️ Please select the purpose of this transfer:`,
+💰 Transfer Summary
 
-        TRANSFER_ENTER_NOTE: '📝 Add an optional note to the recipient (or type "skip"):',
+👤 From: mmkyprqAN3ukTQF78ck8F9K5UfN8t9qQLet8RRVTcaC
 
-        TRANSFER_CONFIRM_TEMPLATE: `📋 *Transfer Confirmation*
+📥 To: HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe
 
-*Amount:* %amount%
-*Currency:* %currency%
+💸 Transfer Amount(SOL): 0.000002 SOL
 
-*To:* %email%
-*Purpose:* %purposeCode%
-%note%
+🕒 Block Time: 13 hours ago
 
-Please confirm this transfer.`,
+🔗 🔍 View on Solscan`,
 
-        TRANSFER_SUCCESS: `✅ *Transfer Successful!*
+        TOKENHOLDERANALYSIS_HELP: `Usage: /holders <token_mint_address> [timeframe]\n" +
+                "Example: /holders EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 24h\n" +
+                "Timeframes: 1h, 24h, 7d, 30d
 
-*Transaction ID:* %id%
-*Status:* %status%
-*Amount:* %amount%
-*Currency:* %currency%
-*Recipient wallet:* %destinationAccount.walletAddress%`,
+                Output:
 
-        TRANSFER_ERROR: 'Transfer failed: %message%',
+                📊 Token Holder Analysis
+
+Token: mmkyprqAN3ukTQF78ck8F9K5UfN8t9qQLet8RRVTcaC
+Timeframe: 24h
+
+Current Holders: 1500
+Change in Holders: 100 (6.67%)
+
+Top Holders:
+1. mmkyprqAN3ukTQF78ck8F9K5UfN8t9qQLet8RRVTcaC
+   Balance: 1000
+   Percentage: 6.67%
+
+2. HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe
+   Balance: 500
+   Percentage: 3.33%
+
+Data as of 24 hours ago
+                `,
+
+
         TOKEN_HOLDER: `📊 *Rank*: %index%
 
 * Owner Name:* %ownerName%

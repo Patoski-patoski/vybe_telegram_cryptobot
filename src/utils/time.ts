@@ -18,6 +18,6 @@ export function timeAgo(timestamp: number): string {
             return `${value} ${unit.label}${value > 1 ? "s" : ""} ago`
         };
     }
-
+    
     return "just now";
 }

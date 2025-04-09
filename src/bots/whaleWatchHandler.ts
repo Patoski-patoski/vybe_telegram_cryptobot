@@ -154,7 +154,7 @@ export class WhaleWatcherHandler extends BaseHandler {
             `👤 *From:* \`${transfer.senderAddress || "Unknown"}\`\n` +
             `📥 *To:* \`${transfer.receiverAddress || "Unknown"}\`\n\n` +
             `🕒 _${timeAgo(transfer.blockTime * 1000)}_\n` +
-            `🔗 [View Transaction](${solscanUrl})`;
+            `🔗 [View Transaction on solscan](${solscanUrl})`;
         
         await this.bot.sendMessage(chatId, message, {
             parse_mode: "Markdown",
