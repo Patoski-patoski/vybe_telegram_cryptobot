@@ -1,0 +1,49 @@
+{
+  "name": "vybe-telegram-bot",
+  "version": "1.0.0",
+  "description": "a Telegram bot using Vybe APIs for actionable, real-time crypto insights, linking users to AlphaVybe for deeper analytics.",
+  "main": "app.ts",
+  "scripts": {
+    "test": "test",
+    "prebuild": "npx rimraf ./dist",
+    "build": "npx tsc",
+    "start": "node dist/app.js",
+    "prestart": "npm run build",
+    "serve": "ts-node-dev --respawn --transpile-only --poll --debug src/app.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patoski-patoski/vybe_telegram_bot.git"
+  },
+  "keywords": [
+    "telegram-bot",
+    "TypeScript",
+    "Solana",
+    "Crypto",
+    "Crypto-analytic",
+    "Express"
+  ],
+  "author": "Patrick Okafor",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/patoski-patoski/vybe_teleram_bot/issues"
+  },
+  "homepage": "https://github.com/patoski-patoski/vybe_teleram_bot#readme",
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.14.0",
+    "@types/node-telegram-bot-api": "^0.64.8",
+    "eslint": "^9.23.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0",
+    "axios": "^1.8.4",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "ts-node": "^10.9.2",
+    "winston": "^3.17.0"
+  }
+}
