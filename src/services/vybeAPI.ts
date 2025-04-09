@@ -188,8 +188,8 @@ export class VybeApiService {
      */
     async getTokenHolderTimeSeries(
         mintAddress: string,
-        timeStart?: number,
-        timeEnd?: number,
+        startTime?: number,
+        endTime?: number,
         limit: number = 5
     ): Promise<GetTokenHolderTimeSeriesResponse> {
         // Validate mint address format
@@ -200,18 +200,19 @@ export class VybeApiService {
         }
 
         const params = {
-            ...(timeStart && { timeStart }),
-            ...(timeEnd && { timeEnd }),
+            ...(startTime && { startTime }),
+            ...(endTime && { endTime }),
             limit
         };
 
         try {
             const response = await this.api.get(`/token/${mintAddress}/holders-ts`, { params });
+            console.log("params", params);
+            console.log("getTokenHolderTimeSeries response", response.data);
             return response.data as GetTokenHolderTimeSeriesResponse;
         } catch (error: any) {
             logger.error(`Failed to fetch token holder time series for ${mintAddress}`, { error });
             throw new Error(`Failed to fetch token holder time series: ${error.message}`);
         }
     }
-
 }
