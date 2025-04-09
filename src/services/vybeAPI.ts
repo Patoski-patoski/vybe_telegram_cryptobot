@@ -13,6 +13,7 @@ import {
     GetTopHoldersResponse,
     GetRecentTransferResponse,
     WhaleWatchParams,
+    GetTokenHolderTimeSeriesResponse,
 } from "../interfaces/vybeApiInterface";
 
 dotenv.config();
@@ -20,6 +21,10 @@ dotenv.config();
 export class VybeApiService {
     private api: AxiosInstance;
 
+    /**
+     * Initializes the Vybe API service with the given configuration.
+     * @constructor
+     */
     constructor() {
         this.api = axios.create({
             baseURL: config.vybe.apiBaseUrl,
@@ -55,6 +60,13 @@ export class VybeApiService {
     }
 
     // Get top Token Holders
+    /**
+     * Fetches top token holders from Vybe API.
+     * @param mintAddress The mint address of the token to fetch top holders for.
+     * @param limit Optional limit of number of records to return. Default is 5.
+     * @returns A Promise that resolves to a {@link GetTopHoldersResponse} containing the
+     *          top token holders for the specified mint address.
+     */
     async getTopTokenHolder(mintAddress: string, limit: number = 5): Promise<GetTopHoldersResponse> {
         // Validate mint address format
         if (!isValidMintAddress(mintAddress)) {
@@ -87,6 +99,16 @@ export class VybeApiService {
             throw new Error(`Failed to get top token holders: ${error.message}`);
         }
     }
+    /**
+     * Fetches recent transfers from Vybe API.
+     * @param mintAddress Optional mint address to filter by.
+     * @param senderAddress Optional sender address to filter by.
+     * @param receiverAddress Optional receiver address to filter by.
+     * @param tx_signature Optional transaction signature to filter by.
+     * @param limit Optional limit of number of records to return. Default is 5.
+     * @returns A Promise that resolves to a {@link GetRecentTransferResponse} containing the recent transfers.
+     * @throws {Error} If there is an error making the API request or parsing the response.
+     */
     async getRecentTransfers(
         mintAddress?: string,
         senderAddress?: string,
@@ -123,6 +145,12 @@ export class VybeApiService {
         }
     }
 
+    /**
+     * Fetches recent whale transfers from Vybe API.
+     * @param params Filter parameters for whale transfers. See {@link WhaleWatchParams} for more information.
+     * @returns A Promise that resolves to a {@link GetRecentTransferResponse} containing the whale transfers.
+     * @throws {Error} If there is an error making the API request or parsing the response.
+     */
     async getWhaleTransfers(params: WhaleWatchParams): Promise<GetRecentTransferResponse> {
         try {
             // Clean up parameters by removing undefined values
@@ -131,6 +159,8 @@ export class VybeApiService {
                 return acc;
 
             }, {} as Record<string, any>);
+
+            console.log("apiParams", apiParams);
 
             if (!apiParams.sortByDesc && !apiParams.sortByDesc) {
                 apiParams.sortByDesc = 'amount';
@@ -145,6 +175,42 @@ export class VybeApiService {
                 throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
             }
             throw new Error(`Failed to fetch whale transfers: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches token holder time series data from Vybe API.
+     * @param mintAddress The mint address of the token.
+     * @param timeStart Optional start time in Unix timestamp.
+     * @param timeEnd Optional end time in Unix timestamp.
+     * @param limit Optional limit of number of records to return. Default is 5.
+     * @returns A Promise that resolves to a {@link GetTokenHolderTimeSeriesResponse} containing the token holder time series data.
+     */
+    async getTokenHolderTimeSeries(
+        mintAddress: string,
+        timeStart?: number,
+        timeEnd?: number,
+        limit: number = 5
+    ): Promise<GetTokenHolderTimeSeriesResponse> {
+        // Validate mint address format
+        if (!isValidMintAddress(mintAddress)) {
+            const msg = `Invalid mint address: ${mintAddress} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
+
+        const params = {
+            ...(timeStart && { timeStart }),
+            ...(timeEnd && { timeEnd }),
+            limit
+        };
+
+        try {
+            const response = await this.api.get(`/token/${mintAddress}/holders-ts`, { params });
+            return response.data as GetTokenHolderTimeSeriesResponse;
+        } catch (error: any) {
+            logger.error(`Failed to fetch token holder time series for ${mintAddress}`, { error });
+            throw new Error(`Failed to fetch token holder time series: ${error.message}`);
         }
     }
 

@@ -46,19 +46,35 @@ export interface GetRecentTransferResponse {
 }
 
 export interface WhaleWatchParams {
-  mintAddress?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  timeStart?: number;
-  timeEnd?: number;
-  sortByDesc?: 'amount' | 'blockTime' | 'slot';
-  limit?: number;
+    mintAddress?: string;
+    minAmount?: number;
+    maxAmount?: number;
+    timeStart?: number;
+    timeEnd?: number;
+    sortByDesc?: 'amount' | 'blockTime' | 'slot';
+    limit?: number;
 }
 
 
 // Define settings interface for whale alerts
+
 export interface WhaleAlertSettings {
     minAmount: number;
     tokens: string[]; // Array of token mint addresses to monitor
     chatId: number;
+}
+
+export interface TokenHolderTimeSeries {
+    timestamp: number;
+    holderCount: number;
+    totalSupply: string;
+    topHolders: {
+        address: string;
+        balance: string;
+        percentage: number;
+    }[];
+}
+
+export interface GetTokenHolderTimeSeriesResponse {
+    data: TokenHolderTimeSeries[];
 }

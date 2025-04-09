@@ -5,6 +5,7 @@ import { VybeApiService } from "../services/vybeAPI";
 import { TopTokenHandler } from "./topHolderHandler";
 import { RecentTransferHandler } from "./recentTransfersHandler";
 import { WhaleWatcherHandler } from "./whaleWatchHandler";
+import { TokenHolderAnalysisHandler } from "./tokenHolderAnalysisHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class BotHandler {
@@ -14,18 +15,19 @@ export class BotHandler {
     // Handler instances
     private tokenHolderHandler: TopTokenHandler;
     private recentTransferHandler: RecentTransferHandler;
-    private whaleWatcherHandler: WhaleWatcherHandler
+    private whaleWatcherHandler: WhaleWatcherHandler;
+    private tokenHolderAnalysisHandler: TokenHolderAnalysisHandler;
 
     constructor() {
         const config = getConfig();
         this.bot = new TelegramBot(config.bot.botToken, {});
         this.api = new VybeApiService();
 
-
         //Handler instances
         this.tokenHolderHandler = new TopTokenHandler(this.bot, this.api);
         this.recentTransferHandler = new RecentTransferHandler(this.bot, this.api);
         this.whaleWatcherHandler = new WhaleWatcherHandler(this.bot, this.api);
+        this.tokenHolderAnalysisHandler = new TokenHolderAnalysisHandler(this.bot, this.api);
 
         // Setup commands
         this.setUpCommands();
@@ -45,6 +47,7 @@ export class BotHandler {
             { cmd: /\/listwhalealerts/, handler: this.whaleWatcherHandler.handleListWhaleAlerts.bind(this.whaleWatcherHandler) },
             { cmd: /\/removewhalealert/, handler: this.whaleWatcherHandler.handleRemoveWhaleAlert.bind(this.whaleWatcherHandler) },
             { cmd: /\/checkwhales/, handler: this.whaleWatcherHandler.handleCheckWhales.bind(this.whaleWatcherHandler) },
+            { cmd: /\/holders/, handler: this.tokenHolderAnalysisHandler.handleTokenHolderAnalysis.bind(this.tokenHolderAnalysisHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {

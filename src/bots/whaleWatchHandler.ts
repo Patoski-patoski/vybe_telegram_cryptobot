@@ -26,7 +26,15 @@ export class WhaleWatcherHandler extends BaseHandler {
         this.startWatchingWhales();
     }
 
-    // Start monitoring whale transactions
+    /**
+     * @function startWatchingWhales
+     * 
+     * Starts monitoring whale transactions
+     * 
+     * Checks every 10 minutes for transfers over the threshold
+     * for each token we are monitoring.
+     */
+
     private startWatchingWhales() {
         // check every 10 minutes
         this.checkInterval = setInterval(async () => {
@@ -35,6 +43,16 @@ export class WhaleWatcherHandler extends BaseHandler {
         
         logger.info("Whale Watcher started. Monitoring whale transactions every 10 minutes.");
     }
+
+    /**
+     * @function checkWhaleTransactions
+     * 
+     * Checks for whale transactions that have occurred since the last check
+     * 
+     * Iterates over all tokens we are monitoring and checks for transfers
+     * over the threshold. If a transfer is found, it sends a message to
+     * the chat with the details.
+     */
 
     private async checkWhaleTransactions() {
         try {
@@ -52,13 +70,14 @@ export class WhaleWatcherHandler extends BaseHandler {
             for (const token of allTokens) {
                 // find the minimum threshold for this token
                 let minimumAmount = Number.MAX_SAFE_INTEGER;
+                console.log("minimunamounts", minimumAmount);
                 this.alerts.forEach((settings) => {
                     if (settings.tokens.includes(token)
                         && settings.minAmount < minimumAmount) {
                         minimumAmount = Math.min(minimumAmount, settings.minAmount);
                     }
                 });
-
+                console.log("this.alerts", this.alerts);
                 const transfers = await this.api.getWhaleTransfers({
                     mintAddress: token,
                     minAmount: minimumAmount,
@@ -67,6 +86,8 @@ export class WhaleWatcherHandler extends BaseHandler {
                     sortByDesc: 'amount',
                     limit: 5
                 });
+
+                console.log("Transfer", transfers)
 
                 if (transfers && transfers.transfers.length > 0) {
                     // Process each transfers
@@ -90,24 +111,34 @@ export class WhaleWatcherHandler extends BaseHandler {
         }
     }
 
-    private async sendWhaleAlert(chatId: number, transfer: RecentTransfer) {
-
+    /**
+     * Send a whale alert to a chat about a recent transfer.
+     * @param chatId The Telegram chat ID to send the message to.
+     * @param transfer The whale transfer to report.
+     */
+    private async sendWhaleAlert(chatId: number, transfer: RecentTransfer): Promise<void> {
         // Determine if this is a native SOL transfer
         const isNativeSol = transfer.mintAddress === "11111111111111111111111111111111";
 
-        let amount, tokenSymbol;
+        let amount: string, tokenSymbol: string;
+
         if (isNativeSol) {
-            amount = parseFloat(transfer.calculatedAmount).toLocaleString(undefined, { maximumFractionDigits: 6 });
+            amount = parseFloat(transfer.calculatedAmount)
+                .toLocaleString(undefined, { maximumFractionDigits: 6 });
+            
             tokenSymbol = "SOL";
+
         } else {
             amount = parseFloat(transfer.calculatedAmount)
                 .toLocaleString(undefined, { maximumFractionDigits: 6 });
-            tokenSymbol = transfer.tokenSymbol || "";
         }
        
-        tokenSymbol = transfer.tokenSymbol || "Unknown";
-        const explorerUrl = `https://explorer.solana.com/tx/${transfer.signature}`;
-        const valueUsd = formatUsdValue(transfer.valueUsd ? `$${formatUsdValue(transfer.valueUsd)}` : "N/A");
+        const getTokenSymbol = await this.api.getTopTokenHolder(transfer.mintAddress);
+        tokenSymbol = getTokenSymbol.data[0].tokenSymbol;
+        
+        const solscanUrl = `https://solscan.io/tx/${transfer.signature}`;
+        const valueUsd = transfer.valueUsd ? `${formatUsdValue(transfer.valueUsd)}` : "N/A";
+
 
         let programContext = "";
         if (transfer.callingMetadata && transfer.calculatedAmount.length > 0) {
@@ -119,18 +150,18 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         const message =
             `🐋 *WHALE ALERT!* 🐋\n\n` +
-            `A large transfer of *${amount} ${tokenSymbol}* (${valueUsd}) was detected!\n\n` +
+            `*A large transfer of *${amount} ${tokenSymbol}* (${valueUsd}) was detected!*\n\n` +
             `👤 *From:* \`${transfer.senderAddress || "Unknown"}\`\n` +
             `📥 *To:* \`${transfer.receiverAddress || "Unknown"}\`\n\n` +
             `🕒 _${timeAgo(transfer.blockTime * 1000)}_\n` +
-            `🔗 [View Transaction](${explorerUrl})`;
+            `🔗 [View Transaction](${solscanUrl})`;
         
         await this.bot.sendMessage(chatId, message, {
             parse_mode: "Markdown",
             disable_web_page_preview: true
         });
     }
-
+ 
     // Command handler for setting whale alerts
     async handleSetWhaleAlert(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
@@ -148,7 +179,7 @@ export class WhaleWatcherHandler extends BaseHandler {
         const mintAddress = parts[1];
         const minAmount = parseFloat(parts[2]);
         if (isNaN(minAmount) || minAmount <= 0) {
-            return this.bot.sendMessage(chatId, "Minimum amount must be a positive number.");
+            return this.bot.sendMessage(chatId, "⛔ Minimum amount must be a positive number.");
         }
         // Store the alert seetings
         const alertId = `${chatId}-${mintAddress}`;
@@ -159,7 +190,8 @@ export class WhaleWatcherHandler extends BaseHandler {
             this.alerts.set(alertId, existingAlert);
             await this.saveAlerts();
             await this.bot.sendMessage(chatId,
-                `✅ Updated whale alert: You will be notified of transfers over ${minAmount} for token ${mintAddress}`
+                `*🟡 Updated whale alert!!*\nYou will be notified of transfers over *${minAmount}* for token *${mintAddress}*`,
+                { parse_mode: "Markdown" }
             );
         } else {
             // Crete new alert
@@ -170,16 +202,23 @@ export class WhaleWatcherHandler extends BaseHandler {
             });
             await this.saveAlerts();
             await this.bot.sendMessage(chatId,
-                `✅ Whale alert set: You will be notified of transfers over ${minAmount} for token ${mintAddress}`
+                `*✅  Whale alert set!!*\nYou will be notified of transfers over *${minAmount}* for token *${mintAddress}*`,
+                {parse_mode: "Markdown"}
             );
         }
     }
 
     // Command handler for listing active whale alerts
+    /**
+     * @function handleListWhaleAlerts
+     * 
+     * 
+     */
     async handleListWhaleAlerts(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
 
         // Find all alerts for this chat
+        // Gather all alerts associated with this chat ID
         const chatAlerts = Array.from(this.alerts.values())
             .filter(alert => alert.chatId);
         if (chatAlerts.length == 0) {
@@ -193,9 +232,9 @@ export class WhaleWatcherHandler extends BaseHandler {
         chatAlerts.forEach(async (alert, index) => {
             message += `*Alert ${index + 1}*:\n`;
             alert.tokens.forEach(token => {
-                message += `• Token: \`${token}\`\n`;
+                message += `• *Token: * \`${token}\`\n\n`;
             });
-            message += `• Min Amount: ${alert.minAmount}\n\n`;
+            message += `• *Min Amount:* ${alert.minAmount}\n\n`;
         });
 
         message += "To remove an alert, use /removewhalealert <token_mint_address>";
@@ -258,7 +297,6 @@ export class WhaleWatcherHandler extends BaseHandler {
         try {
             // Get past 24 hours
             const oneDayAgo = Math.floor(Date.now() / 100) - 86400;
-
             const params: any = {
                 minAmount,
                 timeStart: oneDayAgo,
@@ -269,17 +307,16 @@ export class WhaleWatcherHandler extends BaseHandler {
             if (mintAddress) params.mintAddress = mintAddress;
 
             const transfers = await this.api.getWhaleTransfers(params);
-
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
             if (!transfers || !transfers.transfers || transfers.transfers.length === 0) {
                 return this.bot.sendMessage(chatId,
-                    "No whale transfers found with the specified criteria in the last 24 hours."
+                    "⛔ No whale transfers found with the specified criteria in the last 24 hours."
                 );
             }
 
             await this.bot.sendMessage(chatId,
-                `🐋 *Top ${transfers.transfers.length} Whale Transfers (Last 24h)* 🐋\n` +
+                `🐋 *Top ${transfers.transfers.length} Whale Transfers (Last 24h)* 🐋\n\n` +
                 `${mintAddress ? `For token: ${mintAddress}\n` : ""}` +
                 `Minimum amount: ${minAmount}`,
                 { parse_mode: "Markdown" }
