@@ -5,8 +5,9 @@ import { VybeApiService } from "../services/vybeAPI";
 import { TopTokenHandler } from "./topHolderHandler";
 import { RecentTransferHandler } from "./recentTransfersHandler";
 import { WhaleWatcherHandler } from "./whaleWatchHandler";
-import { TokenHolderAnalysisHandler } from "./tokenHolderAnalysisHandler";
+import { TokenHolderAnalysisHandler } from "./holderTimeSeries";
 import { HolderDistributionHandler } from "./holderDistributionHandler";
+import { TokenAnalysisHandler } from "./tokenAnalysisHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class BotHandler {
@@ -19,6 +20,7 @@ export class BotHandler {
     private whaleWatcherHandler: WhaleWatcherHandler;
     private tokenHolderAnalysisHandler: TokenHolderAnalysisHandler;
     private holderDistributionHandler: HolderDistributionHandler;
+    private tokenAnalysisHandler: TokenAnalysisHandler;
 
     constructor() {
         const config = getConfig();
@@ -31,6 +33,7 @@ export class BotHandler {
         this.whaleWatcherHandler = new WhaleWatcherHandler(this.bot, this.api);
         this.tokenHolderAnalysisHandler = new TokenHolderAnalysisHandler(this.bot, this.api);
         this.holderDistributionHandler = new HolderDistributionHandler(this.bot, this.api);
+        this.tokenAnalysisHandler = new TokenAnalysisHandler(this.bot, this.api);
 
         // Setup commands
         this.setUpCommands();
@@ -50,7 +53,9 @@ export class BotHandler {
             { cmd: /\/listwhalealerts/, handler: this.whaleWatcherHandler.handleListWhaleAlerts.bind(this.whaleWatcherHandler) },
             { cmd: /\/removewhalealert/, handler: this.whaleWatcherHandler.handleRemoveWhaleAlert.bind(this.whaleWatcherHandler) },
             { cmd: /\/checkwhales/, handler: this.whaleWatcherHandler.handleCheckWhales.bind(this.whaleWatcherHandler) },
-            { cmd: /\/holders/, handler: this.tokenHolderAnalysisHandler.handleTokenHolderAnalysis.bind(this.tokenHolderAnalysisHandler) },
+            // Token Analysis commands
+            { cmd: /\/analyze/, handler: this.tokenAnalysisHandler.handleTokenAnalysis.bind(this.tokenAnalysisHandler) },
+            { cmd: /\/holders/, handler: this.tokenHolderAnalysisHandler.handleTokenAnalysis.bind(this.tokenHolderAnalysisHandler) },
             { cmd: /\/holder_distribution/, handler: this.holderDistributionHandler.handleHolderDistribution.bind(this.holderDistributionHandler) },
         ]
 
@@ -67,5 +72,4 @@ export class BotHandler {
             { parse_mode: 'Markdown' }
         );
     }
-
 }

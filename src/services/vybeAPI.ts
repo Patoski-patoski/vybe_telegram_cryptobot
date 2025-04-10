@@ -4,7 +4,6 @@ import config from "../config/config";
 import { isValidMintAddress } from "../utils/solana";
 import axios, {
     AxiosInstance,
-    AxiosRequestConfig,
     AxiosResponse
 } from 'axios';
 
@@ -14,6 +13,8 @@ import {
     GetRecentTransferResponse,
     WhaleWatchParams,
     GetTokenHolderTimeSeriesResponse,
+    GetTokenVolumeTimeSeriesResponse,
+    TokenBalanceResponse
 } from "../interfaces/vybeApiInterface";
 
 dotenv.config();
@@ -63,7 +64,7 @@ export class VybeApiService {
     /**
      * Fetches top token holders from Vybe API.
      * @param mintAddress The mint address of the token to fetch top holders for.
-     * @param limit Optional limit of number of records to return. Default is 5.
+     * @param limit Optional limit of number of records to return. Default is 10.
      * @returns A Promise that resolves to a {@link GetTopHoldersResponse} containing the
      *          top token holders for the specified mint address.
      */
@@ -214,12 +215,72 @@ export class VybeApiService {
 
         try {
             const response = await this.api.get(`/token/${mintAddress}/holders-ts`, { params });
-            console.log("params", params);
-            console.log("getTokenHolderTimeSeries response", response.data);
             return response.data as GetTokenHolderTimeSeriesResponse;
         } catch (error: any) {
             logger.error(`Failed to fetch token holder time series for ${mintAddress}`, { error });
             throw new Error(`Failed to fetch token holder time series: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches token volume time series data from Vybe API.
+     * @param mintAddress The mint address of the token.
+     * @param startTime Optional start time in Unix timestamp.
+     * @param endTime Optional end time in Unix timestamp.
+     * @param limit Optional limit of number of records to return. Default is 5.
+     * @returns A Promise that resolves to a {@link GetTokenVolumeTimeSeriesResponse} containing the token volume time series data.
+     */
+    async getTokenVolumeTimeSeries(
+        mintAddress: string,
+        startTime?: number,
+        endTime?: number,
+        limit: number = 5
+    ): Promise<GetTokenVolumeTimeSeriesResponse> {
+        // Validate mint address format
+        if (!isValidMintAddress(mintAddress)) {
+            const msg = `Invalid mint address: ${mintAddress} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
+
+        const params = {
+            ...(startTime && { startTime }),
+            ...(endTime && { endTime }),
+            limit
+        };
+        
+        try {
+            const response = await this.api.get(`/token/${mintAddress}/transfer-volume`, { params });
+            return response.data as GetTokenVolumeTimeSeriesResponse;
+        } catch (error: any) {
+            logger.error(`Failed to fetch token volume time series for ${mintAddress}`, { error });
+            throw new Error(`Failed to fetch token volume time series: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches token balance data from Vybe API.
+     * @param ownerAddress The owner address to fetch token balances for.
+     * @returns A Promise that resolves to a {@link TokenBalanceResponse} containing the token balances.
+     * @throws {Error} If there is an error making the API request or parsing the response.
+     */
+    async getTokenBalance(ownerAddress: string): Promise<TokenBalanceResponse> {
+        // Validate owner address format
+        if (!isValidMintAddress(ownerAddress)) {
+            const msg = `Invalid owner address: ${ownerAddress} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
+
+        try {
+            const response = await this.api.get(`/account/token-balance/${ownerAddress}`);
+            return response.data as TokenBalanceResponse;
+        } catch (error: any) {
+            logger.error(`Failed to fetch token balance for ${ownerAddress}`, { error });
+            if (error.response) {
+                throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
+            }
+            throw new Error(`Failed to fetch token balance: ${error.message}`);
         }
     }
 }

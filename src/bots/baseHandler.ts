@@ -27,6 +27,7 @@ export class BaseHandler {
                 { command: 'checkwhales', description: 'Check whale transfers' },
                 { command: 'holders', description: 'View holder stats' },
                 { command: 'holder_distribution', description: 'View holder distribution' },
+                { command: 'analyze', description: 'Comprehensive token analysis' },
                 { command: 'help', description: 'Get help' },
             ];
 

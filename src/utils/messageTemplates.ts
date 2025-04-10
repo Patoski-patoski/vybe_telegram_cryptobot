@@ -146,6 +146,38 @@ Top Holders:
 
 Data as of 24 hours ago
                 `,
+        TOKENANALYSIS_HELP: `Usage: /token_analysis <token_mint_address>\n
+📊 Comprehensive Token Analysis
+
+Token: "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+Timeframe: 2025-03-30 to 2025-04-09
+
+Holder Analysis:
+• Current Holders: 1500
+• Change in Holders: +100 (6.67%)
+
+Volume Analysis:
+• Latest 24h Volume: $1,234,567
+• Average Daily Volume: $987,654
+• Total Volume: $12,345,678
+
+Correlation Analysis:
+• Holder-Volume Correlation: 0.75
+  (1.0 = perfect positive, -1.0 = perfect negative, 0 = no correlation)
+
+Historical Data:
+1. 2025-04-09
+   Holders: 1500
+   Volume: $1,234,567
+
+2. 2025-04-08
+   Holders: 1480
+   Volume: $1,123,456
+...
+
+Data as of 2 hours ago
+
+        `, 
 
 
         TOKEN_HOLDER: `📊 *Rank*: %index%

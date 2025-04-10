@@ -78,3 +78,48 @@ export interface TokenHolderTimeSeries {
 export interface GetTokenHolderTimeSeriesResponse {
     data: TokenHolderTimeSeries[];
 }
+
+export interface GetTokenVolumeTimeSeriesResponse {
+    data: {
+        timeBucketStart: number;
+        timeBucketEnd: number;
+        volume: string;
+        amount: string;
+    }[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+    };
+}
+
+export interface TokenBalance {
+    ownerAddress: string;
+    symbol: string;
+    name: string;
+    mintAddress: string;
+    amount: string;
+    priceUsd: string;
+    priceUsd1dChange: string;
+    priceUsd7dTrend: string[];
+    valueUsd: string;
+    valueUsd1dChange: string;
+    logoUrl: string;
+    category: string;
+    decimals: number;
+    verified: boolean;
+    slot: number;
+}
+
+export interface TokenBalanceResponse {
+    date: number;
+    ownerAddress: string;
+    stakedSolBalanceUsd: string;
+    stakedSolBalance: string;
+    activeStakedSolBalanceUsd: string;
+    activeStakedSolBalance: string;
+    totalTokenValueUsd: string;
+    totalTokenValueUsd1dChange: string;
+    totalTokenCount: number;
+    data: TokenBalance[];
+}
