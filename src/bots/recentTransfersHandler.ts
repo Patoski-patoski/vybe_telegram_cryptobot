@@ -22,6 +22,7 @@ import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
 import { timeAgo } from "../utils/time";
 import { GetRecentTransferResponse, RecentTransfer } from "../interfaces/vybeApiInterface";
+import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class RecentTransferHandler extends BaseHandler {
 
@@ -41,11 +42,15 @@ export class RecentTransferHandler extends BaseHandler {
         }
 
         const filterInput = parts[1];
-        console.log("Filter Input:", filterInput);
+        if (filterInput === 'help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.RECENT_TRANSFERS_HELP,
+                { parse_mode: "Markdown" }
+            );
+        }
 
         // Parse the limit (default to 5)
         const limit = Number(parts[2] || 5);
-        console.log("Limit:", limit);
         if (isNaN(limit) || limit <= 0) {
             return this.bot.sendMessage(chatId,
                 "Invalid limit. Please provide a positive number for the limit.");

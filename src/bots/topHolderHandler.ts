@@ -33,24 +33,26 @@ import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class TopTokenHandler extends BaseHandler { 
     async handleTopToken(msg: TelegramBot.Message) {
-        const { chat: { id: chatId }, text } = msg;
+        const chatId = msg.chat.id;
+        const text = msg.text || "";
+        const parts = text.split(" ");
 
-        if (!text || !text.startsWith("/holder")) { 
+
+        if (parts.length < 2) { 
             await this.bot.sendMessage(chatId,
-                "Please use the command in the format: /token mintAddress"
+                "Please provide a mint address. Usage: /top_holders mintAddress"
             );
             return;
         }
-
-        const commandParts = text.split(" ");
-        if (commandParts.length < 2) { 
-            await this.bot.sendMessage(chatId,
-                "Please provide a mint address. Usage: /holder mintAddress"
-            );
-            return;
+        const mintAddress = parts[1];
+        if(mintAddress === 'help'){
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.TOP_HOLDERS_HELP,
+                {parse_mode: "Markdown"}
+            )
         }
-        const mintAddress = commandParts[1]; // Extract mint address from command
-        const limit: number = Number(commandParts[2]);
+        // Extract mint address from command
+        const limit: number = Number(parts[2]);
 
         if (limit && isNaN(limit)) {
             await this.bot.sendMessage(chatId,
@@ -61,7 +63,7 @@ export class TopTokenHandler extends BaseHandler {
         if (limit && limit > 10) {
             await this.bot.sendMessage(chatId,
                 "Limit exceeded. Please provide a limit of 10 or less." +
-                "\nExample: /holder {mintAddress} 10",
+                "\nExample: /top_holders {mintAddress} 10",
                 {
                     parse_mode: 'Markdown',
                     reply_markup: {

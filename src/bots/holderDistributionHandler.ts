@@ -2,7 +2,8 @@ import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
 import { formatUsdValue } from "../utils/solana";
 import logger from "../config/logger";
-import { TopHolder } from "@/interfaces/vybeApiInterface";
+import { TopHolder } from "../interfaces/vybeApiInterface";
+import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class HolderDistributionHandler extends BaseHandler {
     constructor(bot: TelegramBot, api: any) {
@@ -22,6 +23,12 @@ export class HolderDistributionHandler extends BaseHandler {
         }
 
         const mintAddress = parts[1];
+        if (mintAddress === 'help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.HOLDER_DISTRIBUTION_HELP,
+                {parse_mode: "Markdown"}
+            );
+        }
         const limit = Number(parts[2] || 10);
         const loadingMsg = await this.bot.sendMessage(chatId,
             "🔍 Analyzing token holder distribution..."

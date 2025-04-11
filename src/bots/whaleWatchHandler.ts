@@ -8,12 +8,11 @@ import { timeAgo } from "../utils/time";
 import { formatUsdValue } from "../utils/solana";
 import logger from "../config/logger";
 import {
-    GetRecentTransferResponse,
     RecentTransfer,
-    WhaleWatchParams,
     WhaleAlertSettings
 } from "../interfaces/vybeApiInterface";
-import { VybeApiService } from "@/services/vybeAPI";
+import { VybeApiService } from "../services/vybeAPI";
+import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class WhaleWatcherHandler extends BaseHandler {
     private alerts: Map<string, WhaleAlertSettings> = new Map();
@@ -119,7 +118,6 @@ export class WhaleWatcherHandler extends BaseHandler {
     private async sendWhaleAlert(chatId: number, transfer: RecentTransfer): Promise<void> {
         // Determine if this is a native SOL transfer
         const isNativeSol = transfer.mintAddress === "11111111111111111111111111111111";
-
         let amount: string, tokenSymbol: string;
 
         if (isNativeSol) {
@@ -139,14 +137,8 @@ export class WhaleWatcherHandler extends BaseHandler {
         const solscanUrl = `https://solscan.io/tx/${transfer.signature}`;
         const valueUsd = transfer.valueUsd ? `${formatUsdValue(transfer.valueUsd)}` : "N/A";
 
+        console.log("transferBLOCKTIME", transfer.blockTime);
 
-        let programContext = "";
-        if (transfer.callingMetadata && transfer.calculatedAmount.length > 0) {
-            const program = transfer.callingMetadata[0].programName;
-            if (program) {
-                programContext = `\n💻 *Program:* ${program}`;
-            }
-        }
 
         const message =
             `🐋 *WHALE ALERT!* 🐋\n\n` +
@@ -168,6 +160,12 @@ export class WhaleWatcherHandler extends BaseHandler {
         const text = msg.text || "";
         const parts = text.split(" ");
 
+        if (parts[1] === 'help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.WHALE_ALERT_HELP,
+                { parse_mode: "Markdown" }
+            );
+        }
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
                 "Usage: /whalealert <token_mint_address> <min_amount>\n" +
@@ -277,16 +275,30 @@ export class WhaleWatcherHandler extends BaseHandler {
         const text = msg.text || "";
         const parts = text.split(" ");
 
-        let mintAddress: string | undefined;
-        let minAmount = 1000; // Default minimum account
+        console.log("parts", parts);
 
-        if (parts.length >= 3) mintAddress = parts[1];
+        let mintAddress: string;
+        let minAmount = 5000; // Default minimum amount
+        if(parts.length < 2) {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.CHECK_WHALES_USAGE,
+                { parse_mode: "Markdown" }
+            );
+        }
 
-        if (parts.length > 3) {
-            const parsedAMount = parseFloat(parts[2]);
-            if (!isNaN(parsedAMount) && parsedAMount > 0) {
-                minAmount = parsedAMount;
-            }
+        mintAddress = parts[1];
+
+        if (mintAddress === 'help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.CHECK_WHALES_HELP,
+                { parse_mode: "Markdown" }
+            );
+        }
+
+        const parsedAMount = parseFloat(parts[2]);
+
+        if (!isNaN(parsedAMount) && parsedAMount > 0) {
+            minAmount = parsedAMount;
         }
 
         // Send load message
@@ -296,7 +308,7 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         try {
             // Get past 24 hours
-            const oneDayAgo = Math.floor(Date.now() / 100) - 86400;
+            const oneDayAgo = Math.floor(Date.now() / 1000) - 86400;
             const params: any = {
                 minAmount,
                 timeStart: oneDayAgo,
@@ -307,6 +319,7 @@ export class WhaleWatcherHandler extends BaseHandler {
             if (mintAddress) params.mintAddress = mintAddress;
 
             const transfers = await this.api.getWhaleTransfers(params);
+            console.log("transfers", transfers.transfers[0]);
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
             if (!transfers || !transfers.transfers || transfers.transfers.length === 0) {
@@ -315,10 +328,13 @@ export class WhaleWatcherHandler extends BaseHandler {
                 );
             }
 
+            console.log("params", params);
+
+
             await this.bot.sendMessage(chatId,
                 `🐋 *Top ${transfers.transfers.length} Whale Transfers (Last 24h)* 🐋\n\n` +
-                `${mintAddress ? `For token: ${mintAddress}\n` : ""}` +
-                `Minimum amount: ${minAmount}`,
+                ` *Mint Address:* \`${mintAddress}\`\n` +
+                ` *Minimum amount:* ${minAmount}`,
                 { parse_mode: "Markdown" }
             );
 
@@ -328,8 +344,7 @@ export class WhaleWatcherHandler extends BaseHandler {
             }
 
         } catch (error: any) {
-            await this.bot.deleteMessage(chatId, loadingMsg.message_id);
-            await this.bot.sendMessage(chatId, `❌ Error: ${error.message}`);
+            await this.bot.sendMessage(chatId, `❌ Error: ${error}`);
         }
     }
 

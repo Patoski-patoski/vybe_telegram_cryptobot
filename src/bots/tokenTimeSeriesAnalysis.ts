@@ -5,7 +5,7 @@ import { timeAgo } from "../utils/time";
 import logger from "../config/logger";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
-export class TokenHolderAnalysisHandler extends BaseHandler {
+export class TokenTimeSeriesAnalysisHandler extends BaseHandler {
     constructor(bot: TelegramBot, api: any) {
         super(bot, api);
     }
@@ -20,18 +20,14 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
         return Math.floor(date.getTime() / 1000);
     }
 
-    async handleTokenAnalysis(msg: TelegramBot.Message) {
+    async handleTokenTimeSeriesAnalysis(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
         const parts = text.split(" ");
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /analyze <token_mint_address> [start_date] [end_date]\n" +
-                "Example: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n" +
-                "Example: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09\n" +
-                "Example: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09 2025-03-30\n" +
-                "Dates should be in YYYY-MM-DD format"
+                BOT_MESSAGES.TOKEN_TIME_SERIES_USAGE
             );
         }
 
@@ -39,9 +35,11 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
 
         if (mintAddress === 'help') {
             return this.bot.sendMessage(chatId,
-                BOT_MESSAGES.TOKENANALYSIS_HELP
+                BOT_MESSAGES.TOKEN_TIME_SERIES_HELP,
+                { parse_mode: 'Markdown' }
             );
         }
+
         const startDate = parts[2] || "";
         const endDate = parts[3] || "";
 
@@ -70,7 +68,7 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
 
         try {
             const loadingMsg = await this.bot.sendMessage(chatId,
-                "🔍 Analyzing token data..."
+                "🔍 Analyzing token time series data..."
             );
 
             // Fetch both holder and volume data
@@ -78,9 +76,6 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
                 this.api.getTokenVolumeTimeSeries(mintAddress, finalStartTime, finalEndTime, 5),
                 this.api.getTokenHolderTimeSeries(mintAddress, finalStartTime, finalEndTime, 5)
             ]);
-
-            console.log("holdersResponse", holdersResponse);
-            console.log("volumeResponse", volumeResponse);
 
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
@@ -91,7 +86,7 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
                 );
             }
 
-            let message = `📊 *Comprehensive Token Analysis*\n\n`;
+            let message = `📊 *Token Time Series Analysis*\n\n`;
             message += `*Token:* \`${mintAddress}\`\n`;
 
             // Format timeframe message
@@ -157,12 +152,12 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
                     new Date(holderData.holdersTimestamp * 1000).toISOString().split('T')[0] :
                     new Date(volumeData.timeBucketStart * 1000).toISOString().split('T')[0];
 
-                message += `${i + 1}. ${date}\n`;
+                message += `${i + 1}. * On ${date}*\n`;
                 if (holderData) {
-                    message += `   Holders: ${holderData.nHolders}\n`;
+                    message += `   *Holders:* ${holderData.nHolders}\n`;
                 }
                 if (volumeData) {
-                    message += `   Volume: ${formatUsdValue(volumeData.volume)}\n`;
+                    message += `   *Volume:* ${formatUsdValue(volumeData.volume)}\n`;
                 }
                 message += '\n';
             }
@@ -178,7 +173,7 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
             });
 
         } catch (error: any) {
-            logger.error("Error in token analysis:", error);
+            logger.error("Error in token time series analysis:", error);
             await this.bot.sendMessage(chatId,
                 `❌ Error: ${error.message}`
             );

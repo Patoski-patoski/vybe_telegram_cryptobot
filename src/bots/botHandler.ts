@@ -5,7 +5,7 @@ import { VybeApiService } from "../services/vybeAPI";
 import { TopTokenHandler } from "./topHolderHandler";
 import { RecentTransferHandler } from "./recentTransfersHandler";
 import { WhaleWatcherHandler } from "./whaleWatchHandler";
-import { TokenHolderAnalysisHandler } from "./holderTimeSeries";
+import { TokenTimeSeriesAnalysisHandler } from "./tokenTimeSeriesAnalysis";
 import { HolderDistributionHandler } from "./holderDistributionHandler";
 import { TokenAnalysisHandler } from "./tokenAnalysisHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
@@ -18,7 +18,7 @@ export class BotHandler {
     private tokenHolderHandler: TopTokenHandler;
     private recentTransferHandler: RecentTransferHandler;
     private whaleWatcherHandler: WhaleWatcherHandler;
-    private tokenHolderAnalysisHandler: TokenHolderAnalysisHandler;
+    private tokenTimeSeriesHandler: TokenTimeSeriesAnalysisHandler;
     private holderDistributionHandler: HolderDistributionHandler;
     private tokenAnalysisHandler: TokenAnalysisHandler;
 
@@ -31,7 +31,7 @@ export class BotHandler {
         this.tokenHolderHandler = new TopTokenHandler(this.bot, this.api);
         this.recentTransferHandler = new RecentTransferHandler(this.bot, this.api);
         this.whaleWatcherHandler = new WhaleWatcherHandler(this.bot, this.api);
-        this.tokenHolderAnalysisHandler = new TokenHolderAnalysisHandler(this.bot, this.api);
+        this.tokenTimeSeriesHandler = new TokenTimeSeriesAnalysisHandler(this.bot, this.api);
         this.holderDistributionHandler = new HolderDistributionHandler(this.bot, this.api);
         this.tokenAnalysisHandler = new TokenAnalysisHandler(this.bot, this.api);
 
@@ -55,7 +55,7 @@ export class BotHandler {
             { cmd: /\/checkwhales/, handler: this.whaleWatcherHandler.handleCheckWhales.bind(this.whaleWatcherHandler) },
             // Token Analysis commands
             { cmd: /\/analyze/, handler: this.tokenAnalysisHandler.handleTokenAnalysis.bind(this.tokenAnalysisHandler) },
-            { cmd: /\/holders/, handler: this.tokenHolderAnalysisHandler.handleTokenAnalysis.bind(this.tokenHolderAnalysisHandler) },
+            { cmd: /\/holders/, handler: this.tokenTimeSeriesHandler.handleTokenTimeSeriesAnalysis.bind(this.tokenTimeSeriesHandler) },
             { cmd: /\/holder_distribution/, handler: this.holderDistributionHandler.handleHolderDistribution.bind(this.holderDistributionHandler) },
         ]
 

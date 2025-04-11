@@ -40,7 +40,8 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
         const mintAddress = parts[1];
         if (mintAddress === "help") {
             return this.bot.sendMessage(chatId,
-                BOT_MESSAGES.TOKENHOLDERANALYSIS_HELP
+                BOT_MESSAGES.TOKENHOLDERANALYSIS_HELP,
+                {parse_mode: "Markdown"}
             );
         }
 
