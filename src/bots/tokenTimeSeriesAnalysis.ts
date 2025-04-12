@@ -121,8 +121,8 @@ export class TokenTimeSeriesAnalysisHandler extends BaseHandler {
 
                 message += `*Volume Analysis:*\n`;
                 message += `• Latest 24h Volume: ${formatUsdValue(latestVolume.volume)}\n`;
-                message += `• Average Daily Volume: ${formatUsdValue(avgVolume.toString())}\n`;
-                message += `• Total Volume: ${formatUsdValue(totalVolume.toString())}\n\n`;
+                message += `• Average Daily Volume: ${formatUsdValue(avgVolume.toLocaleString())}\n`;
+                message += `• Total Volume: ${formatUsdValue(totalVolume.toLocaleString())}\n\n`;
             }
 
             // Correlation Analysis
@@ -154,10 +154,10 @@ export class TokenTimeSeriesAnalysisHandler extends BaseHandler {
 
                 message += `${i + 1}. * On ${date}*\n`;
                 if (holderData) {
-                    message += `   *Holders:* ${holderData.nHolders}\n`;
+                    message += `   *Holders:* ${holderData.nHolders.toLocaleString()}\n`;
                 }
                 if (volumeData) {
-                    message += `   *Volume:* ${formatUsdValue(volumeData.volume)}\n`;
+                    message += `   *Volume:* ${formatUsdValue(volumeData.volume.toLocaleString())}\n`;
                 }
                 message += '\n';
             }

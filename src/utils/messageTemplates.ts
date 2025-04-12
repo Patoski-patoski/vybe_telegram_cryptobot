@@ -239,7 +239,6 @@ Analyzes token holder and volume trends over time, including correlation analysi
 [start_date]            Optional start date in YYYY-MM-DD format
 [end_date]              Optional end date in YYYY-MM-DD format
 
-
 *EXAMPLES*
 /series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 /series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09
@@ -261,7 +260,7 @@ As a user, I want to analyze token holder and volume trends over time, including
 
 - Correlation Analysis
   - Holder-Volume Correlation
-  
+
 - Historical Data
   - Daily holder counts
   - Daily volumes
@@ -328,7 +327,6 @@ As a user, I want to set up alerts for large token transfers (whale movements).
 - Confirmation of alert setup
 - Alert notifications for large transfers
 
-
 *TROUBLESHOOTING*
 - Ensure valid token address
 - Set appropriate threshold
@@ -385,7 +383,6 @@ As a user, I want to remove a whale alert for a specific token.
 *OUTPUT*
 - Confirmation of alert removal
 - Updated alert list
-
 
 *TROUBLESHOOTING*
 - Alert not found
