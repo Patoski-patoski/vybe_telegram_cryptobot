@@ -120,6 +120,7 @@ export class TokenTimeSeriesAnalysisHandler extends BaseHandler {
                 const avgVolume = totalVolume / volumeResponse.data.length;
 
                 message += `*Volume Analysis:*\n`;
+                message += `• 48h Volume: ${formatUsdValue(oldestVolume.volume)}\n`;
                 message += `• Latest 24h Volume: ${formatUsdValue(latestVolume.volume)}\n`;
                 message += `• Average Daily Volume: ${formatUsdValue(avgVolume.toLocaleString())}\n`;
                 message += `• Total Volume: ${formatUsdValue(totalVolume.toLocaleString())}\n\n`;
