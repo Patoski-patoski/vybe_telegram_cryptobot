@@ -17,8 +17,8 @@ export class HolderDistributionHandler extends BaseHandler {
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /holder_distribution <token_mint_address> <limit>\n" +
-                "Example: /holder_distribution EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 5"
+                BOT_MESSAGES.HOLDER_DISTRIBUTION_USAGE,
+                { parse_mode: "Markdown" }
             );
         }
 
@@ -47,7 +47,6 @@ export class HolderDistributionHandler extends BaseHandler {
             }
 
             const response = await this.api.getTopTokenHolder(mintAddress);
-
 
             // Calculate distribution metrics
             const top10CombinedPercentage = response.data.slice(0, 10).reduce((sum: number, holder: TopHolder) =>

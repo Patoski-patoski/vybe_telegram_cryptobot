@@ -89,6 +89,12 @@ Please follow these steps:
                 "*DESCRIPTION*: Shows the top token holders for a specific token.\n\n" +
                 "*SYNOPSIS*: /top_holders <token_mint_address> [limit]\n" +
                 "*ARGUMENTS*: <token_mint_address> The Solana token mint address to check holders for\n" +
+                "*USER STORY*: \n" +
+                "As a user, I want to analyze the top token holders for a specific token.\n" +
+                "I want to be able to see the top holders for a specific token.\n\n" +
+                "*EXAMPLES*: \n" +
+                "/top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n" +
+                "/top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10\n" +
                 "[limit] Optional limit for the number of top holders to display (default: 10)\n" +
                 "Limit: 1-100"
                 
@@ -109,6 +115,10 @@ Please follow these steps:
         TOKENHOLDERANALYSIS_HELP: ` *Usage:* /holders <token_mint_address> [timeframe]
 
 *DESCRIPTION*: Analyzes token holder and volume trends over time,
+including correlation analysis.
+
+*USER STORY*:
+As a user, I want to analyze the token holder and volume trends over time,
 including correlation analysis.
 
 *SYNOPSIS*: /holders <token_mint_address> [timeframe]
@@ -140,48 +150,7 @@ Top Holders:
 
 Data as of 24 hours ago
                 `,
-        TOKENANALYSIS_HELP: `*Usage:* /token_analysis <token_mint_address>
-
-*DESCRIPTION*: Analyzes a token's current state, including price, market cap, and portfolio metrics.
-
-*SYNOPSIS*: /token_analysis <token_mint_address>
-
-*ARGUMENTS*: <token_mint_address> The Solana token mint address to analyze
-
-*OUTPUT*:
-📊 Comprehensive Token Analysis
-
-Token: "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
-Timeframe: 2025-03-30 to 2025-04-09
-
-Holder Analysis:
-• Current Holders: 1500
-• Change in Holders: +100 (6.67%)
-
-Volume Analysis:
-• Latest 24h Volume: $1,234,567
-• Average Daily Volume: $987,654
-• Total Volume: $12,345,678
-
-Correlation Analysis:
-• Holder-Volume Correlation: 0.75
-  (1.0 = perfect positive, -1.0 = perfect negative, 0 = no correlation)
-
-Historical Data:
-1. 2025-04-09
-   Holders: 1500
-   Volume: $1,234,567
-
-2. 2025-04-08
-   Holders: 1480
-   Volume: $1,123,456
-...
-
-Data as of 2 hours ago
-
-        `,
-
-
+       
         TOKEN_HOLDER: `📊 *Rank*: %index%
 
 * Owner Name:* %ownerName%
@@ -230,7 +199,13 @@ Analyzes a token's current state, including price, market cap, and portfolio met
 /analyze <token_mint_address>
 
 *ARGUMENTS*
-<token_mint_address>    The Solana token mint address to analyze
+<token\\_mint\\_address>   The Solana token mint address to analyze
+
+*EXAMPLES*
+/analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+
+*USER STORY*:
+As a user, I want to analyze a token's current state, including price, market cap, and portfolio metrics.
 
 *OUTPUT*
 - Current Price
@@ -241,9 +216,6 @@ Analyzes a token's current state, including price, market cap, and portfolio met
 - Token Count
 - 7-day Price Trend Chart
 
-*EXAMPLES*
-/analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
-
 *TROUBLESHOOTING*
 - Ensure the token mint address is valid
 - Check if the token exists on Solana
@@ -251,41 +223,48 @@ Analyzes a token's current state, including price, market cap, and portfolio met
 - Check the space between the command and the token address
 
 *SEE ALSO*
-/holders, /holder_distribution`,
+/holders, /holder\\_distribution`,
 
-        TOKEN_TIME_SERIES_USAGE: "Usage: /holders <token_mint_address> [start_date] [end_date]\n\nExample: /holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n\nExample: /holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09\n\nExample: /holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09 2025-03-30",
-        TOKEN_TIME_SERIES_HELP: `📊 *Token Time Series Analysis Command (/holders)*
+        TOKEN_TIME_SERIES_USAGE: "Usage: /series <token_mint_address> [start_date] [end_date]\n\nExample: /series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n\nExample: /series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09\n\nExample: /series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09 2025-03-30",
+        TOKEN_TIME_SERIES_HELP: `📊 *Token Time Series Analysis Command (/series)*
 
 *DESCRIPTION*
 Analyzes token holder and volume trends over time, including correlation analysis.
 
 *SYNOPSIS*
-/holders <token_mint_address> [start_date] [end_date]
+/series <token_mint_address> [start_date] [end_date]
 
 *ARGUMENTS*
 <token_mint_address>    The Solana token mint address to analyze
 [start_date]            Optional start date in YYYY-MM-DD format
 [end_date]              Optional end date in YYYY-MM-DD format
 
+
+*EXAMPLES*
+/series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+/series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09
+/series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09 2025-03-30
+
+*USER STORY*:
+As a user, I want to analyze token holder and volume trends over time, including correlation analysis.
+
 *OUTPUT*
 - Holder Analysis
   - Current Holder Count
   - Holder Change
   - Holder Change Percentage
+
 - Volume Analysis
   - Latest 24h Volume
   - Average Daily Volume
   - Total Volume
+
 - Correlation Analysis
   - Holder-Volume Correlation
+  
 - Historical Data
   - Daily holder counts
   - Daily volumes
-
-*EXAMPLES*
-/holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
-/holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09
-/holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09 2025-03-30
 
 *TROUBLESHOOTING*
 - Ensure valid date format (YYYY-MM-DD)
@@ -294,7 +273,7 @@ Analyzes token holder and volume trends over time, including correlation analysi
 - Check the space between the command and the token address
 
 *SEE ALSO*
-/analyze, /holder_distribution`,
+/analyze, /holder\\_distribution`,
 
         HOLDER_DISTRIBUTION_USAGE: "Usage: /holder_distribution <token_mint_address>\n\nExample: /holder_distribution 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
         HOLDER_DISTRIBUTION_HELP: `📊 *Holder Distribution Command (/holder_distribution)*
@@ -302,20 +281,20 @@ Analyzes token holder and volume trends over time, including correlation analysi
 *DESCRIPTION*
 Analyzes the distribution of token holders across different balance ranges.
 
-*SYNOPSIS*
-/holder_distribution <token_mint_address>
+*SYNOPSIS*:
+/holder\\_distribution <token_mint_address>
 
-*ARGUMENTS*
-<token_mint_address>    The Solana token mint address to analyze
+*EXAMPLES*:
+/holder\\_distribution 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+
+*USER STORY*:
+As a user, I want to analyze the distribution of token holders across different balance ranges.
 
 *OUTPUT*
 - Distribution of holders by balance ranges
 - Concentration analysis
 - Whale detection
 - Holder segmentation
-
-*EXAMPLES*
-/holder\\_distribution 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 
 *TROUBLESHOOTING*
 - Ensure the token mint address is valid
@@ -339,12 +318,16 @@ Sets up alerts for large token transfers (whale movements).
 <token_mint_address>    The Solana token mint address to monitor
 <threshold>             Minimum transfer amount to trigger alert
 
+*EXAMPLES*
+/whalealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 1000
+
+*USER STORY*:
+As a user, I want to set up alerts for large token transfers (whale movements).
+
 *OUTPUT*
 - Confirmation of alert setup
 - Alert notifications for large transfers
 
-*EXAMPLES*
-/whalealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 1000
 
 *TROUBLESHOOTING*
 - Ensure valid token address
@@ -362,19 +345,22 @@ Lists all active whale alerts for your account.
 *SYNOPSIS*
 /listwhalealerts
 
+*EXAMPLES*
+/listwhalealerts
+
+*USER STORY*:
+As a user, I want to list all active whale alerts for my account.
+
 *OUTPUT*
 - List of active alerts
 - Token addresses
 - Threshold values
 - Alert status
 
-*EXAMPLES*
-/listwhalealerts
-
 *TROUBLESHOOTING*
 - No active alerts found
 - Alert list empty
-- Check the space between the command and the token address
+- Check the space between the commands
 
 *SEE ALSO*
 /whalealert, /removewhalealert, /checkwhales`,
@@ -390,21 +376,25 @@ Removes a whale alert for a specific token.
 *ARGUMENTS*
 <token_mint_address>    The Solana token mint address to remove alert for
 
+*EXAMPLES*
+/removewhalealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+
+*USER STORY*:
+As a user, I want to remove a whale alert for a specific token.
+
 *OUTPUT*
 - Confirmation of alert removal
 - Updated alert list
 
-*EXAMPLES*
-/removewhalealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 
 *TROUBLESHOOTING*
 - Alert not found
 - Invalid token address
-- Check the space between the command and the token address
+- Check the space between the commands
 
 *SEE ALSO*
 /whalealert, /listwhalealerts, /checkwhales`,
-        CHECK_WHALES_USAGE: "Usage: /checkwhales <mint_address> <min_amount>\n\nExample: /checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000",
+        CHECK_WHALES_USAGE: "Usage: /checkwhales <mint_address> <min_amount> [<limit>]\n\nExample: /checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000\n\nExample: /checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000 10",
 
         CHECK_WHALES_HELP: `🔍 *Check Whales Command (/checkwhales)*
 
@@ -412,24 +402,30 @@ Removes a whale alert for a specific token.
 Manually checks for recent whale movements across all monitored tokens.
 
 *SYNOPSIS*
-/checkwhales <mint_address> <min_amount>
+/checkwhales <mint_address> <min_amount> [<limit>]
 
 *ARGUMENTS*
-<mint_address>    The Solana token mint address to check whales for
-<min_amount>      The minimum amount to trigger a whale alert
+<mint_address>     The Solana token mint address to check whales for
+<min_amount>       The minimum amount to trigger a whale alert
+[limit]            Optional maximum number of whales to return (default: 5)
+
+*USER STORY*:
+As a user, I want to manually check for recent whale movements across all monitored tokens.
 
 *OUTPUT*
 - Recent whale movements
 - Transfer details
 - Impact analysis
+- Check the space between the commands
 
 *EXAMPLES*
 /checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000
+/checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000 10
 
 *TROUBLESHOOTING*
 - No recent whale movements
 - Network connectivity issues
-- Check the space between the command and the token address
+- Check the space between the commands
 
 *SEE ALSO*
 /whalealert, /listwhalealerts, /removewhalealert`,
@@ -447,52 +443,62 @@ Shows recent token transfers for a specific token.
 *ARGUMENTS*
 <token_mint_address>    The Solana token mint address to check transfers for
 
+*USER STORY*:
+As a user, I want to see recent token transfers for a specific token.
+
+*EXAMPLES*
+/transfers 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+
 *OUTPUT*
 - Recent transfer list
 - Transfer amounts
 - Source and destination addresses
 - Timestamps
 
-*EXAMPLES*
-/transfers 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
-
 *TROUBLESHOOTING*
 - No recent transfers found
 - Invalid token address
 - Network connectivity issues
-- Check the space between the command and the token address
+- Check the space between the commands
 
 *SEE ALSO*
 /whalealert, /checkwhales`,
 
         // Top Holders Command
         TOP_HOLDERS_USAGE: "Usage: /top_holders <token_mint_address>\n\nExample: /top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
-        TOP_HOLDERS_HELP: `👑 *Top Holders Command (/top_holders)*
+        TOP_HOLDERS_HELP: `*Top Holders Command (/top_holders)*
 
 *DESCRIPTION*
 Shows the top token holders for a specific token.
 
 *SYNOPSIS*
-/top_holders <token_mint_address>
+/top\\_holders <token_mint_address>
 
 *ARGUMENTS*
-<token_mint_address>    The Solana token mint address to check holders for
+<token\\_mint\\_address>   The Solana token mint address to check holders for
+
+*USER STORY*:
+As a user, I want to see the top token holders for a specific token.
+
+*EXAMPLES*
+/top\\_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 
 *OUTPUT*
+
 - Top holder list
 - Holder addresses
 - Balance amounts
 - Percentage of total supply
 
-*EXAMPLES*
-/top\\_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
-
 *TROUBLESHOOTING*
+
 - No holders found
 - Invalid token address
 - Network connectivity issues
-- Check the space between the command and the token address
+- Check the space between the commands
 
 *SEE ALSO*
-/holders, /holder_distribution`,
+/holder\\_distribution, /series, /analyze
+
+`,
 };

@@ -30,7 +30,7 @@ export class TokenAnalysisHandler extends BaseHandler {
 
         if (mintAddress === 'help') {
             return this.bot.sendMessage(chatId,
-                BOT_MESSAGES.TOKENANALYSIS_HELP,
+                BOT_MESSAGES.TOKEN_ANALYSIS_HELP,
                 {parse_mode: "Markdown"}
             );
         }

@@ -48,7 +48,7 @@ export class TopTokenHandler extends BaseHandler {
         if(mintAddress === 'help'){
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.TOP_HOLDERS_HELP,
-                {parse_mode: "Markdown"}
+                { parse_mode: "Markdown" }
             )
         }
         // Extract mint address from command
