@@ -8,6 +8,7 @@ import { WhaleWatcherHandler } from "./whaleWatchHandler";
 import { TokenTimeSeriesAnalysisHandler } from "./tokenTimeSeriesAnalysis";
 import { HolderDistributionHandler } from "./holderDistributionHandler";
 import { TokenAnalysisHandler } from "./tokenAnalysisHandler";
+import { WalletTrackerHandler } from "./walletTrackerHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class BotHandler {
@@ -21,6 +22,7 @@ export class BotHandler {
     private tokenTimeSeriesHandler: TokenTimeSeriesAnalysisHandler;
     private holderDistributionHandler: HolderDistributionHandler;
     private tokenAnalysisHandler: TokenAnalysisHandler;
+    private walletTrackerHandler: WalletTrackerHandler;
 
     constructor() {
         const config = getConfig();
@@ -34,6 +36,7 @@ export class BotHandler {
         this.tokenTimeSeriesHandler = new TokenTimeSeriesAnalysisHandler(this.bot, this.api);
         this.holderDistributionHandler = new HolderDistributionHandler(this.bot, this.api);
         this.tokenAnalysisHandler = new TokenAnalysisHandler(this.bot, this.api);
+        this.walletTrackerHandler = new WalletTrackerHandler(this.bot, this.api);
 
         // Setup commands
         this.setUpCommands();
@@ -57,6 +60,11 @@ export class BotHandler {
             { cmd: /\/analyze/, handler: this.tokenAnalysisHandler.handleTokenAnalysis.bind(this.tokenAnalysisHandler) },
             { cmd: /\/series/, handler: this.tokenTimeSeriesHandler.handleTokenTimeSeriesAnalysis.bind(this.tokenTimeSeriesHandler) },
             { cmd: /\/holder_distribution/, handler: this.holderDistributionHandler.handleHolderDistribution.bind(this.holderDistributionHandler) },
+            // Wallet Tracker commands
+            { cmd: /\/trackwallet/, handler: this.walletTrackerHandler.handleTrackWallet.bind(this.walletTrackerHandler) },
+            // { cmd: /\/listtrackedwallets/, handler: this.walletTrackerHandler.handleListTrackedWallets.bind(this.walletTrackerHandler) },
+            // { cmd: /\/removetrackedwallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
+            // { cmd: /\/walletstatus/, handler: this.walletTrackerHandler.handleWalletStatus.bind(this.walletTrackerHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {

@@ -150,7 +150,7 @@ Top Holders:
 
 Data as of 24 hours ago
                 `,
-       
+
         TOKEN_HOLDER: `📊 *Rank*: %index%
 
 * Owner Name:* %ownerName%
@@ -399,33 +399,56 @@ As a user, I want to remove a whale alert for a specific token.
 Manually checks for recent whale movements across all monitored tokens.
 
 *SYNOPSIS*
-/checkwhales <mint_address> <min_amount> [<limit>]
+/checkwhales <mint_address> <min_amount>
 
 *ARGUMENTS*
-<mint_address>     The Solana token mint address to check whales for
-<min_amount>       The minimum amount to trigger a whale alert
-[limit]            Optional maximum number of whales to return (default: 5)
-
-*USER STORY*:
-As a user, I want to manually check for recent whale movements across all monitored tokens.
+<mint_address>    The Solana token mint address to check whales for
+<min_amount>      The minimum amount to trigger a whale alert
 
 *OUTPUT*
 - Recent whale movements
 - Transfer details
 - Impact analysis
-- Check the space between the commands
 
 *EXAMPLES*
 /checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000
-/checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000 10
 
 *TROUBLESHOOTING*
 - No recent whale movements
 - Network connectivity issues
-- Check the space between the commands
+- Check the space between the command and the token address
 
 *SEE ALSO*
 /whalealert, /listwhalealerts, /removewhalealert`,
+
+        TRACK_WALLET_HELP: `👛 *Track Wallet Command (/trackwallet)*
+
+*DESCRIPTION*
+Monitors a wallet for balance changes and sends alerts when significant changes occur.
+
+*SYNOPSIS*
+/trackwallet <wallet_address> <min_value_usd>
+
+*ARGUMENTS*
+<wallet_address>    The Solana wallet address to monitor
+<min_value_usd>     Minimum USD value to trigger alerts
+
+*OUTPUT*
+- Balance change alerts
+- New token acquisitions
+- Token removals
+- Value changes in USD
+
+*EXAMPLES*
+/trackwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 1000
+
+*TROUBLESHOOTING*
+- Invalid wallet address
+- Network connectivity issues
+- Check the space between the command and the wallet address
+
+*SEE ALSO*
+/listtrackedwallets, /removetrackedwallet, /walletstatus`,
 
         // Recent Transfers Command
         RECENT_TRANSFERS_USAGE: "Usage: /transfers <token_mint_address>\n\nExample: /transfers 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",

@@ -57,7 +57,6 @@ export interface WhaleWatchParams {
 
 
 // Define settings interface for whale alerts
-
 export interface WhaleAlertSettings {
     minAmount: number;
     tokens: string[]; // Array of token mint addresses to monitor
@@ -122,4 +121,12 @@ export interface TokenBalanceResponse {
     totalTokenValueUsd1dChange: string;
     totalTokenCount: number;
     data: TokenBalance[];
+}
+
+export interface WalletActivity {
+    walletAddress: string;
+    chatId: number;
+    minValueUsd: number; // Minimum value to trigger alerts
+    tokensToTrack: string[];  // Specific tokens to track (optional)
+    checkInterval: number;  // How often to check (in minutes)
 }

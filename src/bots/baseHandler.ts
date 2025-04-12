@@ -28,6 +28,10 @@ export class BaseHandler {
                 { command: 'holder_distribution', description: 'View holder distribution' },
                 { command: 'series', description: 'View token time series' },
                 { command: 'analyze', description: 'Comprehensive token analysis' },
+                { command: 'trackwallet', description: 'Track wallet activity' },
+                { command: 'listtrackedwallets', description: 'List tracked wallets' },
+                { command: 'removetrackedwallet', description: 'Remove tracked wallet' },
+                { command: 'walletstatus', description: 'View wallet status' },
                 { command: 'help', description: 'Get help' },
             ];
 
