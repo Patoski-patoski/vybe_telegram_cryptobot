@@ -20,7 +20,7 @@
 
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { timeAgo } from "../utils/time";
+import { timeAgo } from "../utils/utils";
 import { GetRecentTransferResponse, RecentTransfer } from "../interfaces/vybeApiInterface";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
@@ -34,10 +34,7 @@ export class RecentTransferHandler extends BaseHandler {
         // If no filter provided or not enough parts, show usage
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                " Usage: /transfers ma_mintAddress [limit]" +
-                " Usage: /transfers tx_signature> [limit]" +
-                " Usage: /transfers sa_senderAddress [limit]" +
-                " Usage: /transfers ra_receiverAddress [limit]"
+                BOT_MESSAGES.RECENT_TRANSFERS_USAGE,
             );
         }
 
@@ -57,24 +54,18 @@ export class RecentTransferHandler extends BaseHandler {
         }
 
         // Initialize parameters
-        let mintAddress, senderAddress, receiverAddress, tx_signature;
+        let mintAddress, walletAddress, tx_signature;
 
         // Correctly parse the prefix and value
-        if (filterInput.startsWith("sa_")) {
-            senderAddress = filterInput.substring(3);
-        } else if (filterInput.startsWith("ra_")) {
-            receiverAddress = filterInput.substring(3);
+        if (filterInput.startsWith("wa_")) {
+            walletAddress = filterInput.substring(3);
         } else if (filterInput.startsWith("tx_")) {
             tx_signature = filterInput.substring(3);
         } else if (filterInput.startsWith("ma_")) {
             mintAddress = filterInput.substring(3);
         } else {
             return this.bot.sendMessage(chatId,
-                "Invalid filter format.\n" +
-                " Usage: /transfers ma_mintAddress [limit]" +
-                " Usage: /transfers tx_signature> [limit]" +
-                " Usage: /transfers sa_senderAddress [limit]" +
-                " Usage: /transfers ra_receiverAddress [limit]"
+                BOT_MESSAGES.RECENT_TRANSFERS_USAGE,
             );
         }
 
@@ -82,14 +73,15 @@ export class RecentTransferHandler extends BaseHandler {
             // Send "loading" message
             const loadingMsg = await this.bot.sendMessage(chatId, "⏳ Fetching recent transfers...");
 
-            // Get transfers
-            const response: GetRecentTransferResponse = await this.api.getRecentTransfers(
-                mintAddress,
-                senderAddress,
-                receiverAddress,
-                tx_signature,
-                limit
-            );
+            // Get transfers based on the filter type
+            let response: GetRecentTransferResponse;
+            if (tx_signature) {
+                response = await this.api.getRecentTransfers(undefined, undefined, tx_signature, limit);
+            } else if (walletAddress) {
+                response = await this.api.getRecentTransfers(undefined, walletAddress, undefined, limit);
+            } else {
+                response = await this.api.getRecentTransfers(mintAddress, undefined, undefined, limit);
+            }
 
             // Delete loading message
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
@@ -104,7 +96,6 @@ export class RecentTransferHandler extends BaseHandler {
 
             // Send summary message
             await this.bot.sendMessage(chatId,
-                `Found *${response.transfers.length}* transfers\n\n` +
                 `Showing ${Math.min(response.transfers.length, limit)} results:`,
                 { parse_mode: "Markdown" }
             );

@@ -1,7 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { formatUsdValue } from "../utils/solana";
-import { timeAgo } from "../utils/time";
+import { formatUsdValue , timeAgo } from "../utils/utils";
 import logger from "../config/logger";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
@@ -41,12 +40,12 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
         if (mintAddress === "help") {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.TOKENHOLDERANALYSIS_HELP,
-                {parse_mode: "Markdown"}
+                { parse_mode: "Markdown" }
             );
         }
 
         // Parse dates
-        const startDate = parts[2] || "";
+        const startDate = parts[2] || ""; 
         const endDate = parts[3] || "";
 
         const startTimeUnix = this.parseDate(startDate);
@@ -69,7 +68,7 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
         const finalStartTime = startTimeUnix
             || (endTimeUnix ? endTimeUnix - (30 * 24 * 60 * 60)
                 : Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60));
-        
+
         const finalEndTime = endTimeUnix || Math.floor(Date.now() / 1000);
 
         try {

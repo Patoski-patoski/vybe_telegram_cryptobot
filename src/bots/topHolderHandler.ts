@@ -27,25 +27,25 @@ import {
     TopHolder
 } from "../interfaces/vybeApiInterface";
 
-import { formatUsdValue } from "../utils/solana";
+import { formatUsdValue } from "../utils/utils";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 
-export class TopTokenHandler extends BaseHandler { 
+export class TopTokenHandler extends BaseHandler {
     async handleTopToken(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
         const parts = text.split(" ");
 
 
-        if (parts.length < 2) { 
+        if (parts.length < 2) {
             await this.bot.sendMessage(chatId,
                 "Please provide a mint address. Usage: /top_holders mintAddress"
             );
             return;
         }
         const mintAddress = parts[1];
-        if(mintAddress === 'help'){
+        if (mintAddress === 'help') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.TOP_HOLDERS_HELP,
                 { parse_mode: "Markdown" }
@@ -88,32 +88,31 @@ export class TopTokenHandler extends BaseHandler {
         }
         // Fetch top token holders from the API using the provided mint address
         const topHoldersResponse: GetTopHoldersResponse = await
-            this.api.getTopTokenHolder(mintAddress, limit? limit : 5);
+            this.api.getTopTokenHolder(mintAddress, limit ? limit : 5);
 
         console.log("topHoldersResponse", topHoldersResponse);
 
-        if (topHoldersResponse && topHoldersResponse.data) {
+        if (topHoldersResponse && topHoldersResponse.data.length > 0) {
             const topHolders: TopHolder[] = topHoldersResponse.data;
 
             // Sort topHolders by rank
             topHolders.sort((a, b) => a.rank - b.rank);
-            console.log("topHolders", topHolders);
-            
+
             const fetching = await this.bot.sendMessage(chatId,
                 "⏳ Fetching top token holders...",
             );
             // Remove the message after fetching
-            setTimeout( async () => {
+            setTimeout(async () => {
                 await this.bot.deleteMessage(chatId, fetching.message_id);
             }, 3000);
 
-            const mintSymbol = topHolders[0].tokenSymbol;
+            const mintSymbol = topHolders[0].tokenSymbol || 'N/A';
             await this.bot.sendMessage(chatId,
                 `Token Symbol: *${mintSymbol}*\n*MintAddress:* \`\`\`\n${mintAddress}\n\`\`\``,
                 { parse_mode: "MarkdownV2" }
             );
             await this.bot.sendMessage(chatId,
-                `*Top ${isNaN(limit)? 5: limit} Holders:*`,
+                `*Top ${isNaN(limit) ? 5 : limit} Holders:*`,
                 { parse_mode: "MarkdownV2" }
             );
 
@@ -134,19 +133,19 @@ export class TopTokenHandler extends BaseHandler {
                         .replace("%formattedValue%", `\`${formattedValue}\``)
                         .replace("%ownerAddress%", `\`\`\`\n${holder.ownerAddress}\n\`\`\``);
 
-                    
+
                     // To avoid rate limiting or "message flooding" warnings from Telegram,
                     await new Promise(resolve => setTimeout(resolve, 500)); // 0.5 sec
-                    
+
                     await this.bot.sendMessage(chatId,
                         Holdermessages,
-                        {parse_mode: "MarkdownV2"}
+                        { parse_mode: "MarkdownV2" }
                     );
                 }
             }
 
         } else {
-            await this.bot.sendMessage(chatId, "Failed to fetch top token holders.");
+            await this.bot.sendMessage(chatId, "No top token holders found.");
         }
     }
 }

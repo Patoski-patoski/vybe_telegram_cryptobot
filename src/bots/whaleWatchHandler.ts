@@ -226,9 +226,9 @@ export class WhaleWatcherHandler extends BaseHandler {
         chatAlerts.forEach(async (alert, index) => {
             message += `*Alert ${index + 1}*:\n`;
             alert.tokens.forEach(token => {
-                message += `• *Token: * \`${token}\`\n\n`;
+                message += `• *Token/Mint Address:* \n\`\`\`${token}\`\`\`\n`;
             });
-            message += `• *Min Amount:* ${alert.minAmount}\n\n`;
+            message += `• *Minimum Amount to trigger:* ${alert.minAmount}\n\n`;
         });
 
         message += "To remove an alert, use /removewhalealert <token_mint_address>";
@@ -290,17 +290,12 @@ export class WhaleWatcherHandler extends BaseHandler {
             );
         }
 
-        let limit = parseInt(parts[3]);
+        let limit = parseInt(parts[2]);
         if (isNaN(limit)) limit = 5;
         if (limit > 10) {
             return this.bot.sendMessage(chatId,
                 "⛔ Maximum limit is 10."
             );
-        }
-
-        const parsedAmount = parseFloat(parts[2]);
-        if (!isNaN(parsedAmount) && parsedAmount > 0) {
-            minAmount = parsedAmount;
         }
 
         // Send load message
@@ -320,8 +315,7 @@ export class WhaleWatcherHandler extends BaseHandler {
 
             // Filter holders by minimum amount and limit
             const whaleHolders = holders.data
-                .filter(holder => parseFloat(holder.balance) >= minAmount)
-                .slice(0, limit);
+                .filter(holder => parseFloat(holder.balance)).slice(0, limit);
 
             if (whaleHolders.length === 0) {
                 return this.bot.sendMessage(chatId,
@@ -331,9 +325,8 @@ export class WhaleWatcherHandler extends BaseHandler {
 
             // Send summary message
             await this.bot.sendMessage(chatId,
-                `🐋 *Top ${whaleHolders.length} Whale Holders* 🐋\n\n` +
-                `*Token:* \`${mintAddress}\`\n` +
-                `*Token Symbol:* \`${holders.data[0].tokenSymbol}\`\n` +
+                `🐋 *Top ${whaleHolders.length} Whale Holders of the ${holders.data[0].tokenSymbol} token* 🐋\n\n` +
+                `*Token mintAddress:* \n\`\`\`${mintAddress}\`\`\`\n` +
                 `*Minimum Amount:* ${minAmount} tokens\n\n` +
                 `*Holders:*`,
                 { parse_mode: "Markdown" }
@@ -341,12 +334,12 @@ export class WhaleWatcherHandler extends BaseHandler {
 
             let count = 0;
 
-
             // Send each holder's details
             for (const holder of whaleHolders) {
                 const balance = parseFloat(holder.balance).toLocaleString(undefined, { maximumFractionDigits: 6 });
                 const message =
-                    `👤 *Holder ${count + 1}:* \`${holder.ownerAddress}\`\n\n` +
+                    `👤 *Holder ${count + 1}:* \n\`\`\`${holder.ownerAddress}\`\`\`\n\n` +
+                    `🆔 *Owner Name:* ${holder.ownerName || "N/A"}\n\n` +
                     `💰 *Balance:* ${balance} ${holder.tokenSymbol}\n\n` +
                     `💵 *Value in USD:* ${formatUsdValue(holder.valueUsd)}\n\n` +
                     `📊 *Percentage of Supply Held:* ${holder.percentageOfSupplyHeld.toFixed(2)}%`;
@@ -357,7 +350,7 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         } catch (error: any) {
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
-            await this.bot.sendMessage(chatId, `❌ Error: ${error.message || "Failed to fetch whale holders"}`);
+            await this.bot.sendMessage(chatId, `❌ Failed to fetch whale holders. Please try again later.`);
         }
     }
 

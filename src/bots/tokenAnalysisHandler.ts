@@ -1,6 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { formatUsdValue } from "../utils/solana";
+import { formatUsdValue } from "../utils/utils";
 import logger from "../config/logger";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
@@ -31,7 +31,7 @@ export class TokenAnalysisHandler extends BaseHandler {
         if (mintAddress === 'help') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.TOKEN_ANALYSIS_HELP,
-                {parse_mode: "Markdown"}
+                { parse_mode: "Markdown" }
             );
         }
 
@@ -58,16 +58,17 @@ export class TokenAnalysisHandler extends BaseHandler {
 
             // Prepare message with token information
             let message = `📊 *Token Analysis*\n\n`;
-            message += `*Wallet Address:* \`${mintAddress}\`\n`;
-            message += `*Token:* ${tokenData.symbol} (${tokenData.name})\n\n`;
-            message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd.toString())}\n`;
-            message += `*Price Change (24h):* ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange)}%\n`;
-            message += `*Total Portfolio Value:* ${formatUsdValue(tokenBalanceResponse.totalTokenValueUsd)}\n`;
-            message += `*Portfolio Change (24h):* ${Number(tokenBalanceResponse.totalTokenValueUsd1dChange) > 0 ? '+' : ''}${Number(tokenBalanceResponse.totalTokenValueUsd1dChange)}%\n`;
-            message += `*Number of Tokens in Portfolio:* ${tokenBalanceResponse.totalTokenCount}\n`;
-            message += `*Token Balance:* ${tokenData.amount} ${tokenData.symbol}\n`;
-            message += `*Market Cap:* ${formatUsdValue((parseFloat(tokenData.priceUsd) * parseFloat(tokenData.amount)).toString())}\n\n`;
-            message += `*The chart above shows the 7-day price trend of ${tokenData.symbol}*\n`;
+            message += `*Token Information*\n`;
+            message += `• Token: ${tokenData.symbol} (${tokenData.name})\n`;
+            message += `• Current Price: ${formatUsdValue(tokenData.priceUsd.toString())}\n`;
+            message += `• Price Change (24h): ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange)}%\n\n`;
+            message += `*Wallet Analysis*\n`;
+            message += `• Address: \`${mintAddress}\`\n`;
+            message += `• Total Portfolio Value: ${formatUsdValue(tokenBalanceResponse.totalTokenValueUsd)}\n`;
+            message += `• Portfolio Change (24h): ${Number(tokenBalanceResponse.totalTokenValueUsd1dChange) > 0 ? '+' : ''}${Number(tokenBalanceResponse.totalTokenValueUsd1dChange)}%\n`;
+            message += `• Number of Tokens: ${tokenBalanceResponse.totalTokenCount}\n`;
+            message += `• ${tokenData.symbol} Balance: ${tokenData.amount} ${tokenData.symbol}\n\n`;
+            message += `The chart above shows the 7-day price trend of ${tokenData.symbol}`;
 
             // Send the chart image
             const chartMsg = await this.bot.sendMessage(chatId, "📊 Sending chart...");

@@ -32,6 +32,8 @@ export interface RecentTransfer {
     calculatedAmount: string;
     valueUsd: string;
     tokenSymbol?: string;
+    walletAddress?: string;
+
 }
 
 interface CallingMetadata {
@@ -46,12 +48,12 @@ export interface GetRecentTransferResponse {
 }
 
 export interface WhaleWatchParams {
-    mintAddress?: string;
+    mintAddress: string;
     minAmount?: number;
     maxAmount?: number;
     timeStart?: number;
     timeEnd?: number;
-    sortByDesc?: 'amount' | 'blockTime' | 'slot';
+    sortByDesc?: 'amount' | 'blockTime' | 'slot' | 'valueUsd';
     limit?: number;
 }
 
@@ -130,3 +132,105 @@ export interface WalletActivity {
     tokensToTrack: string[];  // Specific tokens to track (optional)
     checkInterval: number;  // How often to check (in minutes)
 }
+
+
+export interface WalletAlertSettings {
+    walletAddress: string;
+    chatId: number;
+    minValueUsd: number;
+    lastCheckedTime: number;
+    lastBalances: Map<string, string>; // token address -> balance
+    category?: WalletCategory;
+    riskScore?: WalletRiskScore;
+    pnl?: WalletPnL;
+    interactions?: WalletInteraction[];
+    lastKnownSignature?: string;
+    lastTokenList?: string[];
+    lastTotalValue?: number;
+    errorCount?: number;  
+}
+
+export interface WalletCategory {
+    type: 'CEX' | 'DEX' | 'NFT' | 'PROTOCOL' | 'UNKNOWN';
+    confidence: number;
+    protocols: string[];
+    lastUpdated: number;
+}
+
+export interface WalletRiskScore {
+    score: number; // 0-100
+    factors: {
+        volatility: number;
+        concentration: number;
+        activity: number;
+        protocolRisk: number;
+    };
+    lastUpdated: number;
+}
+
+export interface TokenPerformance {
+    tokenAddress: string;
+    tokenSymbol: string;
+    pnlUsd: number;
+    pnlPercentage: number;
+}
+
+export interface TokenMetrics {
+    tokenAddress: string;
+    tokenSymbol: string;
+    buysTransactionCount: number;
+    buysTokenAmount: number;
+    buysVolumeUsd: number;
+    sellsTransactionCount: number;
+    sellsTokenAmount: number;
+    sellsVolumeUsd: number;
+    realizedPnlUsd: number;
+    unrealizedPnlUsd: number;
+}
+
+export interface PnLTrend {
+    date: string;
+    pnl: number;
+}
+
+export interface WalletPnLSummary {
+    winRate: number;
+    realizedPnlUsd: number;
+    unrealizedPnlUsd: number;
+    uniqueTokensTraded: number;
+    averageTradeUsd: number;
+    tradesCount: number;
+    winningTradesCount: number;
+    losingTradesCount: number;
+    tradesVolumeUsd: number;
+    bestPerformingToken: TokenPerformance | null;
+    worstPerformingToken: TokenPerformance | null;
+    pnlTrendSevenDays: PnLTrend[];
+}
+
+export interface WalletPnLResponse {
+    summary: WalletPnLSummary;
+    tokenMetrics: TokenMetrics[];
+}
+
+export interface WalletPnL {
+    totalPnL: number;
+    realizedPnL: number;
+    unrealizedPnL: number;
+    winRate: number;
+    tradeCount: number;
+    averageTradeSize: number;
+    bestPerformingToken: TokenPerformance | null;
+    worstPerformingToken: TokenPerformance | null;
+    pnlTrend: PnLTrend[];
+    tokenMetrics: TokenMetrics[];
+}
+
+export interface WalletInteraction {
+    protocol: string;
+    type: 'TRADE' | 'STAKE' | 'BORROW' | 'LEND' | 'OTHER';
+    count: number;
+    lastInteraction: number;
+    totalValue: number;
+}
+

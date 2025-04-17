@@ -1,6 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { formatUsdValue } from "../utils/solana";
+import { formatUsdValue } from "../utils/utils";
 import logger from "../config/logger";
 import { TopHolder } from "../interfaces/vybeApiInterface";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
@@ -26,7 +26,7 @@ export class HolderDistributionHandler extends BaseHandler {
         if (mintAddress === 'help') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.HOLDER_DISTRIBUTION_HELP,
-                {parse_mode: "Markdown"}
+                { parse_mode: "Markdown" }
             );
         }
         const limit = Number(parts[2] || 10);
@@ -53,6 +53,10 @@ export class HolderDistributionHandler extends BaseHandler {
                 sum + holder.percentageOfSupplyHeld, 0
             );
 
+            // Calculate total supply
+            const maxSupply = response.data.reduce((sum: number, holder: TopHolder) =>
+                sum + parseFloat(holder.balance), 0
+            );
 
             // Calculate Gini coefficient
             const giniCoefficient = this.calculateGiniCoefficient(response.data);
@@ -65,15 +69,17 @@ export class HolderDistributionHandler extends BaseHandler {
 
             // Format the message
             let message = `📊 *Token Holder Distribution Analysis*\n\n`;
-            message += `*Token:* \`${mintAddress}\`\n\n`;
+            message += `*Token:* \`${mintAddress}\`\n`;
+            message += `*Token Name:* \`${response.data[0].tokenSymbol}\`\n\n`;
             message += `*Distribution Metrics:*\n`;
+            // message += `• *Total Holders:* ${response.data.length}\n`;
+            message += `• *Max Supply:* ${formatUsdValue(maxSupply.toString())}\n`;
             message += `• *Top 10 Holders:* hold ${top10CombinedPercentage.toFixed(2)}% of supply\n`;
             message += `• *Top 5 Holders:* hold ${top5Percentage.toFixed(2)}% of supply\n`;
             message += `• *Top 1️⃣ Holder:* hold ${top1Percentage.toFixed(2)}% of supply\n\n`;
             message += `• *Gini Coefficient:* ${giniCoefficient.toFixed(4)}\n\n`;
 
-            message += `*Top Holders:*\n`;
-
+            message += `*Top ${limit} Holders:*\n`;
 
             // Add top holders information
             topHolders.forEach((holder, index) => {

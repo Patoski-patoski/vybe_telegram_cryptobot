@@ -1,7 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { formatUsdValue } from "../utils/solana";
-import { timeAgo } from "../utils/time";
+import { formatUsdValue, timeAgo } from "../utils/utils";
 import logger from "../config/logger";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
@@ -76,6 +75,9 @@ export class TokenTimeSeriesAnalysisHandler extends BaseHandler {
                 this.api.getTokenVolumeTimeSeries(mintAddress, finalStartTime, finalEndTime, 5),
                 this.api.getTokenHolderTimeSeries(mintAddress, finalStartTime, finalEndTime, 5)
             ]);
+
+            console.log("volumeResponse", volumeResponse);
+            console.log("holdersResponse", holdersResponse);
 
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
