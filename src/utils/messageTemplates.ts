@@ -1,14 +1,36 @@
 export const BOT_MESSAGES = {
         WELCOME: `
-🚀 Welcome to Copperx Payout Bot!
+🚀 Welcome to Vybe's Analytical Bot!
 
-👋 Hello! Welcome to your Solana data companion! Powered by the Vybe API,
-I can provide you with real-time and historical insights on the Solana blockchain\.
-
-Explore token prices, track transfers, analyse programs, and more!
-Use the commands below to get started."
 
 Here are some command suggestions based on the Vybe API's features, categorised for clarity
+
+💳 *Wallet Management:*
+- /trackwallet - Track wallet activity
+- /listtrackedwallets - List tracked wallets
+- /removetrackedwallet - Remove tracked wallet
+- /walletstatus - View wallet status
+
+💰 *Token Analysis:*
+- /analyze  - Analyze token
+- /series - Token time series analysis
+- /holder\\_distribution - Token holder distribution
+
+🐋 *Whale Watching:*
+- /whalealert - Set whale alert
+- /listwhalealerts - List whale alerts
+- /removewhalealert - Remove whale alert
+- /checkwhales - Check recent whale movements
+
+🔍 *Recent Transfers:*
+- /transfers - Recent transfers
+
+👤 *Top Holders:*
+- /top\\_holders - Top holders
+
+
+To see a full details of a specific command, use <command> help
+e.g /analyze help
 
 `,
 
@@ -28,9 +50,7 @@ Here are some command suggestions based on the Vybe API's features, categorised 
 *💳 Wallet Address:* %walletAddress%
 
 *💳 Wallet Account Type:* %walletAccountType%`,
-        LOGOUT_SUCCESS: '👋 Logged out successfully!\n\nUse /login to login again.',
-        LOGIN_SUCCESS: `✅ Login Successful\n\n🎉 Welcome to Copperx Payout Bot!`,
-        EXIT: `👋 Thank you for using Copperx Payout Bot!. Goodbye and have a great day!`,
+
         COMMANDS_MESSAGE: `
 
 🚀 *Quick Start Guide:*
@@ -450,8 +470,83 @@ Monitors a wallet for balance changes and sends alerts when significant changes 
 *SEE ALSO*
 /listtrackedwallets, /removetrackedwallet, /walletstatus`,
 
+        LIST_TRACKED_WALLETS_HELP: `📋 *List Tracked Wallets Command (/listtrackedwallets)*
+
+*DESCRIPTION*
+Lists all wallets you are currently tracking.
+
+*SYNOPSIS*
+/listtrackedwallets
+
+*OUTPUT*
+- List of tracked wallets
+- Minimum value thresholds
+- Last check times
+
+*EXAMPLES*
+/listtrackedwallets
+
+*TROUBLESHOOTING*
+- No tracked wallets found
+- Check if you've set up any wallet tracking
+
+*SEE ALSO*
+/trackwallet, /removetrackedwallet, /walletstatus`,
+
+        REMOVE_TRACKED_WALLET_HELP: `❌ *Remove Tracked Wallet Command (/removetrackedwallet)*
+
+*DESCRIPTION*
+Stops tracking a specific wallet.
+
+*SYNOPSIS*
+/removetrackedwallet <wallet_address>
+
+*ARGUMENTS*
+<wallet_address>    The wallet address to stop tracking
+
+*EXAMPLES*
+/removetrackedwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+
+*TROUBLESHOOTING*
+- Wallet not found in tracking list
+- Invalid wallet address
+- Check the space between the command and the wallet address
+
+*SEE ALSO*
+/trackwallet, /listtrackedwallets, /walletstatus`,
+
+        WALLET_STATUS_HELP: `📊 *Wallet Status Command (/walletstatus)*
+
+*DESCRIPTION*
+Shows detailed information about a wallet's current state.
+
+*SYNOPSIS*
+/walletstatus <wallet_address>
+
+*ARGUMENTS*
+<wallet_address>    The wallet address to check
+
+*OUTPUT*
+- Total wallet value
+- Token balances
+- 24h changes
+- Token categories
+- Verification status
+
+*EXAMPLES*
+/walletstatus 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+
+*TROUBLESHOOTING*
+- Invalid wallet address
+- Network connectivity issues
+- Check the space between the command and the wallet address
+
+*SEE ALSO*
+/trackwallet, /listtrackedwallets, /removetrackedwallet`,
+
         // Recent Transfers Command
-        RECENT_TRANSFERS_USAGE: "Usage: /transfers <token_mint_address>\n\nExample: /transfers 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+        // RECENT_TRANSFERS_USAGE: "Usage: /transfers <token_mint_address>\n\nExample: /transfers 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+        RECENT_TRANSFERS_USAGE: "Usage: /transfers tx_signature [limit]\n /transfers wa_wallet_address [limit]\n /transfers ma_mint_address [limit]\n\nExample: /transfers tx_signature\n /transfers wa_7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q\n /transfers ma_6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n\nExample: /transfers tx_signature 10",
         RECENT_TRANSFERS_HELP: `🔄 *Recent Transfers Command (/transfers)*
 
 *DESCRIPTION*

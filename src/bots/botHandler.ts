@@ -51,6 +51,7 @@ export class BotHandler {
             { cmd: /\/start/, handler: this.handleStart.bind(this) },
             { cmd: /\/top_holders/, handler: this.tokenHolderHandler.handleTopToken.bind(this.tokenHolderHandler) },
             { cmd: /\/transfers/, handler: this.recentTransferHandler.handleTransfers.bind(this.recentTransferHandler) },
+
             // Whale commands
             { cmd: /\/whalealert/, handler: this.whaleWatcherHandler.handleSetWhaleAlert.bind(this.whaleWatcherHandler) },
             { cmd: /\/listwhalealerts/, handler: this.whaleWatcherHandler.handleListWhaleAlerts.bind(this.whaleWatcherHandler) },
@@ -62,9 +63,9 @@ export class BotHandler {
             { cmd: /\/holder_distribution/, handler: this.holderDistributionHandler.handleHolderDistribution.bind(this.holderDistributionHandler) },
             // Wallet Tracker commands
             { cmd: /\/trackwallet/, handler: this.walletTrackerHandler.handleTrackWallet.bind(this.walletTrackerHandler) },
-            // { cmd: /\/listtrackedwallets/, handler: this.walletTrackerHandler.handleListTrackedWallets.bind(this.walletTrackerHandler) },
-            // { cmd: /\/removetrackedwallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
-            // { cmd: /\/walletstatus/, handler: this.walletTrackerHandler.handleWalletStatus.bind(this.walletTrackerHandler) },
+            { cmd: /\/listtrackedwallets/, handler: this.walletTrackerHandler.handleListTrackedWallets.bind(this.walletTrackerHandler) },
+            { cmd: /\/removetrackedwallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
+            { cmd: /\/walletstatus/, handler: this.walletTrackerHandler.handleWalletStatus.bind(this.walletTrackerHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {

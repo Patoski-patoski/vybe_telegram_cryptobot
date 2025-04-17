@@ -19,19 +19,20 @@ export class BaseHandler {
         try {
             const commands = [
                 { command: 'start', description: 'Start the bot' },
-                { command: 'transfers', description: 'View token transfers' },
-                { command: 'top_holders', description: 'View top token holders' },
+                { command: 'transfers', description: 'View a token transfers' },
+                { command: 'top_holders', description: 'View a token top holders' },
                 { command: 'whalealert', description: 'Set whale alerts' },
                 { command: 'listwhalealerts', description: 'List whale alerts' },
                 { command: 'removewhalealert', description: 'Remove whale alert' },
                 { command: 'checkwhales', description: 'Check whale transfers' },
-                { command: 'holder_distribution', description: 'View holder distribution' },
-                { command: 'series', description: 'View token time series' },
+                { command: 'holder_distribution', description: 'View a token holder distribution' },
+                { command: 'series', description: 'View a token time series' },
                 { command: 'analyze', description: 'Comprehensive token analysis' },
-                { command: 'trackwallet', description: 'Track wallet activity' },
+                { command: 'trackwallet', description: 'Track a wallet activity' },
                 { command: 'listtrackedwallets', description: 'List tracked wallets' },
-                { command: 'removetrackedwallet', description: 'Remove tracked wallet' },
-                { command: 'walletstatus', description: 'View wallet status' },
+                { command: 'removetrackedwallet', description: 'Remove a tracked wallet' },
+                { command: 'walletstatus', description: 'View a wallet status' },
+                
                 { command: 'help', description: 'Get help' },
             ];
 
@@ -53,7 +54,7 @@ export class BaseHandler {
             }
         } catch (error) {
             logger.error('Error setting up bot commands:', error);
-            // Don't throw the error to prevent bot from crashing
+            // Didn't throw the error to prevent bot from crashing
             // The bot can still function without commands being set
         }
     }

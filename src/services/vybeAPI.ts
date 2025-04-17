@@ -1,7 +1,7 @@
 //src/services/vybeAPI.ts
 import dotenv from "dotenv";
 import config from "../config/config";
-import { isValidMintAddress } from "../utils/solana";
+import { formatUsdValue, isValidMintAddress } from "../utils/utils";
 import axios, {
     AxiosInstance,
     AxiosResponse
@@ -14,7 +14,10 @@ import {
     WhaleWatchParams,
     GetTokenHolderTimeSeriesResponse,
     GetTokenVolumeTimeSeriesResponse,
-    TokenBalanceResponse
+    TokenBalanceResponse,
+    WalletPnLResponse,
+    WalletPnL,
+
 } from "../interfaces/vybeApiInterface";
 
 dotenv.config();
@@ -36,7 +39,7 @@ export class VybeApiService {
                 'User-Agent': 'Vybe-Telegram-Bot/1.0.0'
             },
 
-            timeout: 15000,
+            timeout: 55000,
             validateStatus: (status) => status < 500 // Handle 4xx errors in catch block
 
         });
@@ -60,7 +63,6 @@ export class VybeApiService {
 
     }
 
-    // Get top Token Holders
     /**
      * Fetches top token holders from Vybe API.
      * @param mintAddress The mint address of the token to fetch top holders for.
@@ -86,7 +88,6 @@ export class VybeApiService {
         const topHolderURL = `/token/${mintAddress}/top-holders`;
         try {
             const response = await this.api.get(topHolderURL, { params });
-
             switch (response.status) {
                 case 400:
                     logger.error(`Bad Request: ${response.status} ${response.config.url}`, {
@@ -110,8 +111,7 @@ export class VybeApiService {
     /**
      * Fetches recent transfers from Vybe API.
      * @param mintAddress Optional mint address to filter by.
-     * @param senderAddress Optional sender address to filter by.
-     * @param receiverAddress Optional receiver address to filter by.
+     * @param walletAddress Optional wallet address to filter by.
      * @param tx_signature Optional transaction signature to filter by.
      * @param limit Optional limit of number of records to return. Default is 5.
      * @returns A Promise that resolves to a {@link GetRecentTransferResponse} containing the recent transfers.
@@ -120,26 +120,36 @@ export class VybeApiService {
     async getRecentTransfers(
         mintAddress?: string,
         senderAddress?: string,
-        receiverAddress?: string,
-        tx_signature?: string,
+        signature?: string,
         limit: number = 5
     ): Promise<GetRecentTransferResponse> {
         // Validate limit
         if (limit <= 0 || limit > 10) {
-            throw new Error("Limit must be between 1 and 100");
+            throw new Error("Limit must be between 1 and 10");
         }
 
         // Clean up parameters by removing undefined values
         const params = {
             ...(mintAddress && { mintAddress }),
             ...(senderAddress && { senderAddress }),
-            ...(receiverAddress && { receiverAddress }),
-            ...(tx_signature && { tx_signature }),
+            ...(signature && { signature }),
             limit
         };
-        console.log("params", params);
         try {
             const response = await this.api.get("/token/transfers", { params });
+
+            switch (response.status) {
+                case 400:
+                    logger.error(`Bad Request: ${response.status} ${response.config.url}`, {
+                        data: response.data,
+                    });
+                    throw new Error(`Invalid mint address: ${mintAddress}`);
+                case 404:
+                    logger.error(`Not Found: ${response.status} ${response.config.url}`, {
+                        data: response.data,
+                    });
+                    throw new Error(`Mint address not found: ${mintAddress}`);
+            }
             return response.data as GetRecentTransferResponse;
         } catch (error: any) {
             logger.error(`Failed to fetch recent transfers: ${error.message}`, { error });
@@ -162,15 +172,17 @@ export class VybeApiService {
     async getWhaleTransfers(params: WhaleWatchParams): Promise<GetRecentTransferResponse> {
         try {
             // Clean up parameters by removing undefined values
-            const apiParams = Object.entries(params).reduce((acc, [key, value]) => {
-                if (value !== undefined) acc[key] = value;
-                return acc;
+            const apiParams = {
+                ...(params.mintAddress && { mintAddress: params.mintAddress }),
+                ...(params.minAmount && { minAmount: params.minAmount }),
+                ...(params.maxAmount && { maxAmount: params.maxAmount }),
+                ...(params.sortByDesc && { sortByDesc: params.sortByDesc }),
+                ...(params.timeStart && { timeStart: params.timeStart }),
+                ...(params.timeEnd && { timeEnd: params.timeEnd }),
+                limit: params.limit
+            };
 
-            }, {} as Record<string, any>);
-
-            console.log("apiParams", apiParams);
-
-            if (!apiParams.sortByDesc && !apiParams.sortByDesc) {
+            if (!apiParams.sortByDesc) {
                 apiParams.sortByDesc = 'amount';
             }
 
@@ -248,7 +260,7 @@ export class VybeApiService {
             ...(endTime && { endTime }),
             limit
         };
-        
+
         try {
             const response = await this.api.get(`/token/${mintAddress}/transfer-volume`, { params });
             return response.data as GetTokenVolumeTimeSeriesResponse;
@@ -281,6 +293,60 @@ export class VybeApiService {
                 throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
             }
             throw new Error(`Failed to fetch token balance: ${error.message}`);
+        }
+    }
+
+    async getWalletPnL(
+        ownerAddress: string,
+        resolution?: '1d' | '7d' | '30d',
+        tokenAddress?: string,
+        sortByAsc?: string,
+        sortByDesc?: string,
+        limit?: number,
+        page?: number
+    ): Promise<WalletPnLResponse> {
+        // Validate wallet address
+        if (!isValidMintAddress(ownerAddress)) {
+            throw new Error(`Invalid wallet address: ${ownerAddress}`);
+        }
+
+        const params = {
+            ...(resolution && { resolution }),
+            ...(tokenAddress && { tokenAddress }),
+            ...(sortByAsc && { sortByAsc }),
+            ...(sortByDesc && { sortByDesc }),
+            ...(limit && { limit }),
+            ...(page && { page })
+        };
+
+        try {
+            const response = await this.api.get(`/account/pnl/${ownerAddress}`, { params });
+            return response.data as WalletPnLResponse;
+        } catch (error: any) {
+            logger.error(`Failed to get wallet PnL for ${ownerAddress}`, { error });
+            throw new Error(`Failed to get wallet PnL: ${error.message}`);
+        }
+    }
+
+    async analyzeWalletPnL(walletAddress: string): Promise<WalletPnL> {
+        try {
+            const pnlData = await this.getWalletPnL(walletAddress, '30d');
+
+            return {
+                totalPnL: pnlData.summary.realizedPnlUsd + pnlData.summary.unrealizedPnlUsd,
+                realizedPnL: pnlData.summary.realizedPnlUsd,
+                unrealizedPnL: pnlData.summary.unrealizedPnlUsd,
+                winRate: pnlData.summary.winRate,
+                tradeCount: pnlData.summary.tradesCount,
+                averageTradeSize: pnlData.summary.averageTradeUsd,
+                bestPerformingToken: pnlData.summary.bestPerformingToken,
+                worstPerformingToken: pnlData.summary.worstPerformingToken,
+                pnlTrend: pnlData.summary.pnlTrendSevenDays,
+                tokenMetrics: pnlData.tokenMetrics
+            };
+        } catch (error) {
+            logger.error(`Failed to analyze wallet PnL for ${walletAddress}`, { error });
+            throw error;
         }
     }
 }

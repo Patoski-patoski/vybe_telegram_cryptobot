@@ -4,8 +4,7 @@ import TelegramBot from "node-telegram-bot-api";
 import fs from 'fs/promises';
 import path from 'path';
 import { BaseHandler } from "./baseHandler";
-import { timeAgo } from "../utils/time";
-import { formatUsdValue } from "../utils/solana";
+import { timeAgo, formatUsdValue } from "../utils/utils";
 import logger from "../config/logger";
 import {
     RecentTransfer,
@@ -82,11 +81,10 @@ export class WhaleWatcherHandler extends BaseHandler {
                     minAmount: minimumAmount,
                     timeStart: this.lastCheckedTime,
                     timeEnd: currentTime,
-                    sortByDesc: 'amount',
                     limit: 5
                 });
 
-                console.log("Transfer", transfers)
+                console.log("Transfers", transfers)
 
                 if (transfers && transfers.transfers.length > 0) {
                     // Process each transfers
@@ -136,8 +134,6 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         const solscanUrl = `https://solscan.io/tx/${transfer.signature}`;
         const valueUsd = transfer.valueUsd ? `${formatUsdValue(transfer.valueUsd)}` : "N/A";
-
-        console.log("transferBLOCKTIME", transfer.blockTime);
 
 
         const message =
@@ -275,12 +271,8 @@ export class WhaleWatcherHandler extends BaseHandler {
         const text = msg.text || "";
         const parts = text.split(" ");
 
-        console.log("parts", parts);
-
         let mintAddress: string;
         let minAmount = 5000; // Default minimum amount
-
-        console.log("parts.length", parts.length);
 
         if (parts.length < 2 || parts.length > 4) {
             return this.bot.sendMessage(chatId,
@@ -306,52 +298,66 @@ export class WhaleWatcherHandler extends BaseHandler {
             );
         }
 
-        const parsedAMount = parseFloat(parts[2]);
-
-        if (!isNaN(parsedAMount) && parsedAMount > 0) {
-            minAmount = parsedAMount;
+        const parsedAmount = parseFloat(parts[2]);
+        if (!isNaN(parsedAmount) && parsedAmount > 0) {
+            minAmount = parsedAmount;
         }
 
         // Send load message
         const loadingMsg = await this.bot.sendMessage(chatId,
-            "🔍 Searching for whale transfers..."
+            "🔍 Searching for whale holders..."
         );
 
         try {
-            // Get past 24 hours
-            const oneDayAgo = Math.floor(Date.now() / 1000) - 86400;
-            const params: any = {
-                minAmount,
-                timeStart: oneDayAgo,
-                sortByDesc: 'amount',
-                limit
-            };
-
-            if (mintAddress) params.mintAddress = mintAddress;
-
-            const transfers = await this.api.getWhaleTransfers(params);
+            const holders = await this.api.getTopTokenHolder(mintAddress);
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
-            if (!transfers || !transfers.transfers || transfers.transfers.length === 0) {
+            if (!holders || !holders.data || holders.data.length === 0) {
                 return this.bot.sendMessage(chatId,
-                    "⛔ No whale transfers found with the specified criteria in the last 24 hours."
+                    "⛔ No whale holders found for this token."
                 );
             }
 
+            // Filter holders by minimum amount and limit
+            const whaleHolders = holders.data
+                .filter(holder => parseFloat(holder.balance) >= minAmount)
+                .slice(0, limit);
+
+            if (whaleHolders.length === 0) {
+                return this.bot.sendMessage(chatId,
+                    `⛔ No holders found with balance above ${minAmount} tokens.`
+                );
+            }
+
+            // Send summary message
             await this.bot.sendMessage(chatId,
-                `🐋 *Top ${transfers.transfers.length} Whale Transfers (Last 24h)* 🐋\n\n` +
-                ` *Mint Address:* \`${mintAddress}\`\n` +
-                ` *Minimum amount:* ${minAmount.toLocaleString()}`,
+                `🐋 *Top ${whaleHolders.length} Whale Holders* 🐋\n\n` +
+                `*Token:* \`${mintAddress}\`\n` +
+                `*Token Symbol:* \`${holders.data[0].tokenSymbol}\`\n` +
+                `*Minimum Amount:* ${minAmount} tokens\n\n` +
+                `*Holders:*`,
                 { parse_mode: "Markdown" }
             );
 
-            // Send each transfer alert
-            for (const transfer of transfers.transfers) {
-                await this.sendWhaleAlert(chatId, transfer);
+            let count = 0;
+
+
+            // Send each holder's details
+            for (const holder of whaleHolders) {
+                const balance = parseFloat(holder.balance).toLocaleString(undefined, { maximumFractionDigits: 6 });
+                const message =
+                    `👤 *Holder ${count + 1}:* \`${holder.ownerAddress}\`\n\n` +
+                    `💰 *Balance:* ${balance} ${holder.tokenSymbol}\n\n` +
+                    `💵 *Value in USD:* ${formatUsdValue(holder.valueUsd)}\n\n` +
+                    `📊 *Percentage of Supply Held:* ${holder.percentageOfSupplyHeld.toFixed(2)}%`;
+
+                await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+                count++;
             }
 
         } catch (error: any) {
-            await this.bot.sendMessage(chatId, `❌ Error: ${error}`);
+            await this.bot.deleteMessage(chatId, loadingMsg.message_id);
+            await this.bot.sendMessage(chatId, `❌ Error: ${error.message || "Failed to fetch whale holders"}`);
         }
     }
 
