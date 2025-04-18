@@ -1,7 +1,7 @@
 //src/services/vybeAPI.ts
 import dotenv from "dotenv";
 import config from "../config/config";
-import { formatUsdValue, isValidMintAddress } from "../utils/utils";
+import { formatUsdValue, isValidMintAddress, isValidWalletAddress } from "../utils/utils";
 import axios, {
     AxiosInstance,
     AxiosResponse
@@ -109,51 +109,49 @@ export class VybeApiService {
         }
     }
     /**
-     * Fetches recent transfers from Vybe API.
-     * @param mintAddress Optional mint address to filter by.
+     * Fetches recent wallets transfers from Vybe API.
      * @param senderAddress Optional sender address to filter by.
      * @param receiverAddress Optional receiver address to filter by.
-     * @param tx_signature Optional transaction signature to filter by.
+     * @param timeStart Optional start time to filter by.
      * @param limit Optional limit of number of records to return. Default is 5.
      * @returns A Promise that resolves to a {@link GetRecentTransferResponse} containing the recent transfers.
      * @throws {Error} If there is an error making the API request or parsing the response.
      */
-    async getRecentTransfers(
-        mintAddress?: string,
+    async getWalletRecentTransfers(options: {
         senderAddress?: string,
         receiverAddress?: string,
-        signature?: string,
-        limit: number = 5
-    ): Promise<GetRecentTransferResponse> {
-        // Validate limit
-        if (limit <= 0 || limit > 10) {
+        timeStart?: number,
+        limit?: number
+    }): Promise<GetRecentTransferResponse> {
+        // Validate limit 
+        if (options.limit && (options.limit <= 0 || options.limit > 10)) {
             throw new Error("Limit must be between 1 and 10");
         }
+
+        if (options.senderAddress && !isValidWalletAddress(options.senderAddress)
+            || options.receiverAddress && !isValidWalletAddress(options.receiverAddress)) {
+            const msg = `Invalid wallet address: ${options.senderAddress} or ${options.receiverAddress} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
+
         const currentTimestamp = Math.floor(Date.now() / 1000);
+        options.timeStart = currentTimestamp - 18000; // 5 hours in seconds
         // Clean up parameters by removing undefined values
         const params = {
-            ...(mintAddress && { mintAddress }),
-            ...(senderAddress && { senderAddress }),
-            ...(receiverAddress && { receiverAddress }),
-            ...(signature && { signature }),
-            limit
+            ...(options.senderAddress && { senderAddress: options.senderAddress }),
+            ...(options.receiverAddress && { receiverAddress: options.receiverAddress }),
+            ...(options.timeStart && { timeStart: options.timeStart }),
+            limit: options.limit
         };
-        try {
-            const response = await this.api.get(`/token/transfers?timeStart=${currentTimestamp}`, { params });
 
-            switch (response.status) {
-                case 400:
-                    logger.error(`Bad Request: ${response.status} ${response.config.url}`, {
-                        data: response.data,
-                    });
-                    throw new Error(`Invalid mint address: ${mintAddress}`);
-                case 404:
-                    logger.error(`Not Found: ${response.status} ${response.config.url}`, {
-                        data: response.data,
-                    });
-                    throw new Error(`Mint address not found: ${mintAddress}`);
-            }
+        console.log("params", params);
+
+        try {
+            const response = await this.api.get(`/token/transfers`, { params });
+            console.log("recent transfer", response.data)
             return response.data as GetRecentTransferResponse;
+
         } catch (error: any) {
             logger.error(`Failed to fetch recent transfers: ${error.message}`, { error });
             if (error.response) {

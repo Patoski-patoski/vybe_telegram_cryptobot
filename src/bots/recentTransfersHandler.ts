@@ -71,23 +71,25 @@ export class RecentTransferHandler extends BaseHandler {
             );
         }
 
+        console.log("filterInput", filterInput);
+        console.log("mintAddress", mintAddress);
+        console.log("senderAddress", senderAddress);
+        console.log("receiverAddress", receiverAddress);
+        console.log("tx_signature", tx_signature);
+
         try {
             // Send "loading" message
             const loadingMsg = await this.bot.sendMessage(chatId, "⏳ Fetching recent transfers...");
 
             // Get transfers based on the filter type
             let response: GetRecentTransferResponse;
-            if (tx_signature) {
-                response = await this.api.getRecentTransfers(undefined, undefined, undefined, tx_signature, limit);
-            } else if (senderAddress) {
-                response = await this.api.getRecentTransfers(undefined, senderAddress, undefined, undefined, limit);
-            } else if (receiverAddress) {
-                response = await this.api.getRecentTransfers(undefined, undefined, receiverAddress, undefined, limit);
+            if (senderAddress) {
+                response = await this.api.getWalletRecentTransfers({ senderAddress, limit });
+                console.log("response senderAddress", response);
+            } else  {
+                response = await this.api.getWalletRecentTransfers({ receiverAddress, limit });
+                console.log("response receiverAddress", response);
             }
-            else {
-                response = await this.api.getRecentTransfers(mintAddress, undefined, undefined, undefined, limit);
-            }
-
             // Delete loading message
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
@@ -95,7 +97,11 @@ export class RecentTransferHandler extends BaseHandler {
             if (!response.transfers || response.transfers.length === 0) {
                 return this.bot.sendMessage(chatId,
                     "⛔ No transfers found matching your criteria." +
-                    "Check if you match the correct format for the filter.\n"
+                    "Check if you match the correct format for the filter.\n" +
+                    "Example: /transfers sa_<sender_address>\n" +
+                    "Example: /transfers tx_<tx_signature>\n" +
+                    "Example: /transfers ra_<receiver_address>\n" +
+                    "Example: /transfers ma_<mint_address>\n"
                 );
             }
 

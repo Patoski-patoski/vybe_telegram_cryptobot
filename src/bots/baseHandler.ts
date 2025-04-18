@@ -37,7 +37,7 @@ export class BaseHandler {
             ];
 
             // Set commands with retry logic
-            let retries = 3;
+            let retries = 5;
             while (retries > 0) {
                 try {
                     await this.bot.setMyCommands(commands);
@@ -49,7 +49,7 @@ export class BaseHandler {
                         throw error;
                     }
                     logger.warn(`Failed to set commands, retrying... (${retries} attempts left)`);
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 1 second before retry
                 }
             }
         } catch (error) {

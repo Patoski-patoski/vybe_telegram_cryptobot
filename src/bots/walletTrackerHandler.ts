@@ -132,8 +132,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         try {
             // Fetch both sent and received transfers in parallel
             const [sentTransfers, receivedTransfers] = await Promise.all([
-                this.api.getRecentTransfers(undefined, walletAddress, undefined, undefined, 1),
-                this.api.getRecentTransfers(undefined, undefined, walletAddress, undefined, 1)
+                this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 1 }),
+                this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 1 })
             ]);
 
             // Combine and sort transfers by block time
@@ -153,8 +153,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
                     // Check if there are more recent transfers we should notify about
                     const [additionalSent, additionalReceived] = await Promise.all([
-                        this.api.getRecentTransfers(undefined, walletAddress, undefined, undefined, 5),
-                        this.api.getRecentTransfers(undefined, undefined, walletAddress, undefined, 5)
+                        this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 5 }),
+                        this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 5 })
                     ]);
 
                     const additionalTransfers = [
@@ -393,8 +393,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
         try {
             const [sentTransfers, receivedTransfers] = await Promise.all([
-                this.api.getRecentTransfers(undefined, settings.walletAddress, undefined, undefined, 3),
-                this.api.getRecentTransfers(undefined, undefined, settings.walletAddress, undefined, 3)
+                this.api.getWalletRecentTransfers({ senderAddress: settings.walletAddress, limit: 3 }),
+                this.api.getWalletRecentTransfers({ receiverAddress: settings.walletAddress, limit: 3 })
             ]);
 
             const allTransfers = [
@@ -528,7 +528,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
             // Get the latest transaction signature as baseline
             try {
-                const recentTransfers = await this.api.getRecentTransfers(undefined, walletAddress, walletAddress, undefined, 1);
+                const recentTransfers = await this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 1 });
                 if (recentTransfers?.transfers.length > 0) {
                     settings.lastKnownSignature = recentTransfers.transfers[0].signature;
                 }
@@ -654,8 +654,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 this.api.getTokenBalance(walletAddress),
                 this.walletAnalysis.calculatePnL(walletAddress),
                 this.walletAnalysis.analyzeWalletCategory(walletAddress),
-                this.api.getRecentTransfers(undefined, walletAddress, undefined, undefined, 5),
-                this.api.getRecentTransfers(undefined, undefined, walletAddress, undefined, 5)
+                this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 5 }),
+                this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 5 })
             ]);
 
             // Create detailed analysis message
