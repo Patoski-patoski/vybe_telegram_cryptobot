@@ -149,7 +149,6 @@ export class VybeApiService {
 
         try {
             const response = await this.api.get(`/token/transfers`, { params });
-            console.log("recent transfer", response.data)
             return response.data as GetRecentTransferResponse;
 
         } catch (error: any) {
