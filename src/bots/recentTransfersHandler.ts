@@ -54,13 +54,15 @@ export class RecentTransferHandler extends BaseHandler {
         }
 
         // Initialize parameters
-        let mintAddress, walletAddress, tx_signature;
+        let mintAddress, senderAddress, receiverAddress, tx_signature;
 
         // Correctly parse the prefix and value
-        if (filterInput.startsWith("wa_")) {
-            walletAddress = filterInput.substring(3);
+        if (filterInput.startsWith("sa_")) {
+            senderAddress = filterInput.substring(3);
         } else if (filterInput.startsWith("tx_")) {
             tx_signature = filterInput.substring(3);
+        } else if (filterInput.startsWith("ra_")) {
+            receiverAddress = filterInput.substring(3);
         } else if (filterInput.startsWith("ma_")) {
             mintAddress = filterInput.substring(3);
         } else {
@@ -76,11 +78,14 @@ export class RecentTransferHandler extends BaseHandler {
             // Get transfers based on the filter type
             let response: GetRecentTransferResponse;
             if (tx_signature) {
-                response = await this.api.getRecentTransfers(undefined, undefined, tx_signature, limit);
-            } else if (walletAddress) {
-                response = await this.api.getRecentTransfers(undefined, walletAddress, undefined, limit);
-            } else {
-                response = await this.api.getRecentTransfers(mintAddress, undefined, undefined, limit);
+                response = await this.api.getRecentTransfers(undefined, undefined, undefined, tx_signature, limit);
+            } else if (senderAddress) {
+                response = await this.api.getRecentTransfers(undefined, senderAddress, undefined, undefined, limit);
+            } else if (receiverAddress) {
+                response = await this.api.getRecentTransfers(undefined, undefined, receiverAddress, undefined, limit);
+            }
+            else {
+                response = await this.api.getRecentTransfers(mintAddress, undefined, undefined, undefined, limit);
             }
 
             // Delete loading message

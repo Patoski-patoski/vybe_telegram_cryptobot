@@ -111,7 +111,8 @@ export class VybeApiService {
     /**
      * Fetches recent transfers from Vybe API.
      * @param mintAddress Optional mint address to filter by.
-     * @param walletAddress Optional wallet address to filter by.
+     * @param senderAddress Optional sender address to filter by.
+     * @param receiverAddress Optional receiver address to filter by.
      * @param tx_signature Optional transaction signature to filter by.
      * @param limit Optional limit of number of records to return. Default is 5.
      * @returns A Promise that resolves to a {@link GetRecentTransferResponse} containing the recent transfers.
@@ -120,6 +121,7 @@ export class VybeApiService {
     async getRecentTransfers(
         mintAddress?: string,
         senderAddress?: string,
+        receiverAddress?: string,
         signature?: string,
         limit: number = 5
     ): Promise<GetRecentTransferResponse> {
@@ -127,16 +129,17 @@ export class VybeApiService {
         if (limit <= 0 || limit > 10) {
             throw new Error("Limit must be between 1 and 10");
         }
-
+        const currentTimestamp = Math.floor(Date.now() / 1000);
         // Clean up parameters by removing undefined values
         const params = {
             ...(mintAddress && { mintAddress }),
             ...(senderAddress && { senderAddress }),
+            ...(receiverAddress && { receiverAddress }),
             ...(signature && { signature }),
             limit
         };
         try {
-            const response = await this.api.get("/token/transfers", { params });
+            const response = await this.api.get(`/token/transfers?timeStart=${currentTimestamp}`, { params });
 
             switch (response.status) {
                 case 400:

@@ -65,7 +65,7 @@ export class BotHandler {
             { cmd: /\/trackwallet/, handler: this.walletTrackerHandler.handleTrackWallet.bind(this.walletTrackerHandler) },
             { cmd: /\/listtrackedwallets/, handler: this.walletTrackerHandler.handleListTrackedWallets.bind(this.walletTrackerHandler) },
             { cmd: /\/removetrackedwallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
-            { cmd: /\/walletstatus/, handler: this.walletTrackerHandler.handleWalletAnalysis.bind(this.walletTrackerHandler) },
+            { cmd: /\/analyzewallet/, handler: this.walletTrackerHandler.handleWalletAnalysis.bind(this.walletTrackerHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {

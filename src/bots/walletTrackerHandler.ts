@@ -24,6 +24,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     private checkInterval: NodeJS.Timeout | null = null;
     private walletAnalysis: WalletAnalysisService;
     private lastErrorTime: Map<string, number> = new Map(); // Track API error times
+    private historicalValues: Map<string, { value: string; timestamp: number }> = new Map();
 
     constructor(bot: TelegramBot, api: VybeApiService, checkIntervalMs = DEFAULT_CHECK_INTERVAL_MS) {
         super(bot, api);
@@ -87,8 +88,17 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
 
         try {
-            // Get current wallet balance
             const currentTime = Math.floor(Date.now() / 1000);
+            const currentValue = balance.totalTokenValueUsd;
+
+            // Update historical value if 24 hours have passed
+            const lastHistorical = this.historicalValues.get(walletAddress);
+            if (!lastHistorical || (currentTime - lastHistorical.timestamp) >= 24 * 60 * 60) {
+                this.historicalValues.set(walletAddress, {
+                    value: currentValue,
+                    timestamp: currentTime
+                });
+            }
 
             // Check for new transfers
             await this.checkForNewTransfers(walletAddress, settings);
@@ -119,33 +129,54 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     }
 
     private async checkForNewTransfers(walletAddress: string, settings: WalletAlertSettings): Promise<void> {
-        const recentTransfers = await this.api.getRecentTransfers(undefined, walletAddress, undefined, 1);
+        try {
+            // Fetch both sent and received transfers in parallel
+            const [sentTransfers, receivedTransfers] = await Promise.all([
+                this.api.getRecentTransfers(undefined, walletAddress, undefined, undefined, 1),
+                this.api.getRecentTransfers(undefined, undefined, walletAddress, undefined, 1)
+            ]);
 
-        if (recentTransfers && recentTransfers.transfers.length > 0) {
-            const latestSignature = recentTransfers.transfers[0].signature;
+            // Combine and sort transfers by block time
+            const allTransfers = [
+                ...(sentTransfers?.transfers || []),
+                ...(receivedTransfers?.transfers || [])
+            ].sort((a, b) => b.blockTime - a.blockTime);
 
-            if (settings.lastKnownSignature !== latestSignature) {
-                // New transaction detected
-                settings.lastKnownSignature = latestSignature;
-                await this.sendTransferMessage(settings.chatId, recentTransfers.transfers[0]);
+            if (allTransfers.length > 0) {
+                const latestTransfer = allTransfers[0];
+                const latestSignature = latestTransfer.signature;
 
-                // Check if there are more recent transfers we should notify about
-                const additionalTransfers = await this.api.getRecentTransfers(
-                    undefined, walletAddress, undefined, 5
-                );
+                if (settings.lastKnownSignature !== latestSignature) {
+                    // New transaction detected
+                    settings.lastKnownSignature = latestSignature;
+                    await this.sendTransferMessage(settings.chatId, latestTransfer);
 
-                // Skip the first one as we already notified about it
-                if (additionalTransfers.transfers.length > 1) {
-                    for (let i = 1; i < additionalTransfers.transfers.length; i++) {
-                        const tx = additionalTransfers.transfers[i];
-                        if (tx.signature !== settings.lastKnownSignature) {
-                            await this.sendTransferMessage(settings.chatId, tx);
-                        } else {
-                            break; // Stop once we hit a previously seen transaction
+                    // Check if there are more recent transfers we should notify about
+                    const [additionalSent, additionalReceived] = await Promise.all([
+                        this.api.getRecentTransfers(undefined, walletAddress, undefined, undefined, 5),
+                        this.api.getRecentTransfers(undefined, undefined, walletAddress, undefined, 5)
+                    ]);
+
+                    const additionalTransfers = [
+                        ...(additionalSent?.transfers || []),
+                        ...(additionalReceived?.transfers || [])
+                    ].sort((a, b) => b.blockTime - a.blockTime);
+
+                    // Skip the first one as we already notified about it
+                    if (additionalTransfers.length > 1) {
+                        for (let i = 1; i < additionalTransfers.length; i++) {
+                            const tx = additionalTransfers[i];
+                            if (tx.signature !== settings.lastKnownSignature) {
+                                await this.sendTransferMessage(settings.chatId, tx);
+                            } else {
+                                break; // Stop once we hit a previously seen transaction
+                            }
                         }
                     }
                 }
             }
+        } catch (error) {
+            logger.error(`Error checking transfers for wallet ${walletAddress}:`, error);
         }
     }
 
@@ -170,7 +201,6 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             disable_web_page_preview: true
         });
     }
-
 
     private async processTokenListChanges(
         walletAddress: string,
@@ -295,7 +325,10 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 message += `   ${formatUsdValue(change.oldValue)} → ${formatUsdValue(change.newValue)}\n\n`;
             }
 
-            await this.bot.sendMessage(settings.chatId, message, { parse_mode: "Markdown" });
+            await this.bot.sendMessage(settings.chatId, message, {
+                parse_mode: "Markdown",
+                disable_web_page_preview: true
+            });
         }
     }
 
@@ -320,14 +353,22 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
     private async sendWalletAlert(settings: WalletAlertSettings, balance: TokenBalanceResponse) {
         const chatId = settings.chatId;
-        let message = `📊 *Wallet Tracking Update*\n\n` +
-            `*Wallet Address:* \`${settings.walletAddress}\`\n` +
-            `*Total Wallet Value:* ${formatUsdValue(balance.totalTokenValueUsd)}\n`;
+        const currentValue = parseFloat(balance.totalTokenValueUsd);
+        const historicalValue = this.historicalValues.get(settings.walletAddress);
 
-        if (balance.totalTokenValueUsd1dChange) {
-            const changePercent = parseFloat(balance.totalTokenValueUsd1dChange);
+        let message = `📊 *Wallet Tracking Update*\n\n` +
+            `*Wallet Address:* \`${settings.walletAddress}\`\n`;
+
+        if (historicalValue) {
+            const historicalValueNum = parseFloat(historicalValue.value);
+            const changePercent = ((currentValue - historicalValueNum) / historicalValueNum) * 100;
             const changeEmoji = changePercent > 0 ? '📈' : (changePercent < 0 ? '📉' : '➡️');
-            message += `*24h Change:* ${changeEmoji} ${changePercent.toFixed(2)}%\n`;
+
+            message += `*Wallet Value 24h ago:* ${formatUsdValue(historicalValue.value)}\n` +
+                `*Current Wallet Value:* ${formatUsdValue(currentValue.toString())}\n` +
+                `*24h Change:* ${changeEmoji} ${Math.abs(changePercent).toFixed(2)}%\n\n`;
+        } else {
+            message += `*Current Wallet Value:* ${formatUsdValue(currentValue.toString())}\n\n`;
         }
 
         message += `\n*Top Holdings:*\n`;
@@ -350,13 +391,27 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
         message += `\n💰 *Recent Transfer Summary*\n`;
 
-        const recentTransfer = await this.api.getRecentTransfers(undefined, settings.walletAddress, undefined, 3);
-        if (recentTransfer?.transfers.length) {
-            for (const tx of recentTransfer.transfers) {
-                message += this.buildTransferMessage(tx);
+        try {
+            const [sentTransfers, receivedTransfers] = await Promise.all([
+                this.api.getRecentTransfers(undefined, settings.walletAddress, undefined, undefined, 3),
+                this.api.getRecentTransfers(undefined, undefined, settings.walletAddress, undefined, 3)
+            ]);
+
+            const allTransfers = [
+                ...(sentTransfers?.transfers || []),
+                ...(receivedTransfers?.transfers || [])
+            ].sort((a, b) => b.blockTime - a.blockTime);
+
+            if (allTransfers.length > 0) {
+                for (const tx of allTransfers.slice(0, 6)) {
+                    message += this.buildTransferMessage(tx);
+                }
+            } else {
+                message += "_No recent transfers found_\n";
             }
-        } else {
-            message += "_No recent transfers found_\n";
+        } catch (error) {
+            logger.error(`Error fetching recent transfers for wallet ${settings.walletAddress}:`, error);
+            message += "_Error fetching recent transfers_\n";
         }
 
         if (settings.pnl) {
@@ -364,29 +419,27 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
 
         message += `\n_Last updated ${timeAgo(settings.lastCheckedTime)}_`;
-        await this.bot.sendMessage(chatId, message,
-            {
-                parse_mode: "Markdown",
-                disable_web_page_preview: true
-            });
+        await this.bot.sendMessage(chatId, message, {
+            parse_mode: "Markdown",
+            disable_web_page_preview: true
+        });
     }
 
     private buildTransferMessage(tx: RecentTransfer): string {
         const sender = tx.senderAddress ? `\`${tx.senderAddress.slice(0, 8)}...\`` : "Unknown";
         const receiver = tx.receiverAddress ? `\`${tx.receiverAddress.slice(0, 8)}...\`` : "Unknown";
         const amount = parseFloat(tx.calculatedAmount).toLocaleString(undefined, { maximumFractionDigits: 6 });
-        const url = `https://explorer.solana.com/tx/${tx.signature}`;
+        const url = `https://solscan.io/tx/${tx.signature}`;
         const time = timeAgo(tx.blockTime);
 
         // Add token info if available
-        const tokenInfo = tx.tokenSymbol ? ` ${tx.tokenSymbol}` : " SOL";
+        const tokenInfo = tx.tokenSymbol ? ` ${tx.tokenSymbol}` : "N/A";
         const valueInfo = tx.valueUsd ? ` (${formatUsdValue(tx.valueUsd)})` : "";
 
         return `\n👤 ${sender} → ${receiver}\n` +
             `💸 *Amount:* \`${amount}${tokenInfo}\`${valueInfo}\n` +
-            `🕒 _${time}_ [🔍](${url})\n`;
+            `🕒 _${time}_ [🔍 View on Solscan](${url})\n\n`;
     }
-
     async handleTrackWallet(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const parts = msg.text?.split(" ") ?? [];
@@ -425,7 +478,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         if (userWalletCount >= MAX_WALLETS_PER_USER) {
             return this.bot.sendMessage(
                 chatId,
-                `⚠️ You've reached the maximum limit of ${MAX_WALLETS_PER_USER} tracked wallets\n\nPlease remove one before adding a new one.`
+                `⚠️ You've reached the maximum limit of ${MAX_WALLETS_PER_USER} tracked wallets` +
+                `\nPlease remove one before adding a new one.`
             );
         }
 
@@ -455,6 +509,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 // Update existing tracking settings
                 const existingSettings = userAlerts.get(chatId)!;
                 existingSettings.minValueUsd = minValueUsd;
+                existingSettings.lastCheckedTime = Math.floor(Date.now() / 1000);
                 await this.saveAlerts();
                 return this.bot.sendMessage(
                     chatId,
@@ -473,7 +528,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
             // Get the latest transaction signature as baseline
             try {
-                const recentTransfers = await this.api.getRecentTransfers(undefined, walletAddress, undefined, 1);
+                const recentTransfers = await this.api.getRecentTransfers(undefined, walletAddress, walletAddress, undefined, 1);
                 if (recentTransfers?.transfers.length > 0) {
                     settings.lastKnownSignature = recentTransfers.transfers[0].signature;
                 }
@@ -497,7 +552,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
             return this.bot.sendMessage(
                 chatId,
-                `✅ Successfully set up tracking for wallet \`${walletAddress}\` with minimum value ${formatUsdValue(minValueUsd)}.\n\nYou will receive notifications when significant activity is detected.`,
+                `✅ Successfully set up tracking for wallet\n \`${walletAddress}\` To be triggered with a minimum value of ${formatUsdValue(minValueUsd)}.\n\nYou will receive notifications when significant activity is detected.`,
                 { parse_mode: "Markdown" }
             );
 
@@ -595,10 +650,13 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             await this.bot.sendMessage(chatId, "🔍 Analyzing wallet activity, please wait...");
 
             // Fetch wallet data
-            const balance = await this.api.getTokenBalance(walletAddress);
-            const pnl = await this.walletAnalysis.calculatePnL(walletAddress);
-            const category = await this.walletAnalysis.analyzeWalletCategory(walletAddress);
-            const recentTransfers = await this.api.getRecentTransfers(undefined, walletAddress, undefined, 5);
+            const [balance, pnl, category, sentTransfers, receivedTransfers] = await Promise.all([
+                this.api.getTokenBalance(walletAddress),
+                this.walletAnalysis.calculatePnL(walletAddress),
+                this.walletAnalysis.analyzeWalletCategory(walletAddress),
+                this.api.getRecentTransfers(undefined, walletAddress, undefined, undefined, 5),
+                this.api.getRecentTransfers(undefined, undefined, walletAddress, undefined, 5)
+            ]);
 
             // Create detailed analysis message
             let message = `📊 *Wallet Analysis Report*\n\n`;
@@ -629,10 +687,15 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 message += `\n${formatPnLAlert(pnl)}\n`;
             }
 
-            if (recentTransfers?.transfers.length) {
+            const allTransfers = [
+                ...(sentTransfers?.transfers || []),
+                ...(receivedTransfers?.transfers || [])
+            ].sort((a, b) => b.blockTime - a.blockTime);
+
+            if (allTransfers.length > 0) {
                 message += `\n*Recent Transfers:*\n`;
-                for (let i = 0; i < Math.min(3, recentTransfers.transfers.length); i++) {
-                    message += this.buildTransferMessage(recentTransfers.transfers[i]);
+                for (let i = 0; i < Math.min(3, allTransfers.length); i++) {
+                    message += this.buildTransferMessage(allTransfers[i]);
                 }
             }
 
@@ -650,13 +713,16 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     private async saveAlerts() {
         try {
             // Convert nested Maps to serializable format
-            const serializableData = Array.from(this.alerts.entries()).map(([walletAddress, userAlerts]) => [
-                walletAddress,
-                Array.from(userAlerts.entries()).map(([chatId, settings]) => [
-                    chatId,
-                    { ...settings, lastBalances: Array.from(settings.lastBalances.entries()) }
-                ])
-            ]);
+            const serializableData = {
+                alerts: Array.from(this.alerts.entries()).map(([walletAddress, userAlerts]) => [
+                    walletAddress,
+                    Array.from(userAlerts.entries()).map(([chatId, settings]) => [
+                        chatId,
+                        { ...settings, lastBalances: Array.from(settings.lastBalances.entries()) }
+                    ])
+                ]),
+                historicalValues: Array.from(this.historicalValues.entries())
+            };
 
             const dataDir = path.join(__dirname, '../data');
             try {
@@ -678,10 +744,10 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         try {
             const filePath = path.join(__dirname, '../data/wallet-alerts.json');
             const data = await fs.readFile(filePath, 'utf-8');
-            const serializableData = JSON.parse(data);
+            const { alerts: serializableAlerts, historicalValues: serializableHistorical } = JSON.parse(data);
 
             // Convert serialized data back to nested Maps
-            this.alerts = new Map(serializableData.map(([walletAddress, userAlerts]: [string, any]) => [
+            this.alerts = new Map(serializableAlerts.map(([walletAddress, userAlerts]: [string, any]) => [
                 walletAddress,
                 new Map(userAlerts.map(([chatId, settings]: [number, any]) => [
                     chatId,
@@ -689,10 +755,14 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 ]))
             ]));
 
+            // Load historical values
+            this.historicalValues = new Map(serializableHistorical);
+
             logger.info(`Loaded ${this.alerts.size} tracked wallets from storage`);
         } catch (error) {
             logger.warn('No saved wallet alerts found or error loading them:', error);
             this.alerts = new Map();
+            this.historicalValues = new Map();
         }
     }
 }
