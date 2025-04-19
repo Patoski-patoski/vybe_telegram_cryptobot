@@ -80,7 +80,7 @@ A powerful Telegram bot for monitoring Solana wallets and whale transactions, bu
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/vybe-telegram-bot.git
+git clone https://github.com/Patoski-patoski/vybe_telegram_cryptobot
 cd vybe-telegram-bot
 ```
 
