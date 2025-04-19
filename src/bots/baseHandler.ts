@@ -32,6 +32,7 @@ export class BaseHandler {
                 { command: 'listtrackedwallets', description: 'List tracked wallets' },
                 { command: 'removetrackedwallet', description: 'Remove a tracked wallet' },
                 { command: 'walletstatus', description: 'View a wallet status' },
+                { command: 'programinfo', description: 'View a program info' },
                 
                 { command: 'help', description: 'Get help' },
             ];

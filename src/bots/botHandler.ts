@@ -10,6 +10,7 @@ import { HolderDistributionHandler } from "./holderDistributionHandler";
 import { TokenAnalysisHandler } from "./tokenAnalysisHandler";
 import { EnhancedWalletTrackerHandler } from "./walletTrackerHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
+import { ProgramInfoHandler } from "./programInfoHandler";
 
 export class BotHandler {
     private readonly bot: TelegramBot;
@@ -23,6 +24,7 @@ export class BotHandler {
     private holderDistributionHandler: HolderDistributionHandler;
     private tokenAnalysisHandler: TokenAnalysisHandler;
     private walletTrackerHandler: EnhancedWalletTrackerHandler;
+    private programInfoHandler: ProgramInfoHandler;
 
     constructor() {
         const config = getConfig();
@@ -37,6 +39,7 @@ export class BotHandler {
         this.holderDistributionHandler = new HolderDistributionHandler(this.bot, this.api);
         this.tokenAnalysisHandler = new TokenAnalysisHandler(this.bot, this.api);
         this.walletTrackerHandler = new EnhancedWalletTrackerHandler(this.bot, this.api);
+        this.programInfoHandler = new ProgramInfoHandler(this.bot, this.api);
 
         // Setup commands
         this.setUpCommands();
@@ -66,6 +69,7 @@ export class BotHandler {
             { cmd: /\/listtrackedwallets/, handler: this.walletTrackerHandler.handleListTrackedWallets.bind(this.walletTrackerHandler) },
             { cmd: /\/removetrackedwallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
             { cmd: /\/analyzewallet/, handler: this.walletTrackerHandler.handleWalletAnalysis.bind(this.walletTrackerHandler) },
+            { cmd: /\/programinfo/, handler: this.programInfoHandler.handleProgramInfo.bind(this.programInfoHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {

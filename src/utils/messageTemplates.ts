@@ -616,4 +616,59 @@ As a user, I want to see the top token holders for a specific token.
 /holder\\_distribution, /series, /analyze
 
 `,
+
+        PROGRAMS_HELP: `📚 *Programs Explorer Commands*
+
+*DESCRIPTION*
+Explore and search through known Solana programs.
+
+*COMMANDS*
+/programs - List all programs
+/programs <search_term> - Search programs by name, description, or labels
+/program <program_id> - Get detailed information about a specific program
+
+*EXAMPLES*
+/programs
+/programs gaming
+/programs defi
+/program SAGEqqFewepDHH6hMDcmWy7yjHPpyKLDnRXKb3Ki8e6
+
+*FEATURES*
+- Paginated program listing
+- Search by name, description, or labels
+- Detailed program information
+- Links to websites, Twitter, and IDL files
+- Program categories and labels
+
+*TROUBLESHOOTING*
+- Program not found
+- Invalid program ID
+- Search returned no results`,
+
+        PROGRAM_INFO_HELP: `🔍 *Program Info Command (/programinfo)*
+
+*DESCRIPTION*
+Look up information about a specific Solana program.
+
+*SYNOPSIS*
+/programinfo <program_id>
+
+*ARGUMENTS*
+<program_id>    The Solana program ID to look up
+
+*EXAMPLES*
+/programinfo SAGEqqFewepDHH6hMDcmWy7yjHPpyKLDnRXKb3Ki8e6
+
+*OUTPUT*
+- Program Name
+- Labels
+- Description
+- Website (if available)
+- Logo URL (if available)
+- Main Category
+
+*TROUBLESHOOTING*
+- Program ID not found
+- Invalid program ID format
+- Check the space between the command and the program ID`,
 };

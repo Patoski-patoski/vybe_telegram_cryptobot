@@ -17,6 +17,7 @@ import {
     TokenBalanceResponse,
     WalletPnLResponse,
     WalletPnL,
+    Program,
 
 } from "../interfaces/vybeApiInterface";
 
@@ -347,4 +348,17 @@ export class VybeApiService {
             throw error;
         }
     }
+
+    async getProgramInfo(programId: string): Promise<Program[]> {
+        const params = { programId };
+        try {
+            const response = await this.api.get(`/program/known-program-accounts`, { params });
+            console.log("Program Info", response.data);
+            return response.data.programs as Program[];
+        } catch (error: any) {
+            logger.error(`Failed to get program info for ${programId}`, { error });
+            throw new Error(`Failed to get program info: ${error.message}`);
+        }
+    }
+
 }

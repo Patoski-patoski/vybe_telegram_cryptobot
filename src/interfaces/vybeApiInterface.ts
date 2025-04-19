@@ -147,7 +147,7 @@ export interface WalletAlertSettings {
     lastKnownSignature?: string;
     lastTokenList?: string[];
     lastTotalValue?: number;
-    errorCount?: number;
+    errorCount?: number;  
 }
 
 export interface WalletCategory {
@@ -232,5 +232,22 @@ export interface WalletInteraction {
     count: number;
     lastInteraction: number;
     totalValue: number;
+}
+
+
+export interface Program {
+    programId: string;
+    name: string;
+    logoUrl: string | null;
+    labels: string[];
+    idlUrl: string | null;
+    siteUrl: string | null;
+    defiLlamaId: string | null;
+    entityName: string;
+    entityId: string | null;
+    twitterUrl: string | null;
+    dateAdded: string;
+    programDescription: string;
+    programDetail: string | null;
 }
 
