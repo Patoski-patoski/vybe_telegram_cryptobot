@@ -90,8 +90,6 @@ export class TopTokenHandler extends BaseHandler {
         const topHoldersResponse: GetTopHoldersResponse = await
             this.api.getTopTokenHolder(mintAddress, limit ? limit : 5);
 
-        console.log("topHoldersResponse", topHoldersResponse);
-
         if (topHoldersResponse && topHoldersResponse.data.length > 0) {
             const topHolders: TopHolder[] = topHoldersResponse.data;
 

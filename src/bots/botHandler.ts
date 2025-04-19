@@ -71,6 +71,8 @@ export class BotHandler {
         cmds.forEach(({ cmd, handler }) => {
             this.bot.onText(cmd, handler);
         });
+
+        this.bot.on('callback_query', this.handleCallbackQuery.bind(this));
     }
 
     private async handleStart(msg: TelegramBot.Message) {
@@ -80,5 +82,34 @@ export class BotHandler {
             BOT_MESSAGES.WELCOME,
             { parse_mode: 'Markdown' }
         );
+    }
+
+    async handleCallbackQuery(callbackQuery: TelegramBot.CallbackQuery) {
+        const chatId = callbackQuery.message?.chat.id;
+        const data = callbackQuery.data;
+
+        let walletAddress = "";
+        console.log("Query data", data);
+
+        if (!chatId || !data) return;
+
+
+        const isViewTransactions = data.startsWith("view_transactions");
+        const isViewHoldings = data.startsWith("view_holdings");
+
+        if (isViewTransactions) {
+            walletAddress = data.replace("view_transactions_", '');
+        } else if (isViewHoldings) {
+            walletAddress = data.replace("view_holdings_", '');
+        }
+
+        if (isViewHoldings && walletAddress) {
+            await this.walletTrackerHandler.handleViewHoldings(chatId, walletAddress);
+        } else if (isViewTransactions && walletAddress) {
+            await this.walletTrackerHandler.handleViewTransactions(chatId, walletAddress);
+        }
+
+
+        await this.bot.answerCallbackQuery(callbackQuery.id);
     }
 }

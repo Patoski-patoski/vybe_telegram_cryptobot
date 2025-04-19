@@ -17,7 +17,7 @@ import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { ChartConfiguration } from 'chart.js';
 
 // Configurable settings
-const DEFAULT_CHECK_INTERVAL_MS = 3 * 60 * 1000;  // 3 minutes default
+const DEFAULT_CHECK_INTERVAL_MS = 2 * 60 * 1000;  // 5 minutes default
 const MAX_WALLETS_PER_USER = 5;  // Limit wallets per user
 const SIGNIFICANT_VALUE_CHANGE_PERCENT = 5;  // Alert on 5% value change
 
@@ -156,8 +156,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
                     // Check if there are more recent transfers we should notify about
                     const [additionalSent, additionalReceived] = await Promise.all([
-                        this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 5 }),
-                        this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 5 })
+                        this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 2 }),
+                        this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 2 })
                     ]);
 
                     const additionalTransfers = [
@@ -183,39 +183,28 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
     }
 
-    private buildTransferMessageCore(tx: RecentTransfer, includeUrl: boolean = true): string {
-        const sender = tx.senderAddress ? `\`${tx.senderAddress.slice(0, 8)}...\`` : "Unknown";
-        const receiver = tx.receiverAddress ? `\`${tx.receiverAddress.slice(0, 8)}...\`` : "Unknown";
-        const amount = parseFloat(tx.calculatedAmount).toLocaleString(undefined, { maximumFractionDigits: 6 });
-        const time = timeAgo(tx.blockTime);
-
-        // Add token info if available
-        const tokenInfo = tx.tokenSymbol ? ` ${tx.tokenSymbol}` : "N/A";
-        const valueInfo = tx.valueUsd ? ` (${formatUsdValue(tx.valueUsd)})` : "";
-
-        let message = `👤 ${sender} → ${receiver}\n` +
-            `💸 *Amount:* \`${amount}${tokenInfo}\`${valueInfo}\n` +
-            `🕒 _${time}_`;
-
-        if (includeUrl) {
-            const url = `https://solscan.io/tx/${tx.signature}`;
-            message += ` [🔍 View on Solscan](${url})`;
-        }
-
-        return message;
-    }
 
     private async sendTransferMessage(chatId: number, tx: RecentTransfer) {
-        const message = `💰 *Transfer Summary*\n\n` + this.buildTransferMessageCore(tx);
+        const sender = tx.senderAddress || "Unknown";
+        const receiver = tx.receiverAddress || "Unknown";
+        const amount = parseFloat(tx.calculatedAmount).toLocaleString(
+            undefined, { maximumFractionDigits: 6 });
+        const url = `https://explorer.solana.com/tx/${tx.signature}`;
+        const time = timeAgo(tx.blockTime);
+
+        const message =
+            `💰 *Transfer Summary*\n\n` +
+            `👤 *From:* \`${sender}\`\n\n` +
+            `📥 *To:* \`${receiver}\`\n\n` +
+            `💸 *Transfer Amount(SOL):* \`${amount} SOL\`\n\n` +
+            `🕒 *Block Time:* _${time}_\n\n` +
+            `🔗 [🔍 View on Solscan](${url})`;
+
 
         await this.bot.sendMessage(chatId, message, {
             parse_mode: "Markdown",
             disable_web_page_preview: true
         });
-    }
-
-    private buildTransferMessage(tx: RecentTransfer): string {
-        return "\n" + this.buildTransferMessageCore(tx, false) + "\n\n";
     }
 
     private async processTokenListChanges(
@@ -389,8 +378,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
         // Generate and send the pie chart
         try {
-            const chartBuffer = await this.generateHoldingsPieChart(balance.data);
-            
+            const chartBuffer = await this.generateHoldingsPieChart(balance.data, settings.walletAddress);
+
             // Create inline keyboard buttons
             const keyboard = {
                 inline_keyboard: [
@@ -400,7 +389,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                             callback_data: `view_transactions_${settings.walletAddress}`
                         },
                         {
-                            text: "View Top Holdings",
+                            text: "View wallet's Top Holdings",
                             callback_data: `view_holdings_${settings.walletAddress}`
                         }
                     ]
@@ -432,25 +421,22 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         this.walletDataCache.set(walletAddress, { data, expiry });
     }
 
-    private getWalletData(walletAddress: string) {
-        const cached = this.walletDataCache.get(walletAddress);
-        if (!cached) return null;
-        
-        if (Date.now() > cached.expiry) {
-            this.walletDataCache.delete(walletAddress);
-            return null;
-        }
-        
-        return cached.data;
-    }
+    // private getWalletData(walletAddress: string) {
+    //     const cached = this.walletDataCache.get(walletAddress);
+    //     if (!cached) return null;
 
-    private async handleViewTransactions(chatId: number, walletAddress: string) {
-        const cachedData = this.getWalletData(walletAddress);
-        if (!cachedData) {
-            return this.bot.sendMessage(chatId, "❌ Data expired. Please wait for the next update.");
-        }
+    //     if (Date.now() > cached.expiry) {
+    //         this.walletDataCache.delete(walletAddress);
+    //         // return null;
+    //     }
+    //     console.log("cached data\n\n", cached);
 
-        let message = `💰 *Recent Transfer Summary*\n`;
+    //     return cached.data;
+    // }
+
+    async handleViewTransactions(chatId: number, walletAddress: string) {
+        await this.bot.sendMessage(chatId, `💰 *Recent Transfer Summary*\n`);
+        let message = "";
 
         try {
             const [sentTransfers, receivedTransfers] = await Promise.all([
@@ -465,14 +451,14 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
             if (allTransfers.length > 0) {
                 for (const tx of allTransfers.slice(0, 6)) {
-                    message += this.buildTransferMessage(tx);
+                    await this.sendTransferMessage(chatId, tx);
                 }
             } else {
-                message += "_No recent transfers found_\n";
+                message += "No recent transfers found\n";
             }
         } catch (error) {
             logger.error(`Error fetching recent transfers for wallet ${walletAddress}:`, error);
-            message += "_Error fetching recent transfers_\n";
+            message += "\nError fetching recent transfers\n";
         }
 
         await this.bot.sendMessage(chatId, message, {
@@ -481,40 +467,48 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         });
     }
 
-    private async handleViewHoldings(chatId: number, walletAddress: string) {
-        const cachedData = this.getWalletData(walletAddress);
-        if (!cachedData) {
-            return this.bot.sendMessage(chatId, "❌ Data expired. Please wait for the next update.");
-        }
-
-        let message = `\n*Top Holdings:*\n`;
-
-        // Sort tokens by value and get top 7
-        const sortedTokens = [...cachedData.balance.data].sort((a, b) =>
-            parseFloat(b.valueUsd) - parseFloat(a.valueUsd));
-
-        for (let i = 0; i < Math.min(7, sortedTokens.length); i++) {
-            const token = sortedTokens[i];
-            message += `${i + 1}. *${token.symbol}*: ${formatUsdValue(token.valueUsd)}`;
-
-            if (parseFloat(token.priceUsd1dChange) !== 0) {
-                const changeChar = parseFloat(token.priceUsd1dChange) > 0 ? '📈' : '📉';
-                message += ` (${changeChar} ${parseFloat(token.priceUsd1dChange).toFixed(2)}%)\n`;
-            } else {
-                message += '\n';
+    async handleViewHoldings(chatId: number, walletAddress: string) {
+        try {
+            // Fetch fresh wallet data
+            const balance = await this.api.getTokenBalance(walletAddress);
+            if (!balance?.data?.length) {
+                return this.bot.sendMessage(chatId, "⛔ No tokens found in the specified wallet.");
             }
+
+            let message = `\n*Top Holdings of ${walletAddress}:*\n`;
+
+            // Sort tokens by value and get top 7
+            const sortedTokens = [...balance.data].sort((a, b) =>
+                parseFloat(b.valueUsd) - parseFloat(a.valueUsd));
+
+            for (let i = 0; i < Math.min(7, sortedTokens.length); i++) {
+                const token = sortedTokens[i];
+                message += `${i + 1}. *${token.symbol}*: ${formatUsdValue(token.valueUsd)}`;
+
+                if (parseFloat(token.priceUsd1dChange) !== 0) {
+                    const changeChar = parseFloat(token.priceUsd1dChange) > 0 ? '📈' : '📉';
+                    message += ` (${changeChar} ${parseFloat(token.priceUsd1dChange).toFixed(2)}%)\n`;
+                } else {
+                    message += '\n';
+                }
+            }
+
+            // Get fresh PnL data
+            const pnl = await this.walletAnalysis.calculatePnL(walletAddress);
+            if (pnl) {
+                message += `\n${formatPnLAlert(pnl)}\n`;
+            }
+
+            message += `\n_Last updated just now_`;
+
+            await this.bot.sendMessage(chatId, message, {
+                parse_mode: "Markdown",
+                disable_web_page_preview: true
+            });
+        } catch (error) {
+            logger.error(`Error fetching wallet holdings for ${walletAddress}:`, error);
+            await this.bot.sendMessage(chatId, "❌ Error fetching wallet holdings. Please try again later.");
         }
-
-        if (cachedData.settings.pnl) {
-            message += `\n${formatPnLAlert(cachedData.settings.pnl)}\n`;
-        }
-
-        message += `\n_Last updated ${timeAgo(cachedData.settings.lastCheckedTime)}_`;
-
-        await this.bot.sendMessage(chatId, message, {
-            parse_mode: "Markdown",
-            disable_web_page_preview: true
-        });
     }
 
     async handleTrackWallet(msg: TelegramBot.Message) {
@@ -772,7 +766,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             if (allTransfers.length > 0) {
                 message += `\n*Recent Transfers:*\n`;
                 for (let i = 0; i < Math.min(3, allTransfers.length); i++) {
-                    message += this.buildTransferMessage(allTransfers[i]);
+                    message += this.sendTransferMessage(chatId, allTransfers[i]);
                 }
             }
 
@@ -843,7 +837,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
     }
 
-    private async generateHoldingsPieChart(tokens: TokenBalance[]): Promise<Buffer> {
+    private async generateHoldingsPieChart(tokens: TokenBalance[], walletAddress: string): Promise<Buffer> {
         // Sort tokens by value and get top 7
         const sortedTokens = [...tokens].sort((a, b) =>
             parseFloat(b.valueUsd) - parseFloat(a.valueUsd)).slice(0, 7);
@@ -871,7 +865,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 plugins: {
                     title: {
                         display: true,
-                        text: `Top Holdings Distribution of ${tokens[0].ownerAddress}`
+                        text: `Top Holdings Distribution of ${walletAddress}`
                     },
                     legend: {
                         position: 'right'
@@ -885,23 +879,5 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     }
 
     // Add this to handle callback queries
-    async handleCallbackQuery(callbackQuery: TelegramBot.CallbackQuery) {
-        const chatId = callbackQuery.message?.chat.id;
-        const data = callbackQuery.data;
 
-        if (!chatId || !data) return;
-
-        const [action, walletAddress] = data.split('_');
-
-        switch (action) {
-            case 'view_transactions':
-                await this.handleViewTransactions(chatId, walletAddress);
-                break;
-            case 'view_holdings':
-                await this.handleViewHoldings(chatId, walletAddress);
-                break;
-        }
-
-        await this.bot.answerCallbackQuery(callbackQuery.id);
-    }
 }
