@@ -145,8 +145,6 @@ export class VybeApiService {
             limit: options.limit
         };
 
-        console.log("params", params);
-
         try {
             const response = await this.api.get(`/token/transfers`, { params });
             return response.data as GetRecentTransferResponse;

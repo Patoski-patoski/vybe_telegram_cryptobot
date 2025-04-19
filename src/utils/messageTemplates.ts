@@ -546,23 +546,23 @@ Shows detailed information about a wallet's current state.
 
         // Recent Transfers Command
         // RECENT_TRANSFERS_USAGE: "Usage: /transfers <token_mint_address>\n\nExample: /transfers 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
-        RECENT_TRANSFERS_USAGE: "Usage: /transfers tx_signature [limit]\n /transfers wa_wallet_address [limit]\n /transfers ma_mint_address [limit]\n\nExample: /transfers tx_signature\n /transfers wa_7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q\n /transfers ma_6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n\nExample: /transfers tx_signature 10",
+        RECENT_TRANSFERS_USAGE: "Usage: /transfers wa_wallet_address [limit]\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 10",
         RECENT_TRANSFERS_HELP: `🔄 *Recent Transfers Command (/transfers)*
 
 *DESCRIPTION*
 Shows recent token transfers for a specific token.
 
 *SYNOPSIS*
-/transfers <token_mint_address>
+/transfers <wallet_address>
 
 *ARGUMENTS*
-<token_mint_address>    The Solana token mint address to check transfers for
+<wallet_address>    The Solana wallet address to check transfers for
 
 *USER STORY*:
 As a user, I want to see recent token transfers for a specific token.
 
 *EXAMPLES*
-/transfers 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+/transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
 
 *OUTPUT*
 - Recent transfer list
