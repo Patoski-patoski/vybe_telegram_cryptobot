@@ -18,6 +18,7 @@ import {
     WalletPnLResponse,
     WalletPnL,
     Program,
+    ProgramActiveUser,
 
 } from "../interfaces/vybeApiInterface";
 
@@ -295,6 +296,19 @@ export class VybeApiService {
         }
     }
 
+    /**
+     * Fetches wallet PnL data from Vybe API.
+     * @param ownerAddress The owner address to fetch PnL for.
+     * @param resolution Optional resolution to fetch PnL for. Default is '1d'.
+     * @param tokenAddress Optional token address to fetch PnL for.
+     * @param sortByAsc Optional sort by ascending.
+     * @param sortByDesc Optional sort by descending.
+     * @param limit Optional limit of number of records to return. Default is 10.
+     * @param page Optional page number to return. Default is 1.
+     * @returns A Promise that resolves to a {@link WalletPnLResponse} containing the wallet PnL data.
+     * @throws {Error} If there is an error making the API request or parsing the response.
+     */
+    
     async getWalletPnL(
         ownerAddress: string,
         resolution?: '1d' | '7d' | '30d',
@@ -327,6 +341,12 @@ export class VybeApiService {
         }
     }
 
+    /**
+     * Analyzes wallet PnL data from Vybe API.
+     * @param walletAddress The wallet address to analyze.
+     * @returns A Promise that resolves to a {@link WalletPnL} containing the wallet PnL data.
+     * @throws {Error} If there is an error making the API request or parsing the response.
+     */
     async analyzeWalletPnL(walletAddress: string): Promise<WalletPnL> {
         try {
             const pnlData = await this.getWalletPnL(walletAddress, '30d');
@@ -349,6 +369,12 @@ export class VybeApiService {
         }
     }
 
+    /**
+     * Fetches program info by ID or name from Vybe API.
+     * @param identifier The ID or name of the program.
+     * @returns A Promise that resolves to an array of {@link Program} objects.
+     * @throws {Error} If there is an error making the API request or parsing the response.
+     */
     async getProgramInfoByIdOrName(identifier: string): Promise<Program[]> {
         const isProgramId = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(identifier);  // Detects Solana address
         const params = isProgramId ? { programId: identifier } : { name: identifier };
@@ -362,9 +388,12 @@ export class VybeApiService {
         }
     }
 
-
-
-
+    /**
+     * Explores a program by label from Vybe API.
+     * @param label The label of the program to explore.
+     * @returns A Promise that resolves to an array of {@link Program} objects.
+     * @throws {Error} If there is an error making the API request or parsing the response.
+     */
     async exploreProgram(label: string) {
         const params = { label };
         try {
@@ -373,6 +402,45 @@ export class VybeApiService {
         } catch (error: any) {
             logger.error(`Failed to explore program for ${label}`, { error });
             throw new Error(`Failed to explore program: ${error.message}`);
+        }
+    }
+
+
+    /**
+     * Fetches active users for a specified program.
+     * @param programId The program ID to fetch active users for.
+     * @param limit Optional limit of number of records to return. Default is 10.
+     * @returns A Promise containing the active users data.
+     */
+
+    async getProgramActiveUsers(
+        programId: string,
+        limit: number = 20
+    ): Promise<{ data: ProgramActiveUser[] }> {
+        // Validate program ID format
+        if (!isValidMintAddress(programId)) {
+            const msg = `Invalid program ID: ${programId} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
+
+        // Clean up parameters by removing undefined values
+        const params = {
+            limit: limit ?? 20
+        };
+
+        
+
+
+        try {
+            const response = await this.api.get(`/program/${programId}/active-users`, { params });
+            return response.data as { data: ProgramActiveUser[] };
+        } catch (error: any) {
+            logger.error(`Failed to fetch active users for program ${programId}`, { error });
+            if (error.response) {
+                throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
+            }
+            throw new Error(`Failed to fetch active users: ${error.message}`);
         }
     }
 }

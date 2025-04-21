@@ -367,7 +367,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         if (historicalValue) {
             const historicalValueNum = parseFloat(historicalValue.value);
             const changePercent = ((currentValue - historicalValueNum) / historicalValueNum) * 100;
-            const changeEmoji = changePercent > 0 ? '📈' : (changePercent < 0 ? '📉' : '➡️');
+            const changeEmoji = changePercent > 0 ? '📈 +' : (changePercent < 0 ? '📉 -' : '➡️');
 
             message += `*Wallet Value 24h ago:* ${formatUsdValue(historicalValue.value)}\n` +
                 `*Current Wallet Value:* ${formatUsdValue(currentValue.toString())}\n` +

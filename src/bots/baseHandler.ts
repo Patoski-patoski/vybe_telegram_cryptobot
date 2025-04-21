@@ -34,9 +34,13 @@ export class BaseHandler {
                 { command: 'walletstatus', description: 'View a wallet status' },
                 { command: 'programinfo', description: 'View a program info' },
                 { command: 'explore', description: 'Explore a program' },
+                // New commands for program active users
+                { command: 'topusers', description: 'View top active users for a program' },
+                { command: 'usersinsights', description: 'Get insights about program users' },
+                { command: 'activitychange', description: 'Track changes in program activity' },
+                { command: 'checkwhaleusers', description: 'Check whale users for a program' },
                 { command: 'help', description: 'Get help' },
             ];
-
             // Set commands with retry logic
             let retries = 5;
             while (retries > 0) {

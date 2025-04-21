@@ -671,4 +671,6 @@ Look up information about a specific Solana program.
 - Program ID not found
 - Invalid program ID format
 - Check the space between the command and the program ID`,
+        
+        
 };

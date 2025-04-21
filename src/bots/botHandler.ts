@@ -11,6 +11,7 @@ import { TokenAnalysisHandler } from "./tokenAnalysisHandler";
 import { EnhancedWalletTrackerHandler } from "./walletTrackerHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { ProgramInfoHandler } from "./programInfoHandler";
+import { ProgramActiveUsersHandler } from "./programActiveUsersHandler";
 
 export class BotHandler {
     private readonly bot: TelegramBot;
@@ -25,6 +26,7 @@ export class BotHandler {
     private tokenAnalysisHandler: TokenAnalysisHandler;
     private walletTrackerHandler: EnhancedWalletTrackerHandler;
     private programInfoHandler: ProgramInfoHandler;
+    private programActiveUsersHandler: ProgramActiveUsersHandler;
 
     constructor() {
         const config = getConfig();
@@ -40,6 +42,7 @@ export class BotHandler {
         this.tokenAnalysisHandler = new TokenAnalysisHandler(this.bot, this.api);
         this.walletTrackerHandler = new EnhancedWalletTrackerHandler(this.bot, this.api);
         this.programInfoHandler = new ProgramInfoHandler(this.bot, this.api);
+        this.programActiveUsersHandler = new ProgramActiveUsersHandler(this.bot, this.api);
 
         // Setup commands
         this.setUpCommands();
@@ -60,17 +63,27 @@ export class BotHandler {
             { cmd: /\/listwhalealerts/, handler: this.whaleWatcherHandler.handleListWhaleAlerts.bind(this.whaleWatcherHandler) },
             { cmd: /\/removewhalealert/, handler: this.whaleWatcherHandler.handleRemoveWhaleAlert.bind(this.whaleWatcherHandler) },
             { cmd: /\/checkwhales/, handler: this.whaleWatcherHandler.handleCheckWhales.bind(this.whaleWatcherHandler) },
+
             // Token Analysis commands
             { cmd: /\/analyze/, handler: this.tokenAnalysisHandler.handleTokenAnalysis.bind(this.tokenAnalysisHandler) },
             { cmd: /\/series/, handler: this.tokenTimeSeriesHandler.handleTokenTimeSeriesAnalysis.bind(this.tokenTimeSeriesHandler) },
             { cmd: /\/holder_distribution/, handler: this.holderDistributionHandler.handleHolderDistribution.bind(this.holderDistributionHandler) },
+
             // Wallet Tracker commands
             { cmd: /\/trackwallet/, handler: this.walletTrackerHandler.handleTrackWallet.bind(this.walletTrackerHandler) },
             { cmd: /\/listtrackedwallets/, handler: this.walletTrackerHandler.handleListTrackedWallets.bind(this.walletTrackerHandler) },
             { cmd: /\/removetrackedwallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
             { cmd: /\/analyzewallet/, handler: this.walletTrackerHandler.handleWalletAnalysis.bind(this.walletTrackerHandler) },
+
+            // Program Info commands
             { cmd: /\/programinfo/, handler: this.programInfoHandler.handleProgramInfo.bind(this.programInfoHandler) },
             { cmd: /\/explore/, handler: this.programInfoHandler.handleExploreProgram.bind(this.programInfoHandler) },
+
+            // Program Active Users commands (New!)
+            { cmd: /\/topusers/, handler: this.programActiveUsersHandler.handleTopUsers.bind(this.programActiveUsersHandler) },
+            { cmd: /\/usersinsights/, handler: this.programActiveUsersHandler.handleUserInsights.bind(this.programActiveUsersHandler) },
+            { cmd: /\/activitychange/, handler: this.programActiveUsersHandler.handleActivityChange.bind(this.programActiveUsersHandler) },
+            { cmd: /\/checkwhaleusers/, handler: this.programActiveUsersHandler.handleCheckWhaleUsers.bind(this.programActiveUsersHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {
@@ -110,7 +123,6 @@ export class BotHandler {
         } else if (isViewTransactions && walletAddress) {
             await this.walletTrackerHandler.handleViewTransactions(chatId, walletAddress);
         }
-
 
         await this.bot.answerCallbackQuery(callbackQuery.id);
     }

@@ -252,3 +252,14 @@ export interface Program {
     message: string;
 }
 
+export interface ProgramActiveUser {
+    programId: string;
+    wallet: string;
+    transactions: number;
+    instructions: number;
+}
+
+export interface ProgramActiveUsersResponse {
+    data: ProgramActiveUser[];
+}
+
