@@ -147,7 +147,7 @@ export interface WalletAlertSettings {
     lastKnownSignature?: string;
     lastTokenList?: string[];
     lastTotalValue?: number;
-    errorCount?: number;  
+    errorCount?: number;
 }
 
 export interface WalletCategory {
@@ -249,5 +249,6 @@ export interface Program {
     dateAdded: string;
     programDescription: string;
     programDetail: string | null;
+    message: string;
 }
 

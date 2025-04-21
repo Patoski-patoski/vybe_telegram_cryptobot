@@ -349,16 +349,30 @@ export class VybeApiService {
         }
     }
 
-    async getProgramInfo(programId: string): Promise<Program[]> {
-        const params = { programId };
+    async getProgramInfoByIdOrName(identifier: string): Promise<Program[]> {
+        const isProgramId = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(identifier);  // Detects Solana address
+        const params = isProgramId ? { programId: identifier } : { name: identifier };
+
         try {
             const response = await this.api.get(`/program/known-program-accounts`, { params });
-            console.log("Program Info", response.data);
             return response.data.programs as Program[];
         } catch (error: any) {
-            logger.error(`Failed to get program info for ${programId}`, { error });
-            throw new Error(`Failed to get program info: ${error.message}`);
+            logger.error(`Failed to fetch program info for ${identifier}`, { error });
+            throw new Error(`Failed to fetch program info: ${error.message}`);
         }
     }
 
+
+
+
+    async exploreProgram(label: string) {
+        const params = { label };
+        try {
+            const response = await this.api.get(`/program/known-program-accounts`, { params });
+            return response.data.programs as Program[];
+        } catch (error: any) {
+            logger.error(`Failed to explore program for ${label}`, { error });
+            throw new Error(`Failed to explore program: ${error.message}`);
+        }
+    }
 }

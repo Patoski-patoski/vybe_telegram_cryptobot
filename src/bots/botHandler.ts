@@ -70,6 +70,7 @@ export class BotHandler {
             { cmd: /\/removetrackedwallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
             { cmd: /\/analyzewallet/, handler: this.walletTrackerHandler.handleWalletAnalysis.bind(this.walletTrackerHandler) },
             { cmd: /\/programinfo/, handler: this.programInfoHandler.handleProgramInfo.bind(this.programInfoHandler) },
+            { cmd: /\/explore/, handler: this.programInfoHandler.handleExploreProgram.bind(this.programInfoHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {
@@ -93,10 +94,7 @@ export class BotHandler {
         const data = callbackQuery.data;
 
         let walletAddress = "";
-        console.log("Query data", data);
-
         if (!chatId || !data) return;
-
 
         const isViewTransactions = data.startsWith("view_transactions");
         const isViewHoldings = data.startsWith("view_holdings");

@@ -29,7 +29,7 @@ npm install
 
 3. Create a `.env` file
 
-```
+```bash
 TELEGRAM_BOT_TOKEN=your_development_bot_token
 VYBE_API_KEY=your_development_api_key
 ```
