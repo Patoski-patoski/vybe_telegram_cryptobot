@@ -1,6 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { formatUsdValue , timeAgo } from "../utils/utils";
+import { formatUsdValue, timeAgo, deleteDoubleSpace } from "../utils/utils";
 import logger from "../config/logger";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
@@ -24,7 +24,7 @@ export class TokenHolderAnalysisHandler extends BaseHandler {
     async handleTokenHolderAnalysis(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = text.split(" ");
+        const parts = deleteDoubleSpace(text.split(" "));
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,

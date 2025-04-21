@@ -20,7 +20,7 @@
 
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { timeAgo } from "../utils/utils";
+import { timeAgo, deleteDoubleSpace } from "../utils/utils";
 import { GetRecentTransferResponse, RecentTransfer } from "../interfaces/vybeApiInterface";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
@@ -29,7 +29,7 @@ export class RecentTransferHandler extends BaseHandler {
     async handleTransfers(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = text.split(" ");
+        const parts = deleteDoubleSpace(text.split(" "));
 
         // If no filter provided or not enough parts, show usage
         if (parts.length < 2) {

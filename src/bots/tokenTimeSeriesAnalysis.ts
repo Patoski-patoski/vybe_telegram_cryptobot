@@ -1,6 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { formatUsdValue, timeAgo } from "../utils/utils";
+import { deleteDoubleSpace, formatUsdValue, timeAgo } from "../utils/utils";
 import logger from "../config/logger";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
@@ -22,7 +22,7 @@ export class TokenTimeSeriesAnalysisHandler extends BaseHandler {
     async handleTokenTimeSeriesAnalysis(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = text.split(" ");
+        const parts = deleteDoubleSpace(text.split(" "));
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
@@ -75,9 +75,6 @@ export class TokenTimeSeriesAnalysisHandler extends BaseHandler {
                 this.api.getTokenVolumeTimeSeries(mintAddress, finalStartTime, finalEndTime, 5),
                 this.api.getTokenHolderTimeSeries(mintAddress, finalStartTime, finalEndTime, 5)
             ]);
-
-            console.log("volumeResponse", volumeResponse);
-            console.log("holdersResponse", holdersResponse);
 
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 

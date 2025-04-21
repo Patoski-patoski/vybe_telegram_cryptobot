@@ -5,7 +5,7 @@ import { BaseHandler } from "./baseHandler";
 import { VybeApiService } from "../services/vybeAPI";
 import { ProgramActiveUser } from "../interfaces/vybeApiInterface";
 import logger from "../config/logger";
-
+import { deleteDoubleSpace } from "../utils/utils";
 export class ProgramActiveUsersHandler extends BaseHandler {
     private activeUsersCache: Map<string, { users: ProgramActiveUser[], timestamp: number }> = new Map();
     private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minutes in milliseconds
@@ -23,7 +23,7 @@ export class ProgramActiveUsersHandler extends BaseHandler {
      */
     async handleTopUsers(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId, "Usage: /topusers <program_id_or_name> [limit]");
@@ -68,7 +68,7 @@ export class ProgramActiveUsersHandler extends BaseHandler {
      */
     async handleUserInsights(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId, "Usage: /usersinsights <program_id_or_name>");
@@ -132,10 +132,14 @@ export class ProgramActiveUsersHandler extends BaseHandler {
      */
     async handleActivityChange(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
-            return this.bot.sendMessage(chatId, "Usage: /activitychange <program_id_or_name>");
+            return this.bot.sendMessage(chatId,
+                "Usage: /activitychange <program_id_or_name>\n" +
+                "Example: /activitychange 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8\n" +
+                "Example: /activitychange Raydium Liquidity Pool V4"
+            );
         }
 
         const identifier = this.capitalizeTheFirstLetter(parts.slice(1).join(" ").trim());
@@ -200,11 +204,13 @@ export class ProgramActiveUsersHandler extends BaseHandler {
      */
     async handleCheckWhaleUsers(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /checkwhaleusers <program_id_or_name> [min_transactions]"
+                "Usage: /checkprogramwhaleusers <program_id_or_name> [min_transactions]\n" +
+                "Example: /checkprogramwhaleusers 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8 100000" +
+                "Example: /checkprogramwhaleusers Raydium Liquidity Pool V4 100000"
             );
         }
 

@@ -93,8 +93,6 @@ export function formatPnLAlert(pnlData: WalletPnL): string {
         `(${formatUsdValue(pnlData.worstPerformingToken?.pnlUsd || 0)})`;
 }
 
-
-    // private isValidWalletAddress(address: string): boolean {
-    //     // Solana addresses are base58 encoded and 32-44 characters long
-    //     return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
-    // }
+export function deleteDoubleSpace(parts: string[]): string[] {
+    return parts.filter(part => part !== "");
+}

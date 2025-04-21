@@ -4,7 +4,7 @@ import TelegramBot from "node-telegram-bot-api";
 import fs from 'fs/promises';
 import path from 'path';
 import { BaseHandler } from "./baseHandler";
-import { timeAgo, formatUsdValue } from "../utils/utils";
+import { timeAgo, formatUsdValue, deleteDoubleSpace } from "../utils/utils";
 import logger from "../config/logger";
 import {
     RecentTransfer,
@@ -154,7 +154,7 @@ export class WhaleWatcherHandler extends BaseHandler {
     async handleSetWhaleAlert(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = text.split(" ");
+        const parts = deleteDoubleSpace(text.split(" "));
 
         if (parts[1] === 'help') {
             return this.bot.sendMessage(chatId,
@@ -240,7 +240,7 @@ export class WhaleWatcherHandler extends BaseHandler {
     async handleRemoveWhaleAlert(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = text.split(" ");
+        const parts = deleteDoubleSpace(text.split(" "));
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
@@ -269,12 +269,12 @@ export class WhaleWatcherHandler extends BaseHandler {
     async handleCheckWhales(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = text.split(" ");
+        const parts = deleteDoubleSpace(text.split(" "));
 
         let mintAddress: string;
         let minAmount = 5000; // Default minimum amount
 
-        if (parts.length < 2 || parts.length > 4) {
+        if (parts.length < 2 || parts.length >= 4) {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.CHECK_WHALES_USAGE,
                 { parse_mode: "Markdown" }
@@ -297,6 +297,7 @@ export class WhaleWatcherHandler extends BaseHandler {
                 "⛔ Maximum limit is 10."
             );
         }
+
 
         // Send load message
         const loadingMsg = await this.bot.sendMessage(chatId,

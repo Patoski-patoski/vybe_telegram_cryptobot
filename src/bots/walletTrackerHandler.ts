@@ -2,7 +2,7 @@ import TelegramBot from "node-telegram-bot-api";
 import fs from 'fs/promises';
 import path from 'path';
 import { BaseHandler } from "./baseHandler";
-import { timeAgo, formatUsdValue, formatPnLAlert, isValidWalletAddress } from "../utils/utils";
+import { timeAgo, formatUsdValue, formatPnLAlert, isValidWalletAddress, deleteDoubleSpace } from "../utils/utils";
 import logger from "../config/logger";
 import { VybeApiService } from "../services/vybeAPI";
 import {
@@ -431,8 +431,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     //     }
     //     console.log("cached data\n\n", cached);
 
-    //     return cached.data;
-    // }
+        //     return cached.data;
+        // }
 
     async handleViewTransactions(chatId: number, walletAddress: string) {
         await this.bot.sendMessage(chatId, `💰 *Recent Transfer Summary*\n`);
@@ -475,7 +475,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 return this.bot.sendMessage(chatId, "⛔ No tokens found in the specified wallet.");
             }
 
-            let message = `\n*Top Holdings of ${walletAddress}:*\n`;
+            let message = `\n*Top Holdings*\n \`${walletAddress}\`\n`;
 
             // Sort tokens by value and get top 7
             const sortedTokens = [...balance.data].sort((a, b) =>
@@ -487,7 +487,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
                 if (parseFloat(token.priceUsd1dChange) !== 0) {
                     const changeChar = parseFloat(token.priceUsd1dChange) > 0 ? '📈' : '📉';
-                    message += ` (${changeChar} ${parseFloat(token.priceUsd1dChange).toFixed(2)}%)\n`;
+                    message += ` (${changeChar} ${parseFloat(token.priceUsd1dChange).toFixed(2)}%)\n\n`;
                 } else {
                     message += '\n';
                 }
@@ -513,7 +513,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
     async handleTrackWallet(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []) ;
 
         if (parts[1] === 'help') {
             return this.bot.sendMessage(chatId,
@@ -635,7 +635,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
     async handleListTrackedWallets(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ");
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts?.[1] === 'help') {
             return this.bot.sendMessage(chatId, BOT_MESSAGES.LIST_TRACKED_WALLETS_HELP, { parse_mode: "Markdown" });
@@ -685,7 +685,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
     async handleRemoveTrackedWallet(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId, "Usage: /removetrackedwallet <wallet_address>");
@@ -706,7 +706,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
     async handleWalletAnalysis(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId, "Usage: /analyzeWallet <wallet_address>");

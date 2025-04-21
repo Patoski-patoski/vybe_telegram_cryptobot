@@ -1,6 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { formatUsdValue } from "../utils/utils";
+import { deleteDoubleSpace, formatUsdValue } from "../utils/utils";
 import logger from "../config/logger";
 import { TopHolder } from "../interfaces/vybeApiInterface";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
@@ -13,7 +13,7 @@ export class HolderDistributionHandler extends BaseHandler {
     async handleHolderDistribution(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = text.split(" ");
+        const parts = deleteDoubleSpace(text.split(" "));
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,

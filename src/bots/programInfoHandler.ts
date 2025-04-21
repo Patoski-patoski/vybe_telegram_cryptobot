@@ -3,12 +3,13 @@ import { BaseHandler } from "./baseHandler";
 import logger from "../config/logger";
 import { Program } from "../interfaces/vybeApiInterface";
 import { VybeApiService } from "../services/vybeAPI";
+import { deleteDoubleSpace } from "../utils/utils";
 
 export class ProgramInfoHandler extends BaseHandler {
     private programs: Program[] = [];
     private programCache: Map<string, Program> = new Map();
     private exploreCache: Map<string, Program[]> = new Map();
-    private readonly CACHE_TTL = 1000 * 60 * 60 ; // 1 hour in milliseconds
+    private readonly CACHE_TTL = 1000 * 60 * 60 * 24; // 1 day in milliseconds
 
     constructor(bot: TelegramBot, api: VybeApiService) {
         super(bot, api);
@@ -32,10 +33,13 @@ export class ProgramInfoHandler extends BaseHandler {
 
     async handleProgramInfo(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
-            return this.bot.sendMessage(chatId, "Usage: /programinfo <program_id>");
+            return this.bot.sendMessage(chatId,
+                "Usage: /programinfo <program_id_or_name>\n" +
+                "Example: /programinfo 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8\n" +
+                "Example: /programinfo Raydium Liquidity Pool V4");
         }
         const ID = parts.slice(1).join(" ").trim();
 
@@ -79,10 +83,10 @@ export class ProgramInfoHandler extends BaseHandler {
 
     async handleExploreProgram(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(" ") ?? [];
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
-            return this.bot.sendMessage(chatId, "Usage: /explore <label>");
+            return this.bot.sendMessage(chatId, "Usage: /explore <label>\nExample: /explore DEX");
         }
 
         const label = parts[1].toUpperCase();
@@ -134,30 +138,12 @@ export class ProgramInfoHandler extends BaseHandler {
             message += `*Entity Name:* ${program.entityName}\n\n`;
         }
         message += `*Labels:* ${program.labels.join(", ")}\n\n`;
-        message += `💡 **Description:** ${program.programDescription}\n\n`;
+        message += `>💡 **Description:** ${program.programDescription}\n\n`;
 
-        if (program.siteUrl) {
-            message += `*Website:* ${program.siteUrl}\n`;
-        }
+        if (program.siteUrl) message += `*Website:* ${program.siteUrl}\n`;
+        if (program.logoUrl) message += `*Logo:* [Logo URL](${program.logoUrl})\n`;
+        if (program.twitterUrl) message += `*Twitter:* [Twitter URL](${program.twitterUrl})\n`;
 
-        if (program.logoUrl) {
-            message += `*Logo:* [Logo URL](${program.logoUrl})\n`;
-        }
-
-        const mainCategory = this.getMainCategory(program.labels);
-        message += `*Category:* ${mainCategory}\n`;
         return message;
-    }
-
-
-    private getMainCategory(labels: string[]): string {
-        const categories = [
-            "GAMING", "NFT", "DEFI",
-            "INFRA", "ORACLE", "MARKETPLACE",
-            "PERPS", "OPTIONS", "BORROW/LEND",
-            "DePIN"
-        ];
-        const foundCategory = labels.find(label => categories.includes(label));
-        return foundCategory || "OTHER";
     }
 } 

@@ -38,7 +38,7 @@ export class BaseHandler {
                 { command: 'topusers', description: 'View top active users for a program' },
                 { command: 'usersinsights', description: 'Get insights about program users' },
                 { command: 'activitychange', description: 'Track changes in program activity' },
-                { command: 'checkwhaleusers', description: 'Check whale users for a program' },
+                { command: 'checkprogramwhaleusers', description: 'Check whale users for a program' },
                 { command: 'help', description: 'Get help' },
             ];
             // Set commands with retry logic

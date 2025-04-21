@@ -27,7 +27,7 @@ import {
     TopHolder
 } from "../interfaces/vybeApiInterface";
 
-import { formatUsdValue } from "../utils/utils";
+import { formatUsdValue, deleteDoubleSpace } from "../utils/utils";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 
@@ -35,7 +35,7 @@ export class TopTokenHandler extends BaseHandler {
     async handleTopToken(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = text.split(" ");
+        const parts = deleteDoubleSpace(text.split(" "));
 
 
         if (parts.length < 2) {
