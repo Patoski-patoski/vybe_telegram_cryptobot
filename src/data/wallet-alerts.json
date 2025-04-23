@@ -1,0 +1,704 @@
+{
+  "alerts": [
+    [
+      "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+      [
+        [
+          2125015768,
+          {
+            "walletAddress": "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+            "chatId": 2125015768,
+            "minValueUsd": 1000,
+            "lastCheckedTime": 1745418707,
+            "lastBalances": [
+              [
+                "11111111111111111111111111111111_value",
+                "376113712.678471"
+              ],
+              [
+                "BNso1VUJnh4zcfpZa6986Ea66P6TCp59hvtNJ8b1X85_value",
+                "46085611.029671"
+              ],
+              [
+                "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN_value",
+                "36149226.496120"
+              ],
+              [
+                "LAYER4xPpTCb3QL8S9u41EAhAX7mhBn8Q6xMTwY2Yzc_value",
+                "11595111.249002"
+              ],
+              [
+                "MEFNBXixkEbait3xn9bkm8WsJzXtVsaJEn4c8Sam21u_value",
+                "2885705.709459"
+              ],
+              [
+                "MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5_value",
+                "504.898443"
+              ],
+              [
+                "So11111111111111111111111111111111111111112_value",
+                "211010.631641"
+              ],
+              [
+                "WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk_value",
+                "0.000293"
+              ],
+              [
+                "ZBCNpuD7YMXzTHB2fhGkGi78MNsHGLRXUhRewNRm9RU_value",
+                "0.462225"
+              ],
+              [
+                "bioJ9JTqW62MLz7UKHU69gtKhPpGi1BQhccj2kmSvUJ_value",
+                "596208.061753"
+              ],
+              [
+                "hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux_value",
+                "3922.805334"
+              ],
+              [
+                "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL_value",
+                "6093126.535643"
+              ],
+              [
+                "mb1eu7TzEc71KxDpsmsKoucSSuuoGLv1drys1oP2jh6_value",
+                "0.760221"
+              ],
+              [
+                "nosXBVoaCTtYdLvKY6Csb4AC8JCdQKKAaWYtx2ZMoo7_value",
+                "0.896004"
+              ],
+              [
+                "of28WzrGVqVKCC35zjkQBrndCCDzErtzg7cj2mypump_value",
+                "0.002051"
+              ],
+              [
+                "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE_value",
+                "10382198.812938"
+              ],
+              [
+                "rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof_value",
+                "13393565.545056"
+              ],
+              [
+                "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82_value",
+                "955181.501480"
+              ],
+              [
+                "25hAyBQfoDhfWx9ay6rarbgvWGwDdNqcHsXS3jQ3mTDJ_value",
+                "0.002691"
+              ],
+              [
+                "2otVNpcHXn9MKeDk3Zby5uanF3s7tki4toaJ3PZcXaUd_value",
+                "0.000000"
+              ],
+              [
+                "2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump_value",
+                "10616586.940687"
+              ],
+              [
+                "2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv_value",
+                "6649260.740949"
+              ],
+              [
+                "3JgFwoYV74f6LwWjQWnr3YDPFnmBdwQfNyubv99jqUoq_value",
+                "0.000000"
+              ],
+              [
+                "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R_value",
+                "8586203.079221"
+              ],
+              [
+                "5LafQUrVco6o7KMz42eqVEJ9LW31StPyGjeeu5sKoMtA_value",
+                "5.492952"
+              ],
+              [
+                "5mbK36SZ7J19An8jFochhQS4of8g6BwUjbeCSxBSoWdp_value",
+                "30.023405"
+              ],
+              [
+                "6AJcP7wuLwmRYLBNbi825wgguaPsWzPBEHcHndpRpump_value",
+                "4.360272"
+              ],
+              [
+                "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN_value",
+                "42522208.024071"
+              ],
+              [
+                "7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3_value",
+                "0.076934"
+              ],
+              [
+                "7D1iYWfhw2cr9yBZBFE6nZaaSUvXHqG5FizFFEZwpump_value",
+                "0.757719"
+              ],
+              [
+                "7ZqzGzTNg5tjK1CHTBdGFHyKjBtXdfvAobuGgdt4pump_value",
+                "0.005785"
+              ],
+              [
+                "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs_value",
+                "83.247646"
+              ],
+              [
+                "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU_value",
+                "1.401517"
+              ],
+              [
+                "85VBFQZC9TZkfaptBWjvUw7YbZjy52A6mjtPGjstQAmQ_value",
+                "4882976.753095"
+              ],
+              [
+                "8wXtPeU6557ETkp9WHFY1n1EcU6NxDvbAggHGsMYiHsB_value",
+                "147.221909"
+              ],
+              [
+                "9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump_value",
+                "10043.697609"
+              ],
+              [
+                "9PR7nCP9DpcUotnDPVLUBUZKu5WAYkwrCUx9wDnSpump_value",
+                "0.002896"
+              ],
+              [
+                "9nQKC2fKKKViVk6FWoj4erq3qbmkf37TjrFkiDBA1pDk_value",
+                "23.265748"
+              ],
+              [
+                "9zNQRsGLjNKwCUU5Gq5LR8beUCPzQMVMqKAi3SSZh54u_value",
+                "20880433.789513"
+              ],
+              [
+                "A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump_value",
+                "0.596442"
+              ],
+              [
+                "ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx_value",
+                "0.000013"
+              ],
+              [
+                "AgYVbX4CueNVrBAXZh84DoFQtZhG6wpi3JgXHyCKpump_value",
+                "0.000420"
+              ],
+              [
+                "B5WTLaRwaUQpKk7ir1wniNB6m5o8GgMrimhKMYan2R6B_value",
+                "0.001266"
+              ],
+              [
+                "BLZEEuZUBVqFhj8adcCFPJvPVCiCyVmh3hkJMrU8KuJA_value",
+                "0.604843"
+              ],
+              [
+                "BZLbGTNCSFfoth2GYDtwr7e4imWzpR5jqcUuGEwr646K_value",
+                "1383578.243465"
+              ],
+              [
+                "C7heQqfNzdMbUFQwcHkL9FvdwsFsDRBnfwZDDyWYCLTZ_value",
+                "0.140543"
+              ],
+              [
+                "CBdCxKo9QavR9hfShgpEBG3zekorAeD7W1jfq2o3pump_value",
+                "0.446874"
+              ],
+              [
+                "CNvitvFnSM5ed6K28RUNSaAjqqz5tX1rA5HgaBN9pump_value",
+                "0.007312"
+              ],
+              [
+                "CQvadZTR8vikRqqwyhvYV8YpdfCRjUCGyQwCuY4rxBQt_value",
+                "0.324023"
+              ],
+              [
+                "CWX6t6pGJ1zsnuywnyd2ZMZJ7inB2sWuPdsteoT6pump_value",
+                "3.466924"
+              ],
+              [
+                "CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump_value",
+                "0.069185"
+              ],
+              [
+                "DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump_value",
+                "1.477000"
+              ],
+              [
+                "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263_value",
+                "5944028.437993"
+              ],
+              [
+                "Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump_value",
+                "28.294755"
+              ],
+              [
+                "Dfh5DzRgSvvCFDoYc2ciTkMrbDfRKybA4SoFbPmApump_value",
+                "0.000000"
+              ],
+              [
+                "Dn4noZ5jgGfkntzcQSUZ8czkreiZ1ForXYoV2H8Dm7S1_value",
+                "730.927145"
+              ],
+              [
+                "ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY_value",
+                "0.150148"
+              ],
+              [
+                "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm_value",
+                "16308186.326918"
+              ],
+              [
+                "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v_value",
+                "286586788.363936"
+              ],
+              [
+                "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB_value",
+                "152968704.248695"
+              ],
+              [
+                "FHKiJEg2zmhv9DEeaXMSZa7R4P8BPFX5VTRrzrtJpump_value",
+                "8.350210"
+              ],
+              [
+                "FThrNpdic79XRV6i9aCWQ2UTp7oRQuCXAgUWtZR2cs42_value",
+                "0.014917"
+              ],
+              [
+                "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P_value",
+                "0.000004"
+              ],
+              [
+                "FpECzw6x8RG4VBXfnVg3UJd8pq9CCxJUSWCKb4gebq8B_value",
+                "0.019210"
+              ],
+              [
+                "FvgqHMfL9yn39V79huDPy3YUNDoYJpuLWng2JfmQpump_value",
+                "0.002469"
+              ],
+              [
+                "GHichsGq8aPnqJyz6Jp1ASTK4PNLpB5KrD6XrfDjpump_value",
+                "1.496667"
+              ],
+              [
+                "GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump_value",
+                "1696532.986897"
+              ],
+              [
+                "GJtJuWD9qYcCkrwMBmtY1tpapV1sKfB2zUv9Q4aqpump_value",
+                "0.013073"
+              ],
+              [
+                "Grass7B4RdKfBCjTKgSqnXkqjwiGvQyFbuSCUJr3XXjs_value",
+                "71.299300"
+              ],
+              [
+                "HAPPYwgFcjEJDzRtfWE6tiHE9zGdzpNky2FvjPHsvvGZ_value",
+                "0.000780"
+              ],
+              [
+                "HLptm5e6rTgh4EKgDpYFrnRHbjpkMyVdEeREEa2G7rf9_value",
+                "14.174750"
+              ],
+              [
+                "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3_value",
+                "1512330.101202"
+              ],
+              [
+                "7i5KKsX2weiTkry7jA4ZwSuXGhs5eJBEjY8vVxR4pfRx_value",
+                "1340667.237299"
+              ],
+              [
+                "3BeJ9zCgQhaqKMu2HgKJ79yQBChD1Pf3hPwRX44fpump_value",
+                "0.000479"
+              ],
+              [
+                "7L8JspdzD8F4wfJKhM9VBkfVmTcZYpJrEEFoCtdU4w6m_value",
+                "0.083600"
+              ],
+              [
+                "864YJRb3JAVARC4FNuDtPKFxdEsYRbB39Nwxkzudxy46_value",
+                "0.001157"
+              ],
+              [
+                "HRiLLm6hYiSdniFGjvcSvQ7XJrA8YSoktcqFbWjmpump_value",
+                "51.957417"
+              ],
+              [
+                "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp_value",
+                "599078.461117"
+              ],
+              [
+                "SHDWyBxihqiCj6YekG2GUr7wqKLeLAMK1gHZck9pL6y_value",
+                "153.496139"
+              ],
+              [
+                "9UFoZBPswibT1fWHJBNdBJ4wyKVVpJXNxfdHZnJmoon_value",
+                "0.881741"
+              ],
+              [
+                "TNSRxcUxoT9xBG3de7PiJyTDYu7kskLqcpddxnEJAS6_value",
+                "1083518.049993"
+              ],
+              [
+                "2z1p8xCEjRzpBHjXWrx4tJnz7BFL6z7NnvbCxH7bpump_value",
+                "0.002201"
+              ],
+              [
+                "39qibQxVzemuZTEvjSB7NePhw9WyyHdQCqP8xmBMpump_value",
+                "0.037569"
+              ],
+              [
+                "4LLbsb5ReP3yEtYzmXewyGjcir5uXtKFURtaEUVC2AHs_value",
+                "0.000070"
+              ],
+              [
+                "AMjzRn1TBQwQfNAjHFeBb7uGbbqbJB7FzXAnGgdFPk6K_value",
+                "0.423206"
+              ],
+              [
+                "C2Tfxi3qhAHKjUHWG5TJCkavZ3DwzX3RNbPja4RNpump_value",
+                "58.424513"
+              ],
+              [
+                "86t88w3MKT38HChTBKBwEeb1RW1MeTceaW68qY2Vpump_value",
+                "0.001533"
+              ],
+              [
+                "8Vb11fvr9f7k74hrhNJEqjGq1hzgBH7FnuwGFbPppump_value",
+                "0.254144"
+              ],
+              [
+                "6D7NaB2xsLd7cauWu1wKk6KBsJohJmP2qZH9GEfVi5Ui_value",
+                "0.003265"
+              ],
+              [
+                "bobaM3u8QmqZhY1HwAtnvze9DLXvkgKYk3td3t8MLva_value",
+                "10172.554647"
+              ],
+              [
+                "FQgtfugBdpFN7PZ6NdPrZpVLDBrPGxXesi4gVu3vErhY_value",
+                "3076923.537443"
+              ],
+              [
+                "GtDZKAqvMZMnti46ZewMiXCa4oXF4bZxwQPoKzXPFxZn_value",
+                "0.104281"
+              ],
+              [
+                "79yTpy8uwmAkrdgZdq6ZSBTvxKsgPrNqTLvYQBh1pump_value",
+                "0.002354"
+              ],
+              [
+                "B7xavrAozTa1msQxu8YAcvPftf76x1fJYyLrYdTnbrah_value",
+                "0.966686"
+              ],
+              [
+                "GiG7Hr61RVm4CSUxJmgiCoySFQtdiwxtqf64MsRppump_value",
+                "0.288024"
+              ],
+              [
+                "HeJUFDxfJSzYFUuHLxkMqCgytU31G6mjP4wKviwqpump_value",
+                "2.604908"
+              ],
+              [
+                "HrLx8MLKegpbmbmWePZiuvf3AbJNx1CJyjBwUHwicEgW_value",
+                "0.001638"
+              ],
+              [
+                "wUtwjNmjCP9TTTtoc5Xn5h5sZ2cYJm5w2w44b79yr2o_value",
+                "0.001953"
+              ],
+              [
+                "ULwSJmmpxmnRfpu6BjnK6rprKXqD5jXUmPpS1FxHXFy_value",
+                "0.434238"
+              ],
+              [
+                "2Dyzu65QA9zdX1UeE7Gx71k7fiwyUK6sZdrvJ7auq5wm_value",
+                "4442.595611"
+              ],
+              [
+                "3joMReCCSESngJEpFLoKR2dNcChjSRCDtybQet5uSpse_value",
+                "57351.627096"
+              ],
+              [
+                "C9FVTtx4WxgHmz55FEvQgykq8rqiLS8xRBVgqQVtpump_value",
+                "0.000565"
+              ]
+            ],
+            "errorCount": 0,
+            "lastTokenList": [
+              "SOL",
+              "BNSOL",
+              "JUP",
+              "LAYER",
+              "ME",
+              "MEW",
+              "SHDW",
+              "wSOL",
+              "TNSR",
+              "HEGE",
+              "WEN",
+              "ZBCN",
+              "BIO",
+              "BOBAOPPA",
+              "HNT",
+              "JTO",
+              "MOBILE",
+              "NOS",
+              "ORCA",
+              "RENDER",
+              "BOME",
+              "eliza",
+              "MANEKI",
+              "TURBO",
+              "OSOL",
+              "Pnut",
+              "San",
+              "PENGU",
+              "MemesAI",
+              "wPOND",
+              "CAT",
+              "PRCL",
+              "RAY",
+              "MUMU",
+              "$michi",
+              "VINE",
+              "SC",
+              "TRUMP",
+              "BULLY",
+              "SLERF",
+              "YNE",
+              "BARSIK",
+              "ETH",
+              "SAMO",
+              "W",
+              "LMT",
+              "GME",
+              "Fartcoin",
+              "Ban",
+              "JAE",
+              "FDUSD",
+              "FWOG",
+              "ATLAS",
+              "rick",
+              "Pepe",
+              "DOGEN",
+              "BLZE",
+              "IO",
+              "$COLLAT",
+              "CENTS",
+              "LUCE",
+              "FRED",
+              "Conan",
+              "ETF500",
+              "GOAT",
+              "AVA",
+              "Bonk",
+              "CHILLGUY",
+              "pippin",
+              "USDTet",
+              "MOODENG",
+              "$WIF",
+              "USDC",
+              "FIDA",
+              "USDT",
+              "HIBER",
+              "BMT",
+              "KM",
+              "MELANIA",
+              "NYAN",
+              "$URO",
+              "$1",
+              "ACT",
+              "$RIF",
+              "SCF",
+              "GRASS",
+              "nub",
+              "HAPPY",
+              "DUKO",
+              "PYTH",
+              "GNON",
+              "NYXC"
+            ],
+            "category": {
+              "type": "UNKNOWN",
+              "confidence": 0,
+              "protocols": [],
+              "lastUpdated": 1745418710
+            },
+            "pnl": {
+              "totalPnL": 0,
+              "realizedPnL": 0,
+              "unrealizedPnL": 0,
+              "winRate": 0,
+              "tradeCount": 0,
+              "averageTradeSize": 0,
+              "bestPerformingToken": null,
+              "worstPerformingToken": null,
+              "pnlTrend": [],
+              "tokenMetrics": []
+            },
+            "lastKnownSignature": "5EEr6MaphPoQ9WcMkMp5wk7x6wuYsokNxTS6LXUEe2uGXp1a2DVNCjA4ZjQzE6N9MPfcNsDUz8nB3Avi1bnQ9HBu",
+            "lastTotalValue": 1069845752.3171,
+            "recentTransactions": [
+              {
+                "signature": "58W4zq8jK37kAgQeVEP1oHS5XGfuYi4RKvPzTNP7HFEJieRS6m6RqjituyXZvXdpMA7btMbbJuoZU971JuFfVtbh",
+                "callingMetadata": [
+                  {
+                    "callingInstructions": [
+                      2
+                    ],
+                    "ixName": "",
+                    "callingProgram": "11111111111111111111111111111111",
+                    "programName": "System"
+                  }
+                ],
+                "senderTokenAccount": null,
+                "senderAddress": "BBdTRmqDjrNGrKkiKe467kA7RBT8DspBawDEiXgA8jr1",
+                "receiverTokenAccount": null,
+                "receiverAddress": "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+                "mintAddress": "11111111111111111111111111111111",
+                "feePayer": "BBdTRmqDjrNGrKkiKe467kA7RBT8DspBawDEiXgA8jr1",
+                "decimal": 9,
+                "amount": 18715014185,
+                "slot": 334541832,
+                "blockTime": 1745083800,
+                "price": "137.939462657987723265",
+                "calculatedAmount": "18.715014185",
+                "valueUsd": "2581.539000315518044460329514025"
+              }
+            ]
+          }
+        ]
+      ]
+    ],
+    [
+      "8ezggN9N1QM6a6jBgqmdRAGSMQZ25mDw3dyWWbRhNhhp",
+      [
+        [
+          2125015768,
+          {
+            "walletAddress": "8ezggN9N1QM6a6jBgqmdRAGSMQZ25mDw3dyWWbRhNhhp",
+            "chatId": 2125015768,
+            "minValueUsd": 10000,
+            "lastCheckedTime": 1745418707,
+            "lastBalances": [
+              [
+                "11111111111111111111111111111111_value",
+                "0.314062"
+              ],
+              [
+                "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN_value",
+                "315071.854789"
+              ],
+              [
+                "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v_value",
+                "285848.629928"
+              ],
+              [
+                "B7xavrAozTa1msQxu8YAcvPftf76x1fJYyLrYdTnbrah_value",
+                "0.508758"
+              ]
+            ],
+            "errorCount": 0,
+            "lastTokenList": [
+              "SOL",
+              "TRUMP",
+              "DOGEN",
+              "USDC"
+            ],
+            "category": {
+              "type": "UNKNOWN",
+              "confidence": 0,
+              "protocols": [],
+              "lastUpdated": 1745418709
+            },
+            "pnl": {
+              "totalPnL": 0,
+              "realizedPnL": 0,
+              "unrealizedPnL": 0,
+              "winRate": 0,
+              "tradeCount": 0,
+              "averageTradeSize": 0,
+              "bestPerformingToken": null,
+              "worstPerformingToken": null,
+              "pnlTrend": [],
+              "tokenMetrics": []
+            },
+            "lastKnownSignature": "45C9KYnyzjNSGVdf5yxRmhbiU1emWdmDxaj226D7qE9eWGraC2FMVLyi9mVgPEWWNrWT7TTuHq9cBoCinTxscYHT",
+            "lastTotalValue": 600921.3075,
+            "recentTransactions": [
+              {
+                "signature": "5oDEDTcAPTatj5Ysj6v6jwE5AfRYwtjzAR8GPuMYMLktbGZPGeVFD8NtTm6FDyjUTrRhSgwiByHXM4x7XWHrR9pm",
+                "callingMetadata": [
+                  {
+                    "callingInstructions": [
+                      229,
+                      23,
+                      203,
+                      151,
+                      122,
+                      227,
+                      173,
+                      42
+                    ],
+                    "ixName": "Route",
+                    "callingProgram": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
+                    "programName": "Jupiter v6"
+                  },
+                  {
+                    "callingInstructions": [
+                      3,
+                      44,
+                      71,
+                      3,
+                      26,
+                      199,
+                      203,
+                      85
+                    ],
+                    "ixName": "PlaceTakeOrder",
+                    "callingProgram": "opnb2LAfJYbRMAHHvqjCwQxanZn7ReEHp1k81EohpZb",
+                    "programName": "Openbook v2"
+                  },
+                  {
+                    "callingInstructions": [
+                      3
+                    ],
+                    "ixName": "Token Transfer",
+                    "callingProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                    "programName": "Token"
+                  }
+                ],
+                "senderTokenAccount": "2LasdqQK4N1Xx7ZY9pas6yNQxw19izDgJk9sSUgXhF14",
+                "senderAddress": "YubFizptp3MXUAtZmqkRS9DyCkMeZaVwiaRCGBTxayo",
+                "receiverTokenAccount": "DVs1fMfZEw7kKh22HkTNLvMjRJCk732GHhjL6MLFDQka",
+                "receiverAddress": "8ezggN9N1QM6a6jBgqmdRAGSMQZ25mDw3dyWWbRhNhhp",
+                "mintAddress": "6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+                "feePayer": "YubFizptp3MXUAtZmqkRS9DyCkMeZaVwiaRCGBTxayo",
+                "decimal": 6,
+                "amount": 60300000,
+                "slot": 334540319,
+                "blockTime": 1745083205,
+                "price": "8.278750536164164608",
+                "calculatedAmount": "60.300000",
+                "valueUsd": "499.208657330699125862400000"
+              }
+            ]
+          }
+        ]
+      ]
+    ]
+  ],
+  "historicalValues": [
+    [
+      "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+      {
+        "value": "1172846808.8550",
+        "timestamp": 1745383321
+      }
+    ],
+    [
+      "8ezggN9N1QM6a6jBgqmdRAGSMQZ25mDw3dyWWbRhNhhp",
+      {
+        "value": "314787.5298",
+        "timestamp": 1745383321
+      }
+    ]
+  ]
+}
