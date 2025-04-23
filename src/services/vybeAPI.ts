@@ -308,7 +308,7 @@ export class VybeApiService {
      * @returns A Promise that resolves to a {@link WalletPnLResponse} containing the wallet PnL data.
      * @throws {Error} If there is an error making the API request or parsing the response.
      */
-    
+
     async getWalletPnL(
         ownerAddress: string,
         resolution?: '1d' | '7d' | '30d',
@@ -429,7 +429,7 @@ export class VybeApiService {
             limit: limit ?? 20
         };
 
-        
+
 
 
         try {
@@ -443,4 +443,76 @@ export class VybeApiService {
             throw new Error(`Failed to fetch active users: ${error.message}`);
         }
     }
+
+    /**
+ * Fetches NFT balance data from Vybe API.
+ * @param ownerAddress The owner address to fetch NFT balances for.
+ * @returns A Promise that resolves to NFT balance data.
+ * @throws {Error} If there is an error making the API request or parsing the response.
+ */
+    async getNFTBalance(ownerAddress: string): Promise<any> {
+        // Validate owner address format
+        if (!isValidWalletAddress(ownerAddress)) {
+            const msg = `Invalid owner address: ${ownerAddress} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
+
+        try {
+            const response = await this.api.get(`/account/nft-balance/${ownerAddress}`);
+            return response.data;
+        } catch (error: any) {
+            logger.error(`Failed to fetch NFT balance for ${ownerAddress}`, { error });
+            if (error.response) {
+                throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
+            }
+            throw new Error(`Failed to fetch NFT balance: ${error.message}`);
+        }
+    }
+
+    /**
+     * Retrieves similar NFT collections based on a reference collection.
+     * @param collectionAddress The collection address to find similar collections for.
+     * @param limit Optional limit of number of collections to return. Default is 5.
+     * @returns A Promise containing similar collections data.
+     */
+    async getSimilarCollections(collectionAddress: string, limit: number = 5): Promise<any> {
+        // Validate collection address format
+        if (!isValidMintAddress(collectionAddress)) {
+            const msg = `Invalid collection address: ${collectionAddress} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
+
+        const params = { limit };
+
+        try {
+            // Note: This is a placeholder endpoint - adjust to actual Vybe API endpoint
+            const response = await this.api.get(`/collection/${collectionAddress}/similar`, { params });
+            return response.data;
+        } catch (error: any) {
+            logger.error(`Failed to fetch similar collections for ${collectionAddress}`, { error });
+            throw new Error(`Failed to fetch similar collections: ${error.message}`);
+        }
+    }
+
+    /**
+     * Fetches OHLCV (Open, High, Low, Close, Volume) data for a token.
+     * @param mintAddress The mint address of the token to fetch OHLCV data for.
+     * @returns A Promise that resolves to an array of OHLCV data points.
+     * @throws {Error} If there is an error making the API request or parsing the response.
+     */
+    async getTokenOHLCV(mintAddress: string): Promise<any> {
+        try {
+            const response = await this.api.get(`/price/${mintAddress}/token-ohlcv`);
+            return response.data.data;
+        } catch (error: any) {
+            logger.error(`Failed to fetch OHLCV data for ${mintAddress}`, { error });
+            if (error.response) {
+                throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
+            }
+            throw new Error(`Failed to fetch OHLCV data: ${error.message}`);
+        }
+    }
+
 }

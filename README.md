@@ -1,6 +1,6 @@
 # Vybe Telegram Bot
 
-A powerful Telegram bot for monitoring Solana wallets and whale transactions, built with TypeScript and Node.js.
+A powerful Telegram bot for monitoring Solana wallets, whale transactions, token prices, and NFT portfolios, built with TypeScript and Node.js.
 
 ## Features
 
@@ -27,6 +27,22 @@ A powerful Telegram bot for monitoring Solana wallets and whale transactions, bu
 - Protocol interaction tracking
 - Token holding analysis
 
+### 💰 Price Tracking
+
+- Real-time token price monitoring
+- Price alerts for specific thresholds
+- Hourly price change tracking
+- Volume and market data analysis
+- Historical price trends
+
+### 🖼️ NFT Portfolio
+
+- Track NFT collections and holdings
+- Monitor portfolio value changes
+- View collection details and floor prices
+- Register multiple wallets for tracking
+- Get detailed NFT analytics
+
 ## Commands
 
 ### Whale Watch Commands
@@ -42,6 +58,20 @@ A powerful Telegram bot for monitoring Solana wallets and whale transactions, bu
 - `/listtrackedwallets` - List all tracked wallets
 - `/removetrackedwallet <wallet_address>` - Stop tracking a wallet
 - `/walletstatus <wallet_address>` - Get current wallet status
+
+### Price Commands
+
+- `/price <token_mint_address>` - Get current price information
+- `/pricealert <token_mint_address> <threshold> <high/low>` - Set price alerts
+- `/pricechange <token_mint_address>` - Get hourly price changes
+
+### NFT Commands
+
+- `/nftportfolio [wallet_address]` - View NFT portfolio
+- `/registernftwallet <wallet_address>` - Register wallet for NFT tracking
+- `/listnftwallets` - List registered NFT wallets
+- `/removenftwallet <wallet_address>` - Remove wallet from tracking
+- `/nftcollection <wallet_address>, <collection_name>` - View collection details
 
 ## Technical Architecture
 
@@ -114,11 +144,11 @@ npm start
 
 ### Project Structure
 
-```
+```bash
 src/
-├── bots/                 # Bot handlers
-├── config/              # Configuration files
-├── interfaces/          # TypeScript interfaces
+├── bots/               # Bot handlers
+├── config/             # Configuration files
+├── interfaces/         # TypeScript interfaces
 ├── services/           # Core services
 ├── utils/              # Utility functions
 └── data/               # Data storage

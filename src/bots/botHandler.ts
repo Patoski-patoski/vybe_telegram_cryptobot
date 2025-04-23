@@ -12,6 +12,8 @@ import { EnhancedWalletTrackerHandler } from "./walletTrackerHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { ProgramInfoHandler } from "./programInfoHandler";
 import { ProgramActiveUsersHandler } from "./programActiveUsersHandler";
+import { NFTPortfolioHandler } from "./nftPortfolioHandler";
+import { PriceHandler } from "./priceHandler";
 
 export class BotHandler {
     private readonly bot: TelegramBot;
@@ -27,6 +29,8 @@ export class BotHandler {
     private walletTrackerHandler: EnhancedWalletTrackerHandler;
     private programInfoHandler: ProgramInfoHandler;
     private programActiveUsersHandler: ProgramActiveUsersHandler;
+    private nftPortfolioHandler: NFTPortfolioHandler;
+    private priceHandler: PriceHandler;
 
     constructor() {
         const config = getConfig();
@@ -43,6 +47,8 @@ export class BotHandler {
         this.walletTrackerHandler = new EnhancedWalletTrackerHandler(this.bot, this.api);
         this.programInfoHandler = new ProgramInfoHandler(this.bot, this.api);
         this.programActiveUsersHandler = new ProgramActiveUsersHandler(this.bot, this.api);
+        this.nftPortfolioHandler = new NFTPortfolioHandler(this.bot, this.api);
+        this.priceHandler = new PriceHandler(this.bot, this.api);
 
         // Setup commands
         this.setUpCommands();
@@ -79,11 +85,23 @@ export class BotHandler {
             { cmd: /\/programinfo/, handler: this.programInfoHandler.handleProgramInfo.bind(this.programInfoHandler) },
             { cmd: /\/explore/, handler: this.programInfoHandler.handleExploreProgram.bind(this.programInfoHandler) },
 
-            // Program Active Users commands (New!)
+            // Program Active Users commands
             { cmd: /\/topusers/, handler: this.programActiveUsersHandler.handleTopUsers.bind(this.programActiveUsersHandler) },
             { cmd: /\/usersinsights/, handler: this.programActiveUsersHandler.handleUserInsights.bind(this.programActiveUsersHandler) },
             { cmd: /\/activitychange/, handler: this.programActiveUsersHandler.handleActivityChange.bind(this.programActiveUsersHandler) },
             { cmd: /\/checkwhaleusers/, handler: this.programActiveUsersHandler.handleCheckWhaleUsers.bind(this.programActiveUsersHandler) },
+
+            // NFT commands
+            { cmd: /\/nftportfolio/, handler: this.nftPortfolioHandler.handleNFTPortfolio.bind(this.nftPortfolioHandler) },
+            { cmd: /\/registernftwallet/, handler: this.nftPortfolioHandler.handleRegisterNFTWallet.bind(this.nftPortfolioHandler) },
+            { cmd: /\/listnftwallets/, handler: this.nftPortfolioHandler.handleListNFTWallets.bind(this.nftPortfolioHandler) },
+            { cmd: /\/removenftwallet/, handler: this.nftPortfolioHandler.handleRemoveNFTWallet.bind(this.nftPortfolioHandler) },
+            { cmd: /\/nftcollection/, handler: this.nftPortfolioHandler.handleCollectionDetails.bind(this.nftPortfolioHandler) },
+
+            // Price commands
+            { cmd: /\/price (.+)/, handler: this.priceHandler.handlePriceCommand.bind(this.priceHandler) },
+            { cmd: /\/pricealert (.+)/, handler: this.priceHandler.handlePriceAlertCommand.bind(this.priceHandler) },
+            { cmd: /\/pricechange (.+)/, handler: this.priceHandler.handlePriceChangeCommand.bind(this.priceHandler) },
         ]
 
         cmds.forEach(({ cmd, handler }) => {
@@ -91,6 +109,11 @@ export class BotHandler {
         });
 
         this.bot.on('callback_query', this.handleCallbackQuery.bind(this));
+
+        // Set up periodic price alert checks
+        setInterval(() => {
+            this.priceHandler.checkPriceAlerts();
+        }, 60000); // Check every minute
     }
 
     private async handleStart(msg: TelegramBot.Message) {

@@ -167,6 +167,67 @@ interface WalletPnLResponse {
 }
 ```
 
+#### 5. Token Price OHLCV
+
+```typescript
+GET / price / { mintAddress } / token - ohlcv;
+```
+
+Get OHLCV (Open, High, Low, Close, Volume) data for a token.
+
+**Parameters:**
+
+- `mintAddress`: Token mint address
+
+**Response:**
+
+```typescript
+interface OHLCVResponse {
+  data: Array<{
+    time: number;
+    open: string;
+    high: string;
+    low: string;
+    close: string;
+    volume: string;
+    volumeUsd: string;
+    count: number;
+  }>;
+}
+```
+
+#### 6. NFT Balance
+
+```typescript
+GET / account / nft - balance / { ownerAddress };
+```
+
+Get NFT portfolio data for a wallet.
+
+**Parameters:**
+
+- `ownerAddress`: Wallet address
+
+**Response:**
+
+```typescript
+interface NFTPortfolioResponse {
+  totalUsd: string;
+  totalSol: string;
+  totalNftCollectionCount: number;
+  data: Array<{
+    name: string;
+    collectionAddress: string;
+    totalItems: number;
+    valueUsd: string;
+    valueSol: string;
+    priceUsd: string;
+    priceSol: string;
+    logoUrl?: string;
+  }>;
+}
+```
+
 ## Bot Commands
 
 ### Whale Watch Commands
@@ -259,36 +320,146 @@ Stop tracking a wallet.
 
 Get current wallet status and analysis.
 
+### Price Commands
+
+#### 1. Get Price
+
+```bash
+/price <token_mint_address>
+```
+
+Get current price information for a token.
+
+**Parameters:**
+
+- `token_mint_address`: Token's mint address
+
+**Example:**
+
+```bash
+/price EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+```
+
+#### 2. Set Price Alert
+
+```bash
+/pricealert <token_mint_address> <threshold> <high/low>
+```
+
+Set up price alerts for a token.
+
+**Parameters:**
+
+- `token_mint_address`: Token's mint address
+- `threshold`: Price threshold
+- `high/low`: Alert direction
+
+**Example:**
+
+```bash
+/pricealert EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 7.5 high
+```
+
+#### 3. Get Price Change
+
+```bash
+/pricechange <token_mint_address>
+```
+
+Get hourly price change for a token.
+
+**Parameters:**
+
+- `token_mint_address`: Token's mint address
+
+**Example:**
+
+```bash
+/pricechange EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+```
+
+### NFT Commands
+
+#### 1. View NFT Portfolio
+
+```bash
+/nftportfolio [wallet_address]
+```
+
+View NFT portfolio for a wallet.
+
+**Parameters:**
+
+- `wallet_address`: Optional wallet address
+
+**Example:**
+
+```bash
+/nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+```
+
 ## Error Handling
 
 ### Common Error Codes
 
-- `400`: Bad Request - Invalid parameters
-- `404`: Not Found - Resource not found
-- `429`: Too Many Requests - Rate limit exceeded
-- `500`: Internal Server Error
+- `
 
-### Error Response Format
+### Adding New Features
+
+1. Create a New Handler
 
 ```typescript
-interface ErrorResponse {
-  error: {
-    code: number;
-    message: string;
-    details?: any;
-  };
+import { BaseHandler } from "./baseHandler";
+
+export class NewFeatureHandler extends BaseHandler {
+  constructor(bot: TelegramBot, api: VybeApiService) {
+    super(bot, api);
+  }
+
+  // Add command handlers
+  async handleNewCommand(msg: TelegramBot.Message) {
+    // Implementation
+  }
 }
 ```
 
-## Rate Limiting
+2. Add Command Registration
 
-- API calls are limited to 100 requests per minute
-- Bot commands are limited to 20 per minute per user
+Update `src/bot.ts` to register new commands:
 
-## Best Practices
+```typescript
+const newFeatureHandler = new NewFeatureHandler(bot, api);
+bot.onText(/\/newcommand/, (msg) => newFeatureHandler.handleNewCommand(msg));
+```
 
-1. Always validate wallet addresses before making API calls
-2. Implement proper error handling for API responses
-3. Cache frequently accessed data
-4. Use appropriate timeouts for API calls
-5. Monitor API usage and implement backoff strategies
+3. Add Message Templates
+
+Update `src/utils/messageTemplates.ts`:
+
+```typescript
+export const BOT_MESSAGES = {
+  // ... existing messages
+  NEW_COMMAND_USAGE: "Usage: /newcommand <args>",
+  NEW_COMMAND_HELP: `*New Command Help*
+    
+*DESCRIPTION*
+Description of the new command
+
+*SYNOPSIS*
+/newcommand <args>
+
+*ARGUMENTS*
+<args>    Description of arguments
+
+*EXAMPLES*
+/newcommand example
+
+*OUTPUT*
+- Expected output format
+- Additional details
+
+*TROUBLESHOOTING*
+- Common issues
+- Solutions`,
+};
+```

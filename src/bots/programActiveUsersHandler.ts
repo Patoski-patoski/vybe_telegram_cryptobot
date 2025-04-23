@@ -6,6 +6,8 @@ import { VybeApiService } from "../services/vybeAPI";
 import { ProgramActiveUser } from "../interfaces/vybeApiInterface";
 import logger from "../config/logger";
 import { deleteDoubleSpace } from "../utils/utils";
+
+
 export class ProgramActiveUsersHandler extends BaseHandler {
     private activeUsersCache: Map<string, { users: ProgramActiveUser[], timestamp: number }> = new Map();
     private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minutes in milliseconds

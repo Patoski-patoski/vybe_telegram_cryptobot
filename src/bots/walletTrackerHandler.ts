@@ -475,7 +475,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 return this.bot.sendMessage(chatId, "⛔ No tokens found in the specified wallet.");
             }
 
-            let message = `\n*Top Holdings*\n \`${walletAddress}\`\n`;
+            let message = `\n*Top Holdings*\n \`${walletAddress}\`\n\n`;
 
             // Sort tokens by value and get top 7
             const sortedTokens = [...balance.data].sort((a, b) =>

@@ -68,7 +68,6 @@ export class WhaleWatcherHandler extends BaseHandler {
             for (const token of allTokens) {
                 // find the minimum threshold for this token
                 let minimumAmount = Number.MAX_SAFE_INTEGER;
-                console.log("minimunamounts", minimumAmount);
                 this.alerts.forEach((settings) => {
                     if (settings.tokens.includes(token)
                         && settings.minAmount < minimumAmount) {
@@ -84,7 +83,6 @@ export class WhaleWatcherHandler extends BaseHandler {
                     limit: 5
                 });
 
-                console.log("Transfers", transfers)
 
                 if (transfers && transfers.transfers.length > 0) {
                     // Process each transfers

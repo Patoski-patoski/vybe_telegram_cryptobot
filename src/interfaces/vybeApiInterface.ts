@@ -263,3 +263,42 @@ export interface ProgramActiveUsersResponse {
     data: ProgramActiveUser[];
 }
 
+
+export interface OHLCVData {
+    time: number;
+    open: string;
+    high: string;
+    low: string;
+    close: string;
+    volume: string;
+    volumeUsd: string;
+    count: number;
+}
+
+export interface PriceAlert {
+    tokenMint: string;
+    threshold: number;
+    isHigh: boolean;
+    userId: number;
+}
+
+// Define interfaces for NFT data
+export interface NFTPortfolio {
+  ownerAddress: string;
+  totalSol: string;
+  totalUsd: string;
+  totalNftCollectionCount: number;
+  data: NFTCollectionData[];
+}
+
+export interface NFTCollectionData {
+  name: string;
+  collectionAddress: string;
+  totalItems: number;
+  valueSol: string;
+  priceSol: string;
+  valueUsd: string;
+  priceUsd: string;
+  logoUrl: string | null;
+}
+

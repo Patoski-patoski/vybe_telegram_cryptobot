@@ -47,7 +47,9 @@ src/
 ├── bots/                 # Bot handlers
 │   ├── baseHandler.ts    # Base handler class
 │   ├── whaleWatchHandler.ts
-│   └── walletTrackerHandler.ts
+│   ├── walletTrackerHandler.ts
+│   ├── priceHandler.ts   # Price tracking functionality
+│   └── nftPortfolioHandler.ts  # NFT portfolio functionality
 ├── config/              # Configuration files
 │   └── logger.ts
 ├── interfaces/          # TypeScript interfaces

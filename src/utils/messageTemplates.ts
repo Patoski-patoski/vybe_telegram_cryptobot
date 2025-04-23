@@ -671,6 +671,203 @@ Look up information about a specific Solana program.
 - Program ID not found
 - Invalid program ID format
 - Check the space between the command and the program ID`,
-        
-        
+
+        PRICE_USAGE: "Usage: /price <token_mint_address>\n\nExample: /price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+        PRICE_HELP: `💰 *Price Command (/price)*
+
+*DESCRIPTION*
+Shows current price information for a token, including last close, 24h high/low, and volume.
+
+*SYNOPSIS*
+/price <token_mint_address>
+
+*ARGUMENTS*
+<token_mint_address>    The Solana token mint address to check price for
+
+*EXAMPLES*
+/price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+
+*OUTPUT*
+- Last Close Price
+- 24h High
+- 24h Low
+- Volume
+- Price Change
+
+*TROUBLESHOOTING*
+- Invalid token address
+- Network connectivity issues
+- Check the space between the command and the token address`,
+
+        PRICE_ALERT_USAGE: "Usage: /pricealert <token_mint_address> <threshold> <high/low>\n\nExample: /pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high",
+        PRICE_ALERT_HELP: `⚠️ *Price Alert Command (/pricealert)*
+
+*DESCRIPTION*
+Sets up price alerts for a token. You'll be notified when the price crosses your specified threshold.
+
+*SYNOPSIS*
+/pricealert <token_mint_address> <threshold> <high/low>
+
+*ARGUMENTS*
+<token_mint_address>    The Solana token mint address to monitor
+<threshold>             Price threshold to trigger alert
+<high/low>             Whether to alert on price going above (high) or below (low) threshold
+
+*EXAMPLES*
+/pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high
+/pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.0 low
+
+*OUTPUT*
+- Confirmation of alert setup
+- Alert notifications when price crosses threshold
+
+*TROUBLESHOOTING*
+- Invalid token address
+- Invalid threshold value
+- Invalid high/low parameter
+- Check the space between the command and arguments`,
+
+        PRICE_CHANGE_USAGE: "Usage: /pricechange <token_mint_address>\n\nExample: /pricechange 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+        PRICE_CHANGE_HELP: `📊 *Price Change Command (/pricechange)*
+
+*DESCRIPTION*
+Shows the hourly price change percentage for a token.
+
+*SYNOPSIS*
+/pricechange <token_mint_address>
+
+*ARGUMENTS*
+<token_mint_address>    The Solana token mint address to check price change for
+
+*EXAMPLES*
+/pricechange 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+
+*OUTPUT*
+- Hourly price change percentage
+- Direction indicator (up/down)
+
+*TROUBLESHOOTING*
+- Invalid token address
+- Network connectivity issues
+- Check the space between the command and the token address`,
+
+        // NFT Commands Help
+        NFT_PORTFOLIO_USAGE: "Usage: /nftportfolio [wallet_address]\n\nExample: /nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q",
+        NFT_PORTFOLIO_HELP: `🖼️ *NFT Portfolio Command (/nftportfolio)*
+
+*DESCRIPTION*
+Shows the NFT portfolio for a wallet, including total value, collections, and individual NFTs.
+
+*SYNOPSIS*
+/nftportfolio [wallet_address]
+
+*ARGUMENTS*
+[wallet_address]    Optional Solana wallet address. If not provided, uses your registered wallet.
+
+*EXAMPLES*
+/nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+
+*OUTPUT*
+- Total portfolio value
+- Number of collections
+- Top collections by value
+- Collection details with floor prices
+
+*TROUBLESHOOTING*
+- Invalid wallet address
+- No NFTs found
+- Network connectivity issues`,
+
+        NFT_REGISTER_USAGE: "Usage: /registernftwallet <wallet_address>\n\nExample: /registernftwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q",
+        NFT_REGISTER_HELP: `📝 *Register NFT Wallet Command (/registernftwallet)*
+
+*DESCRIPTION*
+Registers a wallet for NFT tracking. You can then use /nftportfolio without specifying the wallet address.
+
+*SYNOPSIS*
+/registernftwallet <wallet_address>
+
+*ARGUMENTS*
+<wallet_address>    The Solana wallet address to register
+
+*EXAMPLES*
+/registernftwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+
+*OUTPUT*
+- Confirmation of wallet registration
+- List of registered wallets
+
+*TROUBLESHOOTING*
+- Invalid wallet address
+- Wallet already registered
+- Network connectivity issues`,
+
+        NFT_LIST_USAGE: "Usage: /listnftwallets",
+        NFT_LIST_HELP: `📋 *List NFT Wallets Command (/listnftwallets)*
+
+*DESCRIPTION*
+Lists all wallets you have registered for NFT tracking.
+
+*SYNOPSIS*
+/listnftwallets
+
+*OUTPUT*
+- List of registered wallet addresses
+- Number of wallets registered
+
+*TROUBLESHOOTING*
+- No wallets registered
+- Network connectivity issues`,
+
+        NFT_REMOVE_USAGE: "Usage: /removenftwallet <wallet_address>\n\nExample: /removenftwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q",
+        NFT_REMOVE_HELP: `❌ *Remove NFT Wallet Command (/removenftwallet)*
+
+*DESCRIPTION*
+Removes a wallet from NFT tracking.
+
+*SYNOPSIS*
+/removenftwallet <wallet_address>
+
+*ARGUMENTS*
+<wallet_address>    The Solana wallet address to remove
+
+*EXAMPLES*
+/removenftwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+
+*OUTPUT*
+- Confirmation of wallet removal
+- Updated list of registered wallets
+
+*TROUBLESHOOTING*
+- Invalid wallet address
+- Wallet not registered
+- Network connectivity issues`,
+
+        NFT_COLLECTION_USAGE: "Usage: /nftcollection <wallet_address>, <collection_name>\n\nExample: /nftcollection 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q, Solana Monkey Business",
+        NFT_COLLECTION_HELP: `🏛️ *NFT Collection Command (/nftcollection)*
+
+*DESCRIPTION*
+Shows detailed information about a specific NFT collection in a wallet.
+
+*SYNOPSIS*
+/nftcollection <wallet_address>, <collection_name>
+
+*ARGUMENTS*
+<wallet_address>    The Solana wallet address
+<collection_name>   The name of the NFT collection
+
+*EXAMPLES*
+/nftcollection 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q, Solana Monkey Business
+
+*OUTPUT*
+- Collection name and address
+- Number of items owned
+- Total value
+- Floor price
+- Collection logo (if available)
+
+*TROUBLESHOOTING*
+- Invalid wallet address
+- Collection not found
+- Network connectivity issues`
 };
