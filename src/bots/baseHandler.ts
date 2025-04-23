@@ -52,7 +52,7 @@ export class BaseHandler {
                 { command: 'help', description: 'Get help' },
             ];
             // Set commands with retry logic
-            let retries = 5;
+            let retries = 50;
             while (retries > 0) {
                 try {
                     await this.bot.setMyCommands(commands);

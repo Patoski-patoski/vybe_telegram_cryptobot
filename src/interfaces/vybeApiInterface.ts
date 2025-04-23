@@ -283,22 +283,23 @@ export interface PriceAlert {
 }
 
 // Define interfaces for NFT data
-export interface NFTPortfolio {
-  ownerAddress: string;
-  totalSol: string;
-  totalUsd: string;
-  totalNftCollectionCount: number;
-  data: NFTCollectionData[];
+export interface NftCollection {
+    name: string;
+    collectionAddress: string;
+    totalItems: number;
+    valueSol: string;
+    priceSol: string;
+    valueUsd: string;
+    priceUsd: string;
+    logoUrl: string;
+    slot: number;
 }
 
-export interface NFTCollectionData {
-  name: string;
-  collectionAddress: string;
-  totalItems: number;
-  valueSol: string;
-  priceSol: string;
-  valueUsd: string;
-  priceUsd: string;
-  logoUrl: string | null;
+export interface NftBalanceResponse {
+    date: number;
+    ownerAddress: string;
+    totalSol: string;
+    totalUsd: string;
+    totalNftCollectionCount: number;
+    data: NftCollection[];
 }
-

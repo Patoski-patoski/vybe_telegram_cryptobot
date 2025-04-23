@@ -1,12 +1,14 @@
 import TelegramBot from "node-telegram-bot-api";
 import { VybeApiService } from "../services/vybeAPI";
 import logger from "../config/logger";
-import { isValidWalletAddress, deleteDoubleSpace } from "../utils/utils";
-import { NFTPortfolio, NFTCollectionData } from "../interfaces/vybeApiInterface";
+import { isValidWalletAddress, deleteDoubleSpace, formatUsdValue } from "../utils/utils";
+import { NftCollection, NftBalanceResponse } from "../interfaces/vybeApiInterface";
 import { BaseHandler } from "./baseHandler";
 
 export class NFTPortfolioHandler extends BaseHandler {
     private userWallets: Map<number, string[]> = new Map(); // Map chat IDs to wallet addresses
+    // Store temporary collection data for callback reference
+    private activePortfolios: Map<number, { walletAddress: string, collections: NftCollection[] }> = new Map();
 
     constructor(bot: TelegramBot, api: VybeApiService) {
         super(bot, api);
@@ -23,7 +25,7 @@ export class NFTPortfolioHandler extends BaseHandler {
         if (!commandArgs) {
             // Check if user has registered wallets
             const wallets = this.userWallets.get(chatId);
-            console.log("wallet", wallets)
+            console.log("wallet", wallets);
             if (!wallets || wallets.length === 0) {
                 await this.bot.sendMessage(
                     chatId,
@@ -204,7 +206,7 @@ export class NFTPortfolioHandler extends BaseHandler {
                 { parse_mode: 'Markdown' }
             );
 
-            const nftBalance = await this.getNFTBalance(walletAddress);
+            const nftBalance = await this.api.getNFTBalance(walletAddress);
 
             console.log("nftBalance", nftBalance);
 
@@ -220,7 +222,6 @@ export class NFTPortfolioHandler extends BaseHandler {
 
             // Format the portfolio summary
             const portfolioSummary = this.formatPortfolioSummary(nftBalance);
-            console.log("portfolioSummary", portfolioSummary);
 
             // Send the summary
             await this.bot.sendMessage(chatId, portfolioSummary, {
@@ -228,13 +229,23 @@ export class NFTPortfolioHandler extends BaseHandler {
                 disable_web_page_preview: true
             });
 
+            // Store the current portfolio data for use in callbacks
+            this.activePortfolios.set(chatId, {
+                walletAddress,
+                collections: nftBalance.data
+            });
+
             // Create collection buttons for detailed view
             const collectionsKeyboard = this.createCollectionsKeyboard(walletAddress, nftBalance.data);
+            console.log("collectionsKeyboard", collectionsKeyboard.inline_keyboard);
 
             await this.bot.sendMessage(
                 chatId,
-                "Select a collection to view details:",
-                { reply_markup: collectionsKeyboard }
+                `Select a collection to view details for wallet \`${walletAddress}\`:`,
+                {
+                    reply_markup: collectionsKeyboard,
+                    parse_mode: 'Markdown'
+                }
             );
         } catch (error) {
             logger.error(`Failed to fetch NFT portfolio for ${walletAddress}`, { error });
@@ -257,7 +268,7 @@ export class NFTPortfolioHandler extends BaseHandler {
         collectionName: string
     ): Promise<void> {
         try {
-            const nftBalance = await this.getNFTBalance(walletAddress);
+            const nftBalance = await this.api.getNFTBalance(walletAddress);
 
             if (!nftBalance || nftBalance.data.length === 0) {
                 await this.bot.sendMessage(
@@ -295,26 +306,11 @@ export class NFTPortfolioHandler extends BaseHandler {
     }
 
     /**
-     * Call the Vybe API to get NFT balance data
-     * @param walletAddress Solana wallet address
-     * @returns NFT portfolio data
-     */
-    private async getNFTBalance(walletAddress: string): Promise<NFTPortfolio | null> {
-        try {
-            const response = await this.api.getNFTBalance(walletAddress);
-            return response as unknown as NFTPortfolio;
-        } catch (error) {
-            logger.error(`Error fetching NFT balance for ${walletAddress}`, { error });
-            return null;
-        }
-    }
-
-    /**
      * Format portfolio summary for display
      * @param portfolio NFT portfolio data
      * @returns Formatted message string
      */
-    private formatPortfolioSummary(portfolio: NFTPortfolio): string {
+    private formatPortfolioSummary(portfolio: NftBalanceResponse): string {
         // Sort collections by value (highest first)
         const sortedCollections = [...portfolio.data].sort((a, b) =>
             parseFloat(b.valueUsd) - parseFloat(a.valueUsd)
@@ -324,14 +320,15 @@ export class NFTPortfolioHandler extends BaseHandler {
         const topCollections = sortedCollections.slice(0, 5);
 
         let message = `*NFT Portfolio Summary*\n\n`;
-        message += `Total Value: ${parseFloat(portfolio.totalUsd).toFixed(2)} USD (${parseFloat(portfolio.totalSol).toFixed(3)} SOL)\n`;
-        message += `Collections: ${portfolio.totalNftCollectionCount}\n`;
-        message += `Total NFTs: ${portfolio.data.reduce((sum, c) => sum + c.totalItems, 0)}\n\n`;
+        message += `*Total Value:* \`${formatUsdValue(portfolio.totalUsd)}\` \n\n`;
+        message += `*Value in SOL:* ${parseFloat(portfolio.totalSol).toFixed(3)} SOL)\n`;
+        message += `*Collections:* ${portfolio.totalNftCollectionCount}\n`;
+        message += `*Total NFTs:* ${portfolio.data.reduce((sum, c) => sum + c.totalItems, 0)}\n\n`;
 
-        message += `*Top Collections by Value:*\n`;
+        message += `*🔝 Top Collections by Value:*\n\n`;
         topCollections.forEach((collection, index) => {
-            message += `${index + 1}. *${collection.name}*\n`;
-            message += `   Items: ${collection.totalItems} | Value: $${parseFloat(collection.valueUsd).toFixed(2)}\n`;
+            message += `${index + 1}. *${collection.name} → *`;
+            message += `  Items: ${collection.totalItems} | Value: ${formatUsdValue(collection.valueUsd)}\n\n`;
         });
 
         if (portfolio.data.length > 5) {
@@ -346,15 +343,16 @@ export class NFTPortfolioHandler extends BaseHandler {
      * @param collection NFT collection data
      * @returns Formatted message string
      */
-    private formatCollectionDetails(collection: NFTCollectionData): string {
+    private formatCollectionDetails(collection: NftCollection): string {
         let message = `*${collection.name}*\n\n`;
-        message += `Collection Address: \`${collection.collectionAddress}\`\n`;
-        message += `Items Owned: ${collection.totalItems}\n`;
-        message += `Total Value: $${parseFloat(collection.valueUsd).toFixed(2)} (${parseFloat(collection.valueSol).toFixed(3)} SOL)\n`;
-        message += `Floor Price: $${parseFloat(collection.priceUsd).toFixed(2)} (${parseFloat(collection.priceSol).toFixed(3)} SOL)\n`;
+        message += `*Collection Address:* \`${collection.collectionAddress}\`\n\n`;
+        message += `*Items Owned:* ${collection.totalItems}\n`;
+        message += `*Total Value*: ${formatUsdValue(collection.valueUsd)}\n`;
+        message += `*Value in SOL:* ${parseFloat(collection.valueSol).toFixed(3)} SOL\n`;
+        message += `Floor Price: ${formatUsdValue(collection.priceUsd)} (${parseFloat(collection.priceSol).toFixed(3)} SOL)\n`;
 
         if (collection.logoUrl) {
-            message += `\n[Collection Logo](${collection.logoUrl})`;
+            message += `\n[Logo](${collection.logoUrl})`;
         }
 
         return message;
@@ -368,7 +366,7 @@ export class NFTPortfolioHandler extends BaseHandler {
      */
     private createCollectionsKeyboard(
         walletAddress: string,
-        collections: NFTCollectionData[]
+        collections: NftCollection[]
     ): TelegramBot.InlineKeyboardMarkup {
         // Sort collections by value (highest first)
         const sortedCollections = [...collections].sort((a, b) =>
@@ -376,9 +374,9 @@ export class NFTPortfolioHandler extends BaseHandler {
         );
 
         // Create buttons (limit to 10 to avoid message size limits)
-        const buttons = sortedCollections.slice(0, 10).map((collection, index) => [{
+        const buttons = sortedCollections.slice(0, 10).map((collection) => [{
             text: `${collection.name} (${collection.totalItems} items)`,
-            callback_data: `nft_${index}_${walletAddress}`
+            callback_data: `nft_collection_${collection.name}`
         }]);
 
         return {
@@ -391,25 +389,47 @@ export class NFTPortfolioHandler extends BaseHandler {
      * @param callbackQuery Telegram callback query
      */
     async handleCollectionCallback(callbackQuery: TelegramBot.CallbackQuery): Promise<void> {
-        if (!callbackQuery.data?.startsWith('nft_')) return;
+        if (!callbackQuery.data?.startsWith('nft_collection_')) {
+            return;
+        }
 
         const chatId = callbackQuery.message?.chat.id;
         if (!chatId) return;
 
-        const parts = callbackQuery.data.split('_');
-        if (parts.length < 3) return;
+        // Extract collection name from callback data
+        const collectionName = callbackQuery.data.replace('nft_collection_', '');
+        console.log("Collection name from callback:", collectionName);
 
-        const index = parseInt(parts[1]);
-        const walletAddress = parts[2];
+        // Get the active portfolio for this chat
+        const portfolioData = this.activePortfolios.get(chatId);
 
-        // Get the collection name from the button text
-        const buttonText = callbackQuery.message?.reply_markup?.inline_keyboard[index][0].text;
-        if (!buttonText) return;
+        if (!portfolioData) {
+            await this.bot.sendMessage(
+                chatId,
+                "Portfolio data not found. Please try viewing your portfolio again with /nftportfolio."
+            );
+            await this.bot.answerCallbackQuery(callbackQuery.id);
+            return;
+        }
 
-        // Extract collection name from button text (remove the items count)
-        const collectionName = buttonText.split(' (')[0];
+        const { walletAddress, collections } = portfolioData;
 
-        await this.fetchAndSendCollectionDetails(chatId, walletAddress, collectionName);
+        // Find the collection in the stored data
+        const collection = collections.find(c => c.name === collectionName);
+
+        if (collection) {
+            const detailsMessage = this.formatCollectionDetails(collection);
+            await this.bot.sendMessage(chatId, detailsMessage, {
+                parse_mode: 'Markdown',
+                disable_web_page_preview: false
+            });
+        } else {
+            await this.bot.sendMessage(
+                chatId,
+                `Could not find collection "${collectionName}" in this portfolio.`
+            );
+        }
+
         await this.bot.answerCallbackQuery(callbackQuery.id);
     }
 }

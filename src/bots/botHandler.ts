@@ -37,7 +37,7 @@ export class BotHandler {
         this.bot = new TelegramBot(config.bot.botToken, {});
         this.api = new VybeApiService();
 
-        //Handler instances
+        // Handler instances
         this.tokenHolderHandler = new TopTokenHandler(this.bot, this.api);
         this.recentTransferHandler = new RecentTransferHandler(this.bot, this.api);
         this.whaleWatcherHandler = new WhaleWatcherHandler(this.bot, this.api);
@@ -50,8 +50,14 @@ export class BotHandler {
         this.nftPortfolioHandler = new NFTPortfolioHandler(this.bot, this.api);
         this.priceHandler = new PriceHandler(this.bot, this.api);
 
-        // Setup commands
+        // Setup commands and callbacks
         this.setUpCommands();
+        this.setupCallbackHandlers();
+
+        // Set up periodic price alert checks
+        setInterval(() => {
+            this.priceHandler.checkPriceAlerts();
+        }, 60000); // Check every minute
     }
 
     getBot(): TelegramBot {
@@ -102,18 +108,11 @@ export class BotHandler {
             { cmd: /\/price (.+)/, handler: this.priceHandler.handlePriceCommand.bind(this.priceHandler) },
             { cmd: /\/pricealert (.+)/, handler: this.priceHandler.handlePriceAlertCommand.bind(this.priceHandler) },
             { cmd: /\/pricechange (.+)/, handler: this.priceHandler.handlePriceChangeCommand.bind(this.priceHandler) },
-        ]
+        ];
 
         cmds.forEach(({ cmd, handler }) => {
             this.bot.onText(cmd, handler);
         });
-
-        this.bot.on('callback_query', this.handleCallbackQuery.bind(this));
-
-        // Set up periodic price alert checks
-        setInterval(() => {
-            this.priceHandler.checkPriceAlerts();
-        }, 60000); // Check every minute
     }
 
     private async handleStart(msg: TelegramBot.Message) {
@@ -125,28 +124,41 @@ export class BotHandler {
         );
     }
 
-    async handleCallbackQuery(callbackQuery: TelegramBot.CallbackQuery) {
-        const chatId = callbackQuery.message?.chat.id;
-        const data = callbackQuery.data;
+    private setupCallbackHandlers() {
+        // Single callback handler to route all callbacks to appropriate handlers
+        this.bot.on('callback_query', async (callbackQuery) => {
+            if (!callbackQuery.data || !callbackQuery.message) return;
 
-        let walletAddress = "";
-        if (!chatId || !data) return;
+            const chatId = callbackQuery.message.chat.id;
+            const data = callbackQuery.data;
 
-        const isViewTransactions = data.startsWith("view_transactions");
-        const isViewHoldings = data.startsWith("view_holdings");
+            try {
+                // Handle wallet-related callbacks
+                if (data.startsWith("view_transactions_") || data.startsWith("view_holdings_")) {
+                    let walletAddress = "";
 
-        if (isViewTransactions) {
-            walletAddress = data.replace("view_transactions_", '');
-        } else if (isViewHoldings) {
-            walletAddress = data.replace("view_holdings_", '');
-        }
+                    if (data.startsWith("view_transactions_")) {
+                        walletAddress = data.replace("view_transactions_", '');
+                        await this.walletTrackerHandler.handleViewTransactions(chatId, walletAddress);
+                    } else if (data.startsWith("view_holdings_")) {
+                        walletAddress = data.replace("view_holdings_", '');
+                        await this.walletTrackerHandler.handleViewHoldings(chatId, walletAddress);
+                    }
+                }
+                // Handle NFT-related callbacks
+                else if (data.startsWith("nft_collection_")) {
+                    await this.nftPortfolioHandler.handleCollectionCallback(callbackQuery);
+                }
 
-        if (isViewHoldings && walletAddress) {
-            await this.walletTrackerHandler.handleViewHoldings(chatId, walletAddress);
-        } else if (isViewTransactions && walletAddress) {
-            await this.walletTrackerHandler.handleViewTransactions(chatId, walletAddress);
-        }
-
-        await this.bot.answerCallbackQuery(callbackQuery.id);
+                // Always answer the callback query
+                await this.bot.answerCallbackQuery(callbackQuery.id);
+            } catch (error) {
+                console.error("Error handling callback query:", error);
+                // Still answer the callback query even if an error occurs
+                await this.bot.answerCallbackQuery(callbackQuery.id, {
+                    text: "An error occurred. Please try again."
+                });
+            }
+        });
     }
 }
