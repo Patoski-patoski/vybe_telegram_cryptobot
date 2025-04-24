@@ -20,7 +20,7 @@ import {
     Program,
     ProgramActiveUser,
     NftBalanceResponse,
-
+    GetTokenOHLCVResponse
 } from "../interfaces/vybeApiInterface";
 
 dotenv.config();
@@ -430,7 +430,7 @@ export class VybeApiService {
             limit: limit ?? 20
         };
 
-        
+
         try {
             const response = await this.api.get(`/program/${programId}/active-users`, { params });
             return response.data as { data: ProgramActiveUser[] };
@@ -466,6 +466,42 @@ export class VybeApiService {
                 throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
             }
             throw new Error(`Failed to fetch NFT balance: ${error.message}`);
+        }
+    }
+
+    async getTokenOHLCV(
+        mintAddress: string,
+        resolution: string = '1d',
+        timeStart?: number,
+        timeEnd?: number,
+        limit: number = 1000,
+        page: number = 1
+    ): Promise<GetTokenOHLCVResponse> {
+        // Validate mint address format
+        if (!isValidMintAddress(mintAddress)) {
+            const msg = `Invalid mint address: ${mintAddress} is not a valid base58 encoded Solana Pubkey`;
+            logger.error(msg);
+            throw new Error(msg);
+        }
+
+        try {
+            const params = new URLSearchParams({
+                resolution,
+                ...(timeStart !== undefined && { timeStart: timeStart.toString() }),
+                ...(timeEnd !== undefined && { timeEnd: timeEnd.toString() }),
+                limit: limit.toString(),
+                page: page.toString()
+            });
+
+            const response = await this.api.get(`/price/${mintAddress}/token-ohlcv`, {params});
+            console.log("API getTokenOHLCV", response.data);
+            return response.data as GetTokenOHLCVResponse;
+        } catch (error: any) {
+            logger.error('Failed to fetch token OHLCV data:', error);
+            if (error.response) {
+                throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
+            }
+            throw new Error(`Failed to fetch token OHLCV data: ${error.message}`);
         }
     }
 }   

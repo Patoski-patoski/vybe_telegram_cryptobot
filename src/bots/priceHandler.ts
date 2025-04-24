@@ -1,8 +1,11 @@
+// src/bot/priceHandler.ts
+
 import TelegramBot from "node-telegram-bot-api";
 import { VybeApiService } from "../services/vybeAPI";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { BaseHandler } from "./baseHandler";
 import { PriceAlert } from "@/interfaces/vybeApiInterface";
+import { deleteDoubleSpace } from "../utils/utils";
 
 
 export class PriceHandler extends BaseHandler {
@@ -14,26 +17,32 @@ export class PriceHandler extends BaseHandler {
 
     async handlePriceCommand(msg: TelegramBot.Message, match: RegExpExecArray | null) {
         if (!match) return;
-        const args = match[1].split(' ');
-        console.log("Args", args)
+        const chatId = msg.chat.id;
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
+        console.log("Parts", parts)
+        console.log("Parts 0", parts[0])
+        console.log("Parts 1", parts[1])
+        console.log("Parts 2", parts[2])
 
-        if (!args[0]) {
+        if (!parts[1]) {
             await this.bot.sendMessage(msg.chat.id, BOT_MESSAGES.PRICE_USAGE);
             return;
         }
 
-        const mintAddress = args[1];
+        const mintAddress = parts[1];
         console.log("MintAddress", mintAddress)
 
         try {
             const ohlcvData = await this.api.getTokenOHLCV(mintAddress);
-            if (!ohlcvData || ohlcvData.length === 0) {
+            console.log("ohlcvData", ohlcvData);
+            
+            if (!ohlcvData || !ohlcvData.data) {
                 await this.bot.sendMessage(msg.chat.id, 'No price data available for this token.');
                 return;
             }
 
-            const latest = ohlcvData[0];
-            const previous = ohlcvData[1];
+            const latest = ohlcvData.data[0];
+            const previous = ohlcvData.data[1];
 
             const change = ((parseFloat(latest.close) - parseFloat(previous.close)) / parseFloat(previous.close)) * 100;
             const changeEmoji = change >= 0 ? '📈' : '📉';
@@ -54,14 +63,14 @@ Change: ${changeEmoji} ${change.toFixed(2)}%`;
 
     async handlePriceAlertCommand(msg: TelegramBot.Message, match: RegExpExecArray | null) {
         if (!match) return;
-        const args = match[1].split(' ');
+        const parts = match[1].split(' ');
 
-        if (args.length < 3) {
+        if (parts.length < 3) {
             await this.bot.sendMessage(msg.chat.id, BOT_MESSAGES.PRICE_ALERT_USAGE);
             return;
         }
 
-        const [mintAddress, threshold, type] = args;
+        const [mintAddress, threshold, type] = parts;
         const userId = msg.from?.id;
 
         if (!userId) {
@@ -82,23 +91,23 @@ Change: ${changeEmoji} ${change.toFixed(2)}%`;
 
     async handlePriceChangeCommand(msg: TelegramBot.Message, match: RegExpExecArray | null) {
         if (!match) return;
-        const args = match[1].split(' ');
+        const parts = match[1].split(' ');
 
-        if (!args[0]) {
+        if (!parts[0]) {
             await this.bot.sendMessage(msg.chat.id, BOT_MESSAGES.PRICE_CHANGE_USAGE);
             return;
         }
 
-        const mintAddress = args[0];
+        const mintAddress = parts[0];
         try {
             const ohlcvData = await this.api.getTokenOHLCV(mintAddress);
-            if (!ohlcvData || ohlcvData.length === 0) {
+            if (!ohlcvData || !ohlcvData.data || ohlcvData.data.length === 0) {
                 await this.bot.sendMessage(msg.chat.id, 'No price data available for this token.');
                 return;
             }
 
-            const latest = ohlcvData[0];
-            const previous = ohlcvData[1];
+            const latest = ohlcvData.data[0];
+            const previous = ohlcvData.data[1];
 
             const change = ((parseFloat(latest.close) - parseFloat(previous.close)) / parseFloat(previous.close)) * 100;
             const changeEmoji = change >= 0 ? '📈' : '📉';
@@ -114,9 +123,9 @@ Change: ${changeEmoji} ${change.toFixed(2)}%`;
         for (const alert of this.PRICE_ALERTS) {
             try {
                 const ohlcvData = await this.api.getTokenOHLCV(alert.tokenMint);
-                if (!ohlcvData || ohlcvData.length === 0) continue;
+                if (!ohlcvData || !ohlcvData.data) continue;
 
-                const latest = ohlcvData[0];
+                const latest = ohlcvData.data[0];
                 const currentPrice = parseFloat(latest.close);
 
                 if (alert.isHigh && currentPrice >= alert.threshold) {

@@ -206,6 +206,7 @@ export interface WalletPnLSummary {
     bestPerformingToken: TokenPerformance | null;
     worstPerformingToken: TokenPerformance | null;
     pnlTrendSevenDays: PnLTrend[];
+    roi: number;
 }
 
 export interface WalletPnLResponse {
@@ -273,6 +274,15 @@ export interface OHLCVData {
     volume: string;
     volumeUsd: string;
     count: number;
+}
+
+export interface GetTokenOHLCVResponse {
+    data: OHLCVData[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+    };
 }
 
 export interface PriceAlert {

@@ -12,16 +12,31 @@ import {
 } from "../interfaces/vybeApiInterface";
 import { VybeApiService } from "../services/vybeAPI";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
+import { RedisService } from "../services/redisService";
 
 export class WhaleWatcherHandler extends BaseHandler {
     private alerts: Map<string, WhaleAlertSettings> = new Map();
     private checkInterval: NodeJS.Timeout | null = null;
     private lastCheckedTime: number = Math.floor(Date.now() / 1000 - 3600); // 1 hour ago
+    private redisService: RedisService | null = null;
 
     constructor(bot: TelegramBot, api: VybeApiService) {
         super(bot, api);
-        this.loadAlerts();
-        this.startWatchingWhales();
+        this.initRedis();
+    }
+
+    private async initRedis() {
+        try {
+            this.redisService = await RedisService.getInstance();
+            await this.loadAlerts();
+            this.startWatchingWhales();
+            logger.info("Redis initialized for WhaleWatcherHandler");
+        } catch (error) {
+            logger.error("Failed to initialize Redis:", error);
+            // Fallback to empty data
+            this.alerts = new Map();
+            this.startWatchingWhales();
+        }
     }
 
     /**
@@ -74,7 +89,7 @@ export class WhaleWatcherHandler extends BaseHandler {
                         minimumAmount = Math.min(minimumAmount, settings.minAmount);
                     }
                 });
-                console.log("this.alerts", this.alerts);
+
                 const transfers = await this.api.getWhaleTransfers({
                     mintAddress: token,
                     minAmount: minimumAmount,
@@ -153,6 +168,11 @@ export class WhaleWatcherHandler extends BaseHandler {
         const chatId = msg.chat.id;
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
+        console.log("Parts", parts)
+        console.log("Parts 0 ", parts[0])
+        console.log("Parts 1", parts[1])
+        console.log("Par t2", parts[2])
+        console.log("Parts len", parts.length)
 
         if (parts[1] === 'help') {
             return this.bot.sendMessage(chatId,
@@ -160,7 +180,7 @@ export class WhaleWatcherHandler extends BaseHandler {
                 { parse_mode: "Markdown" }
             );
         }
-        if (parts.length < 2) {
+        if (parts.length !== 3) {
             return this.bot.sendMessage(chatId,
                 "Usage: /whalealert <token_mint_address> <min_amount>\n" +
                 "Example: /whalealert EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 1000\n" +
@@ -173,28 +193,47 @@ export class WhaleWatcherHandler extends BaseHandler {
         if (isNaN(minAmount) || minAmount <= 0) {
             return this.bot.sendMessage(chatId, "⛔ Minimum amount must be a positive number.");
         }
-        // Store the alert seetings
+        console.log("Typeof minamount", typeof (minAmount));
+
+        // Store the alert settings
         const alertId = `${chatId}-${mintAddress}`;
         const existingAlert = this.alerts.get(alertId);
+
+        console.log("existingAlert", existingAlert);
 
         if (existingAlert) {
             existingAlert.minAmount = minAmount;
             this.alerts.set(alertId, existingAlert);
+            console.log("this.alers", this.alerts);
+
+
+            // Save to Redis if available
+            if (this.redisService) {
+                await this.redisService.setWhaleAlert(chatId, existingAlert);
+            }
             await this.saveAlerts();
+
             await this.bot.sendMessage(chatId,
-                `*🟡 Updated whale alert!!*\nYou will be notified of transfers over *${minAmount}* for token *${mintAddress}*`,
+                `*🟡 Updated whale alert!!*\n\nYou will be notified of transfers over *${minAmount}* for token \`\`\`${mintAddress}\`\`\``,
                 { parse_mode: "Markdown" }
             );
         } else {
-            // Crete new alert
-            this.alerts.set(alertId, {
+            // Create new alert
+            const newAlert: WhaleAlertSettings = {
                 chatId,
                 minAmount,
                 tokens: [mintAddress]
-            });
+            };
+            this.alerts.set(alertId, newAlert);
+
+            // Save to Redis if available
+            if (this.redisService) {
+                await this.redisService.setWhaleAlert(chatId, newAlert);
+            }
             await this.saveAlerts();
+
             await this.bot.sendMessage(chatId,
-                `*✅  Whale alert set!!*\nYou will be notified of transfers over *${minAmount}* for token *${mintAddress}*`,
+                `*✅  Whale alert set!!*\n\nYou will be notified of transfers over *${minAmount}* for token \`\`\`${mintAddress}\`\`\``,
                 { parse_mode: "Markdown" }
             );
         }
@@ -209,11 +248,38 @@ export class WhaleWatcherHandler extends BaseHandler {
     async handleListWhaleAlerts(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
 
-        // Find all alerts for this chat
-        // Gather all alerts associated with this chat ID
+        // Get alerts from Redis if available
+        if (this.redisService) {
+            const whaleAlerts = await this.redisService.getWhaleAlerts(chatId);
+            if (whaleAlerts.length === 0) {
+                return this.bot.sendMessage(chatId,
+                    "You don't have any active whale alerts."
+                );
+            }
+
+            let message = "🐋 *Your Active Whale Alerts* 🐋\n\n";
+
+            whaleAlerts.forEach((alert, index) => {
+                message += `*Alert ${index + 1}*:\n`;
+                // Ensure tokens is an array
+                const tokens = Array.isArray(alert.tokens) ? alert.tokens : [alert.tokens];
+                tokens.forEach(token => {
+                    message += `• *Token/Mint Address:* \n\`\`\`${token}\`\`\`\n`;
+                });
+                message += `• *Minimum Amount to trigger:* ${alert.minAmount}\n\n`;
+            });
+
+            message += `To remove an alert, use /remove\\_whalealert <token\\_mint\\_address>`;
+
+            await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
+            return;
+        }
+
+        // Fallback to in-memory alerts if Redis is not available
         const chatAlerts = Array.from(this.alerts.values())
-            .filter(alert => alert.chatId);
-        if (chatAlerts.length == 0) {
+            .filter(alert => alert.chatId === chatId);
+
+        if (chatAlerts.length === 0) {
             return this.bot.sendMessage(chatId,
                 "You don't have any active whale alerts."
             );
@@ -221,15 +287,17 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         let message = "🐋 *Your Active Whale Alerts* 🐋\n\n";
 
-        chatAlerts.forEach(async (alert, index) => {
+        chatAlerts.forEach((alert, index) => {
             message += `*Alert ${index + 1}*:\n`;
-            alert.tokens.forEach(token => {
+            // Ensure tokens is an array
+            const tokens = Array.isArray(alert.tokens) ? alert.tokens : [alert.tokens];
+            tokens.forEach(token => {
                 message += `• *Token/Mint Address:* \n\`\`\`${token}\`\`\`\n`;
             });
             message += `• *Minimum Amount to trigger:* ${alert.minAmount}\n\n`;
         });
 
-        message += "To remove an alert, use /removewhalealert <token_mint_address>";
+        message += `To remove an alert, use /remove\\_whalealert <token\\_mint\\_address>`;
 
         await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
     }
@@ -242,8 +310,8 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /removewhalealert <token_mint_address>\n" +
-                "To see your active alerts, use /listwhalealerts"
+                "Usage: /remove\\_whalealert <token\\_mint\\_address>\n" +
+                "To see your active alerts, use /list\\_whale\\_alerts"
             );
         }
 
@@ -252,13 +320,21 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         if (this.alerts.has(alertId)) {
             this.alerts.delete(alertId);
+
+            // Remove from Redis if available
+            if (this.redisService) {
+                await this.redisService.removeWhaleAlert(chatId, mintAddress);
+            }
             await this.saveAlerts();
+
             await this.bot.sendMessage(chatId,
-                `✅ Removed whale alert for token ${mintAddress}`
+                `✅ Successfully removed whale alert for token \`\`\`${mintAddress}\`\`\``,
+                { parse_mode: "Markdown" }
             );
         } else {
             await this.bot.sendMessage(chatId,
-                `❌ No active whale alert found for token ${mintAddress}`
+                `❌ No active whale alert found for token \`\`\`${mintAddress}\`\`\``,
+                { parse_mode: "Markdown" }
             );
         }
     }
@@ -355,8 +431,19 @@ export class WhaleWatcherHandler extends BaseHandler {
 
     private async saveAlerts() {
         try {
-            const data = JSON.stringify(Array.from(this.alerts.entries()));
-            await fs.writeFile(path.join(__dirname, '../data/whale-alerts.json'), data);
+            if (!this.redisService) {
+                // Fallback to file system if Redis is not available
+                const data = JSON.stringify(Array.from(this.alerts.entries()));
+                await fs.writeFile(path.join(__dirname, '../data/whale-alerts.json'), data);
+                return;
+            }
+
+            // Save to Redis
+            for (const [alertId, settings] of this.alerts) {
+                await this.redisService.setWhaleAlert(settings.chatId, settings);
+            }
+
+            logger.info('Successfully saved whale alerts to Redis');
         } catch (error) {
             logger.error('Failed to save whale alerts:', error);
         }
@@ -364,13 +451,32 @@ export class WhaleWatcherHandler extends BaseHandler {
 
     private async loadAlerts() {
         try {
-            const filePath = path.join(__dirname, '../data/whale-alerts.json');
-            console.log("filePath", filePath);
-            const data = await fs.readFile(filePath, 'utf-8');
-            const entries = JSON.parse(data);
-            this.alerts = new Map(entries);
+            if (!this.redisService) {
+                // Fallback to file system if Redis is not available
+                const filePath = path.join(__dirname, '../data/whale-alerts.json');
+                const data = await fs.readFile(filePath, 'utf-8');
+                const entries = JSON.parse(data);
+                this.alerts = new Map(entries);
+                return;
+            }
+
+            // Load from Redis
+            this.alerts = new Map();
+            const userIds = await this.redisService.getAllUserIds();
+
+            for (const userId of userIds) {
+                const chatId = parseInt(userId);
+                const whaleAlerts = await this.redisService.getWhaleAlerts(chatId);
+
+                for (const alert of whaleAlerts) {
+                    const alertId = `${chatId}-${alert.tokens[0]}`;
+                    this.alerts.set(alertId, alert);
+                }
+            }
+
+            logger.info(`Loaded ${this.alerts.size} whale alerts from Redis`);
         } catch (error) {
-            logger.warn('No saved whale alerts found or error loading them:', error);
+            logger.warn('Error loading whale alerts:', error);
             this.alerts = new Map();
         }
     }

@@ -2,7 +2,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { BotHandler } from "./bots/botHandler";
-import config  from "../src/config/config";
+import config from "../src/config/config";
 
 
 dotenv.config();
@@ -13,7 +13,7 @@ if (config.bot.botToken === '') {
 if (config.vybe.apiKey === '') {
     throw new Error('VYBE_API_KEY is required in the environment variables');
 }
-if (config.bot.webhookUrl === '') { 
+if (config.bot.webhookUrl === '') {
     throw new Error('WEBHOOK_URL is required in the environment variables');
 }
 

@@ -23,7 +23,7 @@ export class WalletAnalysisService {
             // Add known DEX wallet addresses
         ]);
     }
-    
+
     async analyzeWalletCategory(walletAddress: string): Promise<WalletCategory> {
         try {
             // Get recent transactions
@@ -70,7 +70,7 @@ export class WalletAnalysisService {
             } else if (nftCount > 0) {
                 type = 'NFT';
                 confidence = nftCount / transfers.transfers.length;
-            } 
+            }
 
             return {
                 type,

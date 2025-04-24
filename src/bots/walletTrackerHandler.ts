@@ -15,6 +15,7 @@ import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { WalletAnalysisService } from "../services/walletAnalysisService";
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { ChartConfiguration } from 'chart.js';
+import { RedisService } from "../services/redisService";
 
 // Configurable settings
 const DEFAULT_CHECK_INTERVAL_MS = 2 * 60 * 1000;  // 5 minutes default
@@ -28,6 +29,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     private lastErrorTime: Map<string, number> = new Map(); // Track API error times
     private historicalValues: Map<string, { value: string; timestamp: number }> = new Map();
     private walletDataCache: Map<string, { data: any, expiry: number }> = new Map();
+    private redisService: RedisService | null = null;
 
     constructor(bot: TelegramBot, api: VybeApiService, checkIntervalMs = DEFAULT_CHECK_INTERVAL_MS) {
         super(bot, api);
@@ -35,6 +37,23 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         this.loadAlerts();
         this.startWatchingWallets(checkIntervalMs);
         this.setupGracefulShutdown();
+        this.initRedis();
+    }
+
+
+    private async initRedis() {
+        try {
+            this.redisService = await RedisService.getInstance();
+            await this.loadAlerts();
+            this.startWatchingWallets(DEFAULT_CHECK_INTERVAL_MS);
+            logger.info("Redis initialized for EnhancedWalletTrackerHandler");
+        } catch (error) {
+            logger.error("Failed to initialize Redis:", error);
+            // Fallback to empty data
+            this.alerts = new Map();
+            this.historicalValues = new Map();
+            this.startWatchingWallets(DEFAULT_CHECK_INTERVAL_MS);
+        }
     }
 
     private startWatchingWallets(checkIntervalMs: number) {
@@ -103,6 +122,12 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 });
             }
 
+            if (this.redisService) {
+                const historicalMap = new Map<string, string>();
+                historicalMap.set('value', currentValue);
+                historicalMap.set('timestamp', currentTime.toString());
+                await this.redisService.setHistoricalValues(settings.chatId, walletAddress, historicalMap);
+            }
             // Check for new transfers
             await this.checkForNewTransfers(walletAddress, settings);
 
@@ -419,25 +444,22 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         // Store data for 5 minutes
         const expiry = Date.now() + 5 * 60 * 1000;
         this.walletDataCache.set(walletAddress, { data, expiry });
+        if (this.redisService) {
+            const cacheKey = `wallet_data:${walletAddress}`;
+            console.log("CacheKey", cacheKey);
+            this.redisService.setCachedResponse(cacheKey, data, 300); // 5 minutes TTL
+        }
     }
 
-    // private getWalletData(walletAddress: string) {
-    //     const cached = this.walletDataCache.get(walletAddress);
-    //     if (!cached) return null;
-
-    //     if (Date.now() > cached.expiry) {
-    //         this.walletDataCache.delete(walletAddress);
-    //         // return null;
-    //     }
-    //     console.log("cached data\n\n", cached);
-
-        //     return cached.data;
-        // }
 
     async handleViewTransactions(chatId: number, walletAddress: string) {
-        await this.bot.sendMessage(chatId, `💰 *Recent Transfer Summary*\n`);
-        let message = "";
+        
+        await this.bot.sendMessage(chatId,
+            `💰 *Recent Transfer Summary*\n`,
+            { parse_mode: "Markdown"}
+        );
 
+        let message = "";
         try {
             const [sentTransfers, receivedTransfers] = await Promise.all([
                 this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 3 }),
@@ -609,6 +631,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
             // Add new tracking settings
             userAlerts.set(chatId, settings);
+
+            // Save to Redis
+            if (this.redisService) {
+                await this.redisService.setTrackedWallet(chatId, walletAddress, settings);
+            }
             await this.saveAlerts();
 
             // Get wallet analytics for first-time display
@@ -696,6 +723,10 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
         if (userAlerts && userAlerts.has(chatId)) {
             userAlerts.delete(chatId);
+            // Save to Redis
+            if (this.redisService) {
+                await this.redisService.removeTrackedWallet(chatId, walletAddress);
+            }
             await this.saveAlerts();
             await this.bot.sendMessage(chatId, `✅ Removed tracking for wallet \`${walletAddress}\``,
                 { parse_mode: "Markdown" });
@@ -780,58 +811,123 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             await this.bot.sendMessage(chatId, "❌ Error analyzing wallet. The address may be invalid or our service might be experiencing issues.");
         }
     }
-
     private async saveAlerts() {
         try {
-            // Convert nested Maps to serializable format
-            const serializableData = {
-                alerts: Array.from(this.alerts.entries()).map(([walletAddress, userAlerts]) => [
-                    walletAddress,
-                    Array.from(userAlerts.entries()).map(([chatId, settings]) => [
-                        chatId,
-                        { ...settings, lastBalances: Array.from(settings.lastBalances.entries()) }
-                    ])
-                ]),
-                historicalValues: Array.from(this.historicalValues.entries())
-            };
+            if (!this.redisService) {
+                // Fallback to file system if Redis is not available
+                const serializableData = {
+                    alerts: Array.from(this.alerts.entries()).map(([walletAddress, userAlerts]) => [
+                        walletAddress,
+                        Array.from(userAlerts.entries()).map(([chatId, settings]) => [
+                            chatId,
+                            { ...settings, lastBalances: Array.from(settings.lastBalances?.entries() || []) }
+                        ])
+                    ]),
+                    historicalValues: Array.from(this.historicalValues.entries())
+                };
 
-            const dataDir = path.join(__dirname, '../data');
-            try {
-                await fs.access(dataDir);
-            } catch {
-                await fs.mkdir(dataDir, { recursive: true });
+                const dataDir = path.join(__dirname, '../data');
+                try {
+                    await fs.access(dataDir);
+                } catch {
+                    await fs.mkdir(dataDir, { recursive: true });
+                }
+
+                await fs.writeFile(
+                    path.join(dataDir, 'wallet-alerts.json'),
+                    JSON.stringify(serializableData, null, 2)
+                );
+                return;
             }
 
-            await fs.writeFile(
-                path.join(dataDir, 'wallet-alerts.json'),
-                JSON.stringify(serializableData, null, 2)
-            );
+            // Save to Redis
+            // Save each wallet alert
+            for (const [walletAddress, userAlerts] of this.alerts) {
+                for (const [chatId, settings] of userAlerts) {
+                    // Convert lastBalances Map to a format that can be stored in Redis
+                    const serializableSettings = {
+                        ...settings,
+                        lastBalances: settings.lastBalances ? new Map(settings.lastBalances) : new Map()
+                    };
+                    await this.redisService.setTrackedWallet(chatId, walletAddress, serializableSettings);
+                }
+            }
+
+            // Save historical values
+            for (const [walletAddress, value] of this.historicalValues) {
+                const historicalMap = new Map();
+                historicalMap.set('value', value.value);
+                historicalMap.set('timestamp', value.timestamp.toString());
+                await this.redisService.setHistoricalValues(0, walletAddress, historicalMap); // Using 0 as a generic chatId for historical values
+            }
+
+            logger.info('Successfully saved wallet alerts to Redis');
         } catch (error) {
             logger.error('Failed to save wallet alerts:', error);
         }
     }
-
     private async loadAlerts() {
         try {
-            const filePath = path.join(__dirname, '../data/wallet-alerts.json');
-            const data = await fs.readFile(filePath, 'utf-8');
-            const { alerts: serializableAlerts, historicalValues: serializableHistorical } = JSON.parse(data);
+            if (!this.redisService) {
+                // Fallback to file system if Redis is not available
+                const filePath = path.join(__dirname, '../data/wallet-alerts.json');
+                const data = await fs.readFile(filePath, 'utf-8');
+                const { alerts: serializableAlerts, historicalValues: serializableHistorical } = JSON.parse(data);
 
-            // Convert serialized data back to nested Maps
-            this.alerts = new Map(serializableAlerts.map(([walletAddress, userAlerts]: [string, any]) => [
-                walletAddress,
-                new Map(userAlerts.map(([chatId, settings]: [number, any]) => [
-                    chatId,
-                    { ...settings, lastBalances: new Map(settings.lastBalances) }
-                ]))
-            ]));
+                // Convert serialized data back to nested Maps
+                this.alerts = new Map(serializableAlerts.map(([walletAddress, userAlerts]: [string, any]) => [
+                    walletAddress,
+                    new Map(userAlerts.map(([chatId, settings]: [number, any]) => [
+                        chatId,
+                        { ...settings, lastBalances: new Map(settings.lastBalances) }
+                    ]))
+                ]));
 
-            // Load historical values
-            this.historicalValues = new Map(serializableHistorical);
+                // Load historical values
+                this.historicalValues = new Map(serializableHistorical);
 
-            logger.info(`Loaded ${this.alerts.size} tracked wallets from storage`);
+                logger.info(`Loaded ${this.alerts.size} tracked wallets from storage`);
+                return;
+            }
+
+            // Load from Redis
+            this.alerts = new Map();
+            this.historicalValues = new Map();
+
+            // Get all user IDs that have tracked wallets
+            const userIds = await this.redisService.getAllUserIds();
+
+            for (const userId of userIds) {
+                const chatId = parseInt(userId);
+                const trackedWallets = await this.redisService.getTrackedWallets(chatId);
+
+                for (const [walletAddress, settings] of trackedWallets) {
+                    if (!this.alerts.has(walletAddress)) {
+                        this.alerts.set(walletAddress, new Map());
+                    }
+
+                    // Convert lastBalances array back to Map
+                    const settingsWithMap = {
+                        ...settings,
+                        lastBalances: new Map(settings.lastBalances || [])
+                    };
+
+                    this.alerts.get(walletAddress)!.set(chatId, settingsWithMap);
+
+                    // Load historical values for this wallet
+                    const historicalValues = await this.redisService.getHistoricalValues(0, walletAddress);
+                    if (historicalValues.size > 0) {
+                        this.historicalValues.set(walletAddress, {
+                            value: historicalValues.get('value') || '0',
+                            timestamp: parseInt(historicalValues.get('timestamp') || '0')
+                        });
+                    }
+                }
+            }
+
+            logger.info(`Loaded ${this.alerts.size} tracked wallets from Redis`);
         } catch (error) {
-            logger.warn('No saved wallet alerts found or error loading them:', error);
+            logger.warn('Error loading wallet alerts:', error);
             this.alerts = new Map();
             this.historicalValues = new Map();
         }
