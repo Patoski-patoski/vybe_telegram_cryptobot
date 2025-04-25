@@ -257,7 +257,6 @@ export class WhaleWatcherHandler extends BaseHandler {
                 });
                 message += `• *Minimum Amount to trigger:* ${alert.minAmount}\n\n`;
             });
-
             message += `To remove an alert, use /remove\\_whalealert <token\\_mint\\_address>`;
 
             await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });

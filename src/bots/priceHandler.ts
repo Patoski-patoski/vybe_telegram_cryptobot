@@ -5,7 +5,7 @@ import { VybeApiService } from "../services/vybeAPI";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { BaseHandler } from "./baseHandler";
 import { PriceAlert } from "@/interfaces/vybeApiInterface";
-import { deleteDoubleSpace } from "../utils/utils";
+import { deleteDoubleSpace, formatUsdValue } from "../utils/utils";
 
 
 export class PriceHandler extends BaseHandler {
@@ -19,13 +19,9 @@ export class PriceHandler extends BaseHandler {
         if (!match) return;
         const chatId = msg.chat.id;
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
-        console.log("Parts", parts)
-        console.log("Parts 0", parts[0])
-        console.log("Parts 1", parts[1])
-        console.log("Parts 2", parts[2])
 
         if (!parts[1]) {
-            await this.bot.sendMessage(msg.chat.id, BOT_MESSAGES.PRICE_USAGE);
+            await this.bot.sendMessage(chatId, BOT_MESSAGES.PRICE_USAGE);
             return;
         }
 
@@ -35,9 +31,9 @@ export class PriceHandler extends BaseHandler {
         try {
             const ohlcvData = await this.api.getTokenOHLCV(mintAddress);
             console.log("ohlcvData", ohlcvData);
-            
+
             if (!ohlcvData || !ohlcvData.data) {
-                await this.bot.sendMessage(msg.chat.id, 'No price data available for this token.');
+                await this.bot.sendMessage(chatId, 'No price data available for this token.');
                 return;
             }
 
@@ -49,32 +45,40 @@ export class PriceHandler extends BaseHandler {
 
             const message = `💰 *Token Price Summary*
 
-Last Close: $${parseFloat(latest.close).toFixed(2)}
-24h High: $${parseFloat(latest.high).toFixed(2)}
-24h Low: $${parseFloat(latest.low).toFixed(2)}
-Volume: $${parseFloat(latest.volumeUsd).toLocaleString()}
-Change: ${changeEmoji} ${change.toFixed(2)}%`;
+*Last Close:* ${formatUsdValue(latest.close)}
 
-            await this.bot.sendMessage(msg.chat.id, message, { parse_mode: 'Markdown' });
+*24h High:* ${formatUsdValue(latest.high)}
+*24h Low:* ${formatUsdValue(latest.low)}
+
+*Volume:* ${formatUsdValue(latest.volumeUsd).toLocaleString()}
+*Change:* ${changeEmoji} ${change.toFixed(2)}%`;
+
+            await this.bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
         } catch (error) {
-            await this.bot.sendMessage(msg.chat.id, 'Error fetching price data. Please try again later.');
+            await this.bot.sendMessage(chatId, 'Error fetching price data. Please try again later.');
         }
     }
 
-    async handlePriceAlertCommand(msg: TelegramBot.Message, match: RegExpExecArray | null) {
-        if (!match) return;
-        const parts = match[1].split(' ');
+    async handlePriceAlertCommand(msg: TelegramBot.Message) {
+        const chatId = msg.chat.id;
+        const text = msg.text || "";
+        const parts = deleteDoubleSpace(text.split(" "));
+        console.log("Parts", parts);
+        console.log("Parts.length", parts.length);
 
-        if (parts.length < 3) {
-            await this.bot.sendMessage(msg.chat.id, BOT_MESSAGES.PRICE_ALERT_USAGE);
+        if (parts.length < 4) {
+            await this.bot.sendMessage(chatId, BOT_MESSAGES.PRICE_ALERT_USAGE);
             return;
         }
 
-        const [mintAddress, threshold, type] = parts;
+        
+        const mintAddress = parts[1];
+        const threshold = parts[2];
+        const type = parts[3];
         const userId = msg.from?.id;
 
         if (!userId) {
-            await this.bot.sendMessage(msg.chat.id, 'Error: Could not identify user.');
+            await this.bot.sendMessage(chatId, 'Error: Could not identify user.');
             return;
         }
 
@@ -86,7 +90,7 @@ Change: ${changeEmoji} ${change.toFixed(2)}%`;
         };
 
         this.PRICE_ALERTS.push(alert);
-        await this.bot.sendMessage(msg.chat.id, `✅ Price alert set for ${mintAddress} at $${threshold} (${type})`);
+        await this.bot.sendMessage(chatId, `✅ Price alert set for ${mintAddress} at $${threshold} (${type})`);
     }
 
     async handlePriceChangeCommand(msg: TelegramBot.Message, match: RegExpExecArray | null) {

@@ -43,6 +43,19 @@ A powerful Telegram bot for monitoring Solana wallets, whale transactions, token
 - Register multiple wallets for tracking
 - Get detailed NFT analytics
 
+### Token Analysis
+
+- Detailed token information including:
+  - Token symbol and name
+  - Token mint address
+  - Current price and 24h change
+  - Token category
+  - Token logo preview
+  - Interactive price chart (on demand)
+  - Holdings information
+- Special handling for SOL token
+- Interactive buttons for additional information
+
 ## Commands
 
 ### Whale Watch Commands
@@ -72,6 +85,18 @@ A powerful Telegram bot for monitoring Solana wallets, whale transactions, token
 - `/listnftwallets` - List registered NFT wallets
 - `/removenftwallet <wallet_address>` - Remove wallet from tracking
 - `/nftcollection <wallet_address>, <collection_name>` - View collection details
+
+### Token Analysis
+
+```
+/analyze <symbol> - Get detailed token information
+Example: /analyze JUP
+
+Features:
+- View token details and current price
+- See token logo and category
+- Click button to view 7-day price chart
+```
 
 ## Technical Architecture
 

@@ -4,16 +4,32 @@ import logger from "../config/logger";
 import { Program } from "../interfaces/vybeApiInterface";
 import { VybeApiService } from "../services/vybeAPI";
 import { deleteDoubleSpace } from "../utils/utils";
+import { RedisService } from "../services/redisService";
 
 export class ProgramInfoHandler extends BaseHandler {
     private programs: Program[] = [];
     private programCache: Map<string, Program> = new Map();
     private exploreCache: Map<string, Program[]> = new Map();
     private readonly CACHE_TTL = 1000 * 60 * 60 * 24; // 1 day in milliseconds
+    private redisService: RedisService | null = null;
 
     constructor(bot: TelegramBot, api: VybeApiService) {
         super(bot, api);
-        this.loadPrograms();
+        this.initRedis();
+    }
+
+    private async initRedis() {
+        try {
+            this.redisService = await RedisService.getInstance();
+            await this.loadPrograms();
+            logger.info("Redis initialized for ProgramInfoHandler");
+        } catch (error) {
+            logger.error("Failed to initialize Redis:", error);
+            // Fallback to in-memory cache
+            this.programs = [];
+            this.programCache.clear();
+            this.exploreCache.clear();
+        }
     }
 
     private async loadPrograms() {
@@ -44,23 +60,34 @@ export class ProgramInfoHandler extends BaseHandler {
         const ID = parts.slice(1).join(" ").trim();
 
         try {
-            // Check cache first
-            let program = this.programCache.get(ID);
+            // Check Redis cache first
+            let program: Program | null = null;
+            if (this.redisService) {
+                program = await this.redisService.getProgramInfo(ID);
+            }
+
+            // If not in Redis, check in-memory cache
+            if (!program) {
+                const cachedProgram = this.programCache.get(ID);
+                if (cachedProgram) {
+                    program = cachedProgram;
+                }
+            }
 
             if (!program) {
                 logger.info(`Cache miss for program ${ID}, fetching from API`);
                 const programs = await this.api.getProgramInfoByIdOrName(ID);
                 if (programs.length > 0) {
                     program = programs[0];
+
+                    // Save to Redis if available
+                    if (this.redisService) {
+                        await this.redisService.setProgramInfo(ID, program);
+                    }
+
+                    // Also save to in-memory cache
                     this.programCache.set(ID, program);
                 }
-
-                // Set cache expiration
-                setTimeout(() => {
-                    this.programCache.delete(ID);
-                    logger.info(`Cache entry expired for program ${ID}`);
-                }, this.CACHE_TTL);
-
             } else {
                 logger.info(`Cache hit for program ${ID}`);
             }
@@ -72,7 +99,7 @@ export class ProgramInfoHandler extends BaseHandler {
             let message = this.formatProgramMessage(program);
 
             await this.bot.sendMessage(chatId, message, {
-                parse_mode: "Markdown",
+                parse_mode: "Markdown"
             });
 
         } catch (error) {
@@ -91,8 +118,19 @@ export class ProgramInfoHandler extends BaseHandler {
 
         const label = parts[1].toUpperCase();
         try {
-            // Check cache first
-            let programs = this.exploreCache.get(label);
+            // Check Redis cache first
+            let programs: Program[] | null = null;
+            if (this.redisService) {
+                programs = await this.redisService.getCachedResponse(`explore:${label}`);
+            }
+
+            // If not in Redis, check in-memory cache
+            if (!programs) {
+                const cachedPrograms = this.exploreCache.get(label);
+                if (cachedPrograms) {
+                    programs = cachedPrograms;
+                }
+            }
 
             if (!programs) {
                 logger.info(`Cache miss for explore label ${label}, fetching from API`);
@@ -103,29 +141,37 @@ export class ProgramInfoHandler extends BaseHandler {
                 }
 
                 programs = apiResponse;
-                this.exploreCache.set(label, programs);
 
-                // Set cache expiration
-                setTimeout(() => {
-                    this.exploreCache.delete(label);
-                    logger.info(`Explore cache entry expired for label ${label}`);
-                }, this.CACHE_TTL);
+                // Save to Redis if available
+                if (this.redisService) {
+                    await this.redisService.setCachedResponse(`explore:${label}`, programs, 86400); // 24 hours
+                }
+
+                // Also save to in-memory cache
+                this.exploreCache.set(label, programs);
             } else {
                 logger.info(`Cache hit for explore label ${label}`);
             }
 
             // Format and send messages for each program
-            let message = "*Programs found for label " + label + "*\n\n";
+            let message = "";
+            let count = 0;
             for (const program of programs) {
                 if (program.labels.includes(label)) {
                     if (program.name) {
+                        if (count === 0) {
+                            message += `*Programs found for ${label} label*\n\n`;
+                            count++;
+                        }
                         message += `⋆ ${program.name}\n`;
                     }
                 }
+                
             }
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
             });
+
         } catch (error) {
             logger.error(`Error exploring program for ${label}:`, error);
             await this.bot.sendMessage(chatId, "❌ Error exploring program. Please try again.");
@@ -134,16 +180,25 @@ export class ProgramInfoHandler extends BaseHandler {
 
     private formatProgramMessage(program: Program): string {
         let message = `*Program Name:* ${program.name}\n\n`;
+
         if (program.entityName) {
             message += `*Entity Name:* ${program.entityName}\n\n`;
         }
-        message += `*Labels:* ${program.labels.join(", ")}\n\n`;
-        message += `>💡 **Description:** ${program.programDescription}\n\n`;
 
-        if (program.siteUrl) message += `*Website:* ${program.siteUrl}\n`;
-        if (program.logoUrl) message += `*Logo:* [Logo URL](${program.logoUrl})\n`;
-        if (program.twitterUrl) message += `*Twitter:* [Twitter URL](${program.twitterUrl})\n`;
+        message += `*Labels:* ${program.labels.join(", ")}\n\n`;
+        message += `**Description:** ${program.programDescription}\n\n`;
+
+        if (program.siteUrl) {
+            message += `*Website:* ${program.siteUrl}\n`;
+        }
+        if (program.logoUrl) {
+            message += `*Logo:* [Logo URL](${program.logoUrl})\n`;
+        }
+        if (program.twitterUrl) {
+            message += `*Twitter:* [Twitter URL](${program.twitterUrl})\n`;
+        }
 
         return message;
     }
+
 } 

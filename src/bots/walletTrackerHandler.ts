@@ -34,18 +34,15 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     constructor(bot: TelegramBot, api: VybeApiService, checkIntervalMs = DEFAULT_CHECK_INTERVAL_MS) {
         super(bot, api);
         this.walletAnalysis = new WalletAnalysisService(api);
-        this.loadAlerts();
-        this.startWatchingWallets(checkIntervalMs);
-        this.setupGracefulShutdown();
-        this.initRedis();
+        this.initRedis();  // Initialize Redis first
     }
-
 
     private async initRedis() {
         try {
             this.redisService = await RedisService.getInstance();
             await this.loadAlerts();
             this.startWatchingWallets(DEFAULT_CHECK_INTERVAL_MS);
+            this.setupGracefulShutdown();
             logger.info("Redis initialized for EnhancedWalletTrackerHandler");
         } catch (error) {
             logger.error("Failed to initialize Redis:", error);
@@ -57,6 +54,9 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     }
 
     private startWatchingWallets(checkIntervalMs: number) {
+        if (this.checkInterval) {
+            clearInterval(this.checkInterval);
+        }
         this.checkInterval = setInterval(() => this.checkWalletBalances(), checkIntervalMs);
         logger.info(`Enhanced Wallet Tracker started. Monitoring wallets every ${checkIntervalMs / 60000} minutes.`);
     }
@@ -74,23 +74,32 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         const checkPromises: Promise<void>[] = [];
         const startTime = Date.now();
 
+        logger.info(`Starting wallet check cycle. Number of tracked wallets: ${this.alerts.size}`);
+
         // Process wallets in parallel with rate limiting
         for (const [walletAddress, userAlerts] of this.alerts) {
-            // Get current wallet balance once for all users tracking this wallet
-            const balance = await this.api.getTokenBalance(walletAddress);
+            logger.info(`Checking wallet ${walletAddress} with ${userAlerts.size} users tracking it`);
 
-            // Process each user's tracking settings for this wallet
-            for (const [chatId, settings] of userAlerts) {
-                const checkPromise = this.checkSingleWallet(walletAddress, settings, balance)
-                    .catch(error => {
-                        logger.error(`Error checking wallet [${walletAddress}] for user [${chatId}]:`, error);
-                        this.lastErrorTime.set(walletAddress, Date.now());
-                    });
-                checkPromises.push(checkPromise);
+            try {
+                // Get current wallet balance once for all users tracking this wallet
+                const balance = await this.api.getTokenBalance(walletAddress);
+                logger.info(`Got balance for wallet ${walletAddress}: ${balance.totalTokenValueUsd}`);
+
+                // Process each user's tracking settings for this wallet
+                for (const [chatId, settings] of userAlerts) {
+                    const checkPromise = this.checkSingleWallet(walletAddress, settings, balance)
+                        .catch(error => {
+                            logger.error(`Error checking wallet [${walletAddress}] for user [${chatId}]:`, error);
+                            this.lastErrorTime.set(walletAddress, Date.now());
+                        });
+                    checkPromises.push(checkPromise);
+                }
+
+                // Add a small delay between API requests
+                await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+                logger.error(`Error fetching balance for wallet ${walletAddress}:`, error);
             }
-
-            // Add a small delay between API requests
-            await new Promise(resolve => setTimeout(resolve, 100));
         }
 
         await Promise.allSettled(checkPromises);
@@ -214,14 +223,14 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         const receiver = tx.receiverAddress || "Unknown";
         const amount = parseFloat(tx.calculatedAmount).toLocaleString(
             undefined, { maximumFractionDigits: 6 });
-        const url = `https://explorer.solana.com/tx/${tx.signature}`;
+        const url = `https://solscan.io/tx/${tx.signature}`;
         const time = timeAgo(tx.blockTime);
 
         const message =
             `💰 *Transfer Summary*\n\n` +
             `👤 *From:* \`${sender}\`\n\n` +
             `📥 *To:* \`${receiver}\`\n\n` +
-            `💸 *Transfer Amount(SOL):* \`${amount} SOL\`\n\n` +
+            `💸 *Transfer Amount:* \`${amount} \`\n\n` +
             `🕒 *Block Time:* _${time}_\n\n` +
             `🔗 [🔍 View on Solscan](${url})`;
 
@@ -453,10 +462,10 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
 
     async handleViewTransactions(chatId: number, walletAddress: string) {
-        
+
         await this.bot.sendMessage(chatId,
             `💰 *Recent Transfer Summary*\n`,
-            { parse_mode: "Markdown"}
+            { parse_mode: "Markdown" }
         );
 
         let message = "";
@@ -508,7 +517,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 message += `${i + 1}. *${token.symbol}*: ${formatUsdValue(token.valueUsd)}`;
 
                 if (parseFloat(token.priceUsd1dChange) !== 0) {
-                    const changeChar = parseFloat(token.priceUsd1dChange) > 0 ? '📈' : '📉';
+                    const changeChar = parseFloat(token.priceUsd1dChange) > 0 ? '📈 +' : '📉 -';
                     message += ` (${changeChar} ${parseFloat(token.priceUsd1dChange).toFixed(2)}%)\n\n`;
                 } else {
                     message += '\n';
@@ -535,7 +544,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
     async handleTrackWallet(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
-        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []) ;
+        const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts[1] === 'help') {
             return this.bot.sendMessage(chatId,
@@ -650,7 +659,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
             return this.bot.sendMessage(
                 chatId,
-                `✅ Successfully set up tracking for wallet\n \`${walletAddress}\` To be triggered with a minimum value of ${formatUsdValue(minValueUsd)}.\n\nYou will receive notifications when significant activity is detected.`,
+                `✅ *Successfully set up tracking for wallet: *\n\n \`\`\`${walletAddress}\`\`\`\n\n To be triggered with a minimum value of ${formatUsdValue(minValueUsd)}.\n\nYou will receive notifications when significant activity is detected.`,
                 { parse_mode: "Markdown" }
             );
 
@@ -670,10 +679,26 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
         // Collect all wallets tracked by this user
         const userWallets: { address: string, settings: WalletAlertSettings }[] = [];
-        for (const [walletAddress, userAlerts] of this.alerts) {
-            const settings = userAlerts.get(chatId);
-            if (settings) {
-                userWallets.push({ address: walletAddress, settings });
+
+        // First try to get wallets from Redis
+        if (this.redisService) {
+            try {
+                const trackedWallets = await this.redisService.getTrackedWallets(chatId);
+                for (const [walletAddress, settings] of trackedWallets) {
+                    userWallets.push({ address: walletAddress, settings });
+                }
+            } catch (error) {
+                logger.error('Error loading tracked wallets from Redis:', error);
+            }
+        }
+
+        // If no wallets found in Redis, check in-memory cache
+        if (userWallets.length === 0) {
+            for (const [walletAddress, userAlerts] of this.alerts) {
+                const settings = userAlerts.get(chatId);
+                if (settings) {
+                    userWallets.push({ address: walletAddress, settings });
+                }
             }
         }
 
@@ -749,9 +774,9 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
 
         try {
-            await this.bot.sendMessage(chatId, "🔍 Analyzing wallet activity, please wait...");
+            const loadingMsg = await this.bot.sendMessage(chatId, "🔍 Analyzing wallet activity, please wait...");
 
-            // Fetch wallet data
+            // Fetch all data in parallel
             const [balance, pnl, category, sentTransfers, receivedTransfers] = await Promise.all([
                 this.api.getTokenBalance(walletAddress),
                 this.walletAnalysis.calculatePnL(walletAddress),
@@ -760,51 +785,77 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 5 })
             ]);
 
-            // Create detailed analysis message
-            let message = `📊 *Wallet Analysis Report*\n\n`;
-            message += `*Address:* \`${walletAddress}\`\n`;
-            message += `*Total Value:* ${formatUsdValue(balance.totalTokenValueUsd)}\n`;
+            // Delete loading message
+            await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
-            if (category?.type) {
-                message += `*Wallet Type:* ${category.type}\n`;
-                if (category.protocols?.length) {
-                    message += `*Active Protocols:* ${category.protocols.join(', ')}\n`;
-                }
+            if (!balance?.data?.length) {
+                return this.bot.sendMessage(chatId, "⛔ No tokens found in the specified wallet.");
             }
 
-            message += `\n*Token Holdings (${balance.data.length}):*\n`;
+            // 1. First, send token analysis data
             const sortedTokens = [...balance.data].sort((a, b) =>
                 parseFloat(b.valueUsd) - parseFloat(a.valueUsd));
 
+            let tokenAnalysisMsg = `📊 *Token Analysis Report*\n\n`;
+            tokenAnalysisMsg += `*Wallet Address:* \`${walletAddress}\`\n`;
+            tokenAnalysisMsg += `*Total Portfolio Value:* ${formatUsdValue(balance.totalTokenValueUsd)}\n`;
+            if (category?.type) {
+                tokenAnalysisMsg += `*Wallet Type:* ${category.type}\n`;
+                if (category.protocols?.length) {
+                    tokenAnalysisMsg += `*Active Protocols:* ${category.protocols.join(', ')}\n`;
+                }
+            }
+            tokenAnalysisMsg += `\n*Top Token Holdings (${balance.data.length}):*\n`;
+
+            // Show top 7 tokens with details
             for (let i = 0; i < Math.min(7, sortedTokens.length); i++) {
                 const token = sortedTokens[i];
-                message += `${i + 1}. *${token.symbol}*: ${formatUsdValue(token.valueUsd)}\n`;
+                tokenAnalysisMsg += `${i + 1}. *${token.symbol}*: ${formatUsdValue(token.valueUsd)}`;
+                if (parseFloat(token.priceUsd1dChange) !== 0) {
+                    const changeChar = parseFloat(token.priceUsd1dChange) > 0 ? '📈 +' : '📉';
+                    tokenAnalysisMsg += ` (${changeChar}${parseFloat(token.priceUsd1dChange).toFixed(2)}%)\n`;
+                } else {
+                    tokenAnalysisMsg += '\n';
+                }
             }
 
             if (balance.data.length > 7) {
-                message += `..._and ${balance.data.length - 7} more tokens_\n`;
+                tokenAnalysisMsg += `..._and ${balance.data.length - 7} more tokens_\n`;
             }
 
+            // Send token analysis message
+            await this.bot.sendMessage(chatId, tokenAnalysisMsg, {
+                parse_mode: "Markdown",
+                disable_web_page_preview: true
+            });
+
+            // 2. Send PnL information if available
             if (pnl) {
-                message += `\n${formatPnLAlert(pnl)}\n`;
+                await this.bot.sendMessage(chatId, formatPnLAlert(pnl), {
+                    parse_mode: "Markdown",
+                    disable_web_page_preview: true
+                });
             }
 
+            // 3. Send recent transfers if available
             const allTransfers = [
                 ...(sentTransfers?.transfers || []),
                 ...(receivedTransfers?.transfers || [])
             ].sort((a, b) => b.blockTime - a.blockTime);
 
             if (allTransfers.length > 0) {
-                message += `\n*Recent Transfers:*\n`;
-                for (let i = 0; i < Math.min(3, allTransfers.length); i++) {
-                    message += this.sendTransferMessage(chatId, allTransfers[i]);
-                }
-            }
+                await this.bot.sendMessage(chatId, "💰 *Recent Transfers:*", {
+                    parse_mode: "Markdown"
+                });
 
-            await this.bot.sendMessage(chatId, message, {
-                parse_mode: "Markdown",
-                disable_web_page_preview: true
-            });
+                // Send up to 4 most recent transfers
+                setTimeout(async () => {
+                    for (let i = 0; i < Math.min(4, allTransfers.length); i++) {
+                        await this.sendTransferMessage(chatId, allTransfers[i]);
+                    }
+                }, 3000);
+               
+            }
 
         } catch (error) {
             logger.error("Error analyzing wallet:", error);

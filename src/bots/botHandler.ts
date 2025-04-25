@@ -146,8 +146,12 @@ export class BotHandler {
                     }
                 }
                 // Handle NFT-related callbacks
-                else if (data.startsWith("nft_collection_")) {
+                if (data.startsWith("nft_collection_")) {
                     await this.nftPortfolioHandler.handleCollectionCallback(callbackQuery);
+                }
+
+                if (data.startsWith('price_chart_')) {
+                    await this.tokenAnalysisHandler.handlePriceChartButton(callbackQuery);
                 }
 
                 // Always answer the callback query

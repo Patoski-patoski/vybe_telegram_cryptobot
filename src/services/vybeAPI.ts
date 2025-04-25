@@ -474,8 +474,7 @@ export class VybeApiService {
         resolution: string = '1d',
         timeStart?: number,
         timeEnd?: number,
-        limit: number = 1000,
-        page: number = 1
+        limit: number = 10,
     ): Promise<GetTokenOHLCVResponse> {
         // Validate mint address format
         if (!isValidMintAddress(mintAddress)) {
@@ -487,11 +486,12 @@ export class VybeApiService {
         try {
             const params = new URLSearchParams({
                 resolution,
-                ...(timeStart !== undefined && { timeStart: timeStart.toString() }),
-                ...(timeEnd !== undefined && { timeEnd: timeEnd.toString() }),
+                ...(timeStart && { timeStart: timeStart.toString() }),
+                ...(timeEnd && { timeEnd: timeEnd.toString() }),
                 limit: limit.toString(),
-                page: page.toString()
             });
+
+            console.log("Params", params);
 
             const response = await this.api.get(`/price/${mintAddress}/token-ohlcv`, {params});
             console.log("API getTokenOHLCV", response.data);

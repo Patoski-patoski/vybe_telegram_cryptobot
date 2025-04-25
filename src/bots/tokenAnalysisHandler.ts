@@ -18,17 +18,19 @@ export class TokenAnalysisHandler extends BaseHandler {
         const chatId = msg.chat.id;
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
+        const systemProgram = "11111111111111111111111111111111";
+        const WRAPPED_SOL_MINT = "So11111111111111111111111111111111111111112"; // Wrapped SOL mint address
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /analyze <token_mint_address>\n" +
-                "Example: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+                "Usage: /analyze <symbol>\n" +
+                "Example: /analyze JUP"
             );
         }
 
-        const mintAddress = parts[1];
+        const symbol: string = parts[1].toUpperCase();
 
-        if (mintAddress === 'help') {
+        if (symbol === 'HELP') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.TOKEN_ANALYSIS_HELP,
                 { parse_mode: "Markdown" }
@@ -40,43 +42,73 @@ export class TokenAnalysisHandler extends BaseHandler {
                 "🔍 Analyzing token data..."
             );
 
-            // Fetch token balance data which includes price trend
-            const tokenBalanceResponse = await this.api.getTokenBalance(mintAddress);
+            let tokenData;
+
+            // Special handling for SOL
+            if (symbol === 'SOL') {
+                // Fetch data for Wrapped SOL which will have the same price data as SOL
+                const tokenBalanceResponse = await this.api.getTokenBalance(systemProgram);
+                tokenData = tokenBalanceResponse.data.find(
+                    token => token.mintAddress === WRAPPED_SOL_MINT
+                );
+
+                if (tokenData) {
+                    // Modify the token data to show it's SOL instead of Wrapped SOL
+                    tokenData = {
+                        ...tokenData,
+                        symbol: 'SOL',
+                        name: 'Solana',
+                        mintAddress: systemProgram,
+                        // Keep the price data from wSOL
+                        priceUsd: tokenData.priceUsd,
+                        priceUsd1dChange: tokenData.priceUsd1dChange,
+                        priceUsd7dTrend: tokenData.priceUsd7dTrend
+                    };
+                }
+            } else {
+                // For other tokens, proceed as normal
+                const tokenBalanceResponse = await this.api.getTokenBalance(systemProgram);
+                tokenData = tokenBalanceResponse.data.find(
+                    tokenSymbol => tokenSymbol.symbol === symbol
+                );
+            }
 
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
-            if (!tokenBalanceResponse.data || tokenBalanceResponse.data.length === 0) {
+            if (!tokenData) {
                 return this.bot.sendMessage(chatId,
                     "⛔ No data found for the specified token."
                 );
             }
 
-            const tokenData = tokenBalanceResponse.data[0];
-
-            // Generate price chart
-            const chartBuffer = await this.generatePriceChart(tokenData);
-
             // Prepare message with token information
             let message = `📊 *Token Analysis*\n\n`;
-            message += `*Token Information*\n`;
-            message += `• Token: ${tokenData.symbol} (${tokenData.name})\n`;
-            message += `• Current Price: ${formatUsdValue(tokenData.priceUsd.toString())}\n`;
-            message += `• Price Change (24h): ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange)}%\n\n`;
-            message += `*Wallet Analysis*\n`;
-            message += `• Address: \`${mintAddress}\`\n`;
-            message += `• Total Portfolio Value: ${formatUsdValue(tokenBalanceResponse.totalTokenValueUsd)}\n`;
-            message += `• Portfolio Change (24h): ${Number(tokenBalanceResponse.totalTokenValueUsd1dChange) > 0 ? '+' : ''}${Number(tokenBalanceResponse.totalTokenValueUsd1dChange)}%\n`;
-            message += `• Number of Tokens: ${tokenBalanceResponse.totalTokenCount}\n`;
-            message += `• ${tokenData.symbol} Balance: ${tokenData.amount} ${tokenData.symbol}\n\n`;
-            message += `The chart above shows the 7-day price trend of ${tokenData.symbol}`;
+            message += `*Token Symbol:* ${tokenData.symbol} (${tokenData.name})\n`;
+            message += `*Token name:* ${tokenData.name})\n`;
+            message += `*Token Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
+            message += `*Amount owned:* ${parseFloat(tokenData.amount || '0').toFixed(3)}\n`;
+            message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd.toLocaleString())}\n`;
+            message += `*Total Value:* ${formatUsdValue(tokenData.valueUsd?.toLocaleString() || '0')}\n`;
+            message += `*Price Change (24h):* ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange).toFixed(2)}%\n\n`;
+            message += `*Category:* ${tokenData.category}\n`
+            message += `[Logo ](${tokenData.logoUrl})`;
 
-            // Send the chart image
-            const chartMsg = await this.bot.sendMessage(chatId, "📊 Sending chart...");
-            await this.bot.deleteMessage(chatId, chartMsg.message_id);
 
-            await this.bot.sendPhoto(chatId, chartBuffer, {
-                caption: message,
-                parse_mode: "Markdown"
+            // Create inline keyboard with View Price Chart button
+            const keyboard = {
+                inline_keyboard: [
+                    [{
+                        text: `📈 View Price Chart for ${symbol}`,
+                        callback_data: `price_chart_${symbol}`
+                    }]
+                ]
+            };
+
+            // Send initial message with button
+            await this.bot.sendMessage(chatId, message, {
+                parse_mode: "Markdown",
+                reply_markup: keyboard,
+                disable_web_page_preview: false
             });
 
         } catch (error: any) {
@@ -87,12 +119,58 @@ export class TokenAnalysisHandler extends BaseHandler {
         }
     }
 
+    // Add new method to handle the chart button click
+    async handlePriceChartButton(query: TelegramBot.CallbackQuery) {
+        if (!query.data?.startsWith('price_chart_')) return;
+
+        const chatId = query.message?.chat.id;
+        if (!chatId) return;
+
+        const symbol = query.data.replace('price_chart_', '');
+
+        try {
+            await this.bot.answerCallbackQuery(query.id, { text: "Generating price chart..." });
+
+            const loadingMsg = await this.bot.sendMessage(chatId, "📊 Generating price chart...");
+
+            // Fetch fresh token data
+            const tokenBalanceResponse = await this.api.getTokenBalance("11111111111111111111111111111111");
+            const tokenData = tokenBalanceResponse.data.find(
+                (tokenSymbol => tokenSymbol.symbol === symbol)
+            );
+
+            if (!tokenData) {
+                await this.bot.deleteMessage(chatId, loadingMsg.message_id);
+                return this.bot.sendMessage(chatId, "❌ Could not generate price chart. Token data not found.");
+            }
+
+            // Generate and send the chart
+            const chartBuffer = await this.generatePriceChart(tokenData);
+            await this.bot.deleteMessage(chatId, loadingMsg.message_id);
+
+            await this.bot.sendPhoto(chatId, chartBuffer, {
+                caption: `7-day price trend for ${symbol}`,
+                parse_mode: "Markdown"
+            });
+
+        } catch (error) {
+            logger.error("Error generating price chart:", error);
+            await this.bot.sendMessage(chatId, "❌ Error generating price chart. Please try again later.");
+        }
+    }
+
     private async generatePriceChart(tokenData: any): Promise<Buffer> {
+        // Generate dates including today
         const dates = Array.from({ length: 7 }, (_, i) => {
             const date = new Date();
-            date.setDate(date.getDate() - (6 - i));
+            date.setDate(date.getDate() - (6 - i)); // Adjusted to count forward from 6 days ago
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         });
+
+        // Get the historical trend data and ensure current price is included
+        const trendData = [...tokenData.priceUsd7dTrend];
+        // Replace the last value with current price to ensure accuracy
+        trendData[trendData.length - 1] = tokenData.priceUsd;
 
         const configuration: ChartConfiguration<'line'> = {
             type: 'line',
@@ -100,7 +178,7 @@ export class TokenAnalysisHandler extends BaseHandler {
                 labels: dates,
                 datasets: [{
                     label: 'Price (USD)',
-                    data: tokenData.priceUsd7dTrend.map((price: string) => parseFloat(price)),
+                    data: trendData.map((price: string) => parseFloat(price)),
                     borderColor: '#4CAF50',
                     backgroundColor: 'rgba(76, 175, 80, 0.1)',
                     fill: true,
@@ -130,34 +208,5 @@ export class TokenAnalysisHandler extends BaseHandler {
 
         const chartJSNodeCanvas = new ChartJSNodeCanvas({ width: 800, height: 400 });
         return await chartJSNodeCanvas.renderToBuffer(configuration);
-    }
-
-    private calculateCorrelation(holders: number[], volumes: number[]): number {
-        if (holders.length !== volumes.length || holders.length < 2) {
-            return 0;
-        }
-
-        const n = holders.length;
-        let sumHolders = 0;
-        let sumVolumes = 0;
-        let sumHoldersSquared = 0;
-        let sumVolumesSquared = 0;
-        let sumProducts = 0;
-
-        for (let i = 0; i < n; i++) {
-            sumHolders += holders[i];
-            sumVolumes += volumes[i];
-            sumHoldersSquared += holders[i] * holders[i];
-            sumVolumesSquared += volumes[i] * volumes[i];
-            sumProducts += holders[i] * volumes[i];
-        }
-
-        const numerator = sumProducts - (sumHolders * sumVolumes / n);
-        const denominator = Math.sqrt(
-            (sumHoldersSquared - (sumHolders * sumHolders / n)) *
-            (sumVolumesSquared - (sumVolumes * sumVolumes / n))
-        );
-
-        return denominator === 0 ? 0 : numerator / denominator;
     }
 } 

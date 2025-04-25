@@ -81,15 +81,15 @@ export function timeAgo(timestamp: number): string {
 
 export function formatPnLAlert(pnlData: WalletPnL): string {
     return `📊 *Wallet PnL Analysis*\n\n` +
-        `💰 *Total PnL:* ${formatUsdValue(pnlData.totalPnL)}\n` +
-        `💸 *Realized PnL:* ${formatUsdValue(pnlData.realizedPnL)}\n` +
-        `📉 *Unrealized PnL:* ${formatUsdValue(pnlData.unrealizedPnL)}\n` +
-        `🎯 *Win Rate:* ${(pnlData.winRate * 100).toFixed(2)}%\n` +
-        `🔄 *Trades:* ${pnlData.tradeCount}\n` +
-        `📊 *Avg Trade Size:* ${formatUsdValue(pnlData.averageTradeSize)}\n\n` +
-        `🌟 *Best Performer:* ${pnlData.bestPerformingToken?.tokenSymbol || 'N/A'} ` +
+        `💰 *Total PnL: * ${formatUsdValue(pnlData.totalPnL)}\n` +
+        `💸 *Realized PnL: * ${formatUsdValue(pnlData.realizedPnL)}\n` +
+        `📉 *Unrealized PnL: * ${formatUsdValue(pnlData.unrealizedPnL)}\n` +
+        `🎯 *Win Rate: * ${(pnlData.winRate * 100).toFixed(2)}%\n` +
+        `🔄 *Trades: * ${pnlData.tradeCount}\n` +
+        `📊 *Avg Trade Size: * ${formatUsdValue(pnlData.averageTradeSize)}\n\n` +
+        `🌟 *Best Performer: * ${pnlData.bestPerformingToken?.tokenSymbol.toLocaleString() || 'N/A'} ` +
         `(${formatUsdValue(pnlData.bestPerformingToken?.pnlUsd || 0)})\n` +
-        `💥 *Worst Performer:* ${pnlData.worstPerformingToken?.tokenSymbol || 'N/A'} ` +
+        `💥 *Worst Performer:* ${pnlData.worstPerformingToken?.tokenSymbol.toLocaleString() || 'N/A'} ` +
         `(${formatUsdValue(pnlData.worstPerformingToken?.pnlUsd || 0)})`;
 }
 

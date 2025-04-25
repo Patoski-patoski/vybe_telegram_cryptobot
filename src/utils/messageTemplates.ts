@@ -699,7 +699,7 @@ Shows current price information for a token, including last close, 24h high/low,
 - Network connectivity issues
 - Check the space between the command and the token address`,
 
-        PRICE_ALERT_USAGE: "Usage: /pricealert <token_mint_address> <threshold> <high/low>\n\nExample: /pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high",
+        PRICE_ALERT_USAGE: "Usage: /pricealert <token_mint_address> <threshold> <high/low>\n\nExample: /pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high\n\n This will alert when USDC price goes above $1.50",
         PRICE_ALERT_HELP: `⚠️ *Price Alert Command (/pricealert)*
 
 *DESCRIPTION*
@@ -714,6 +714,7 @@ Sets up price alerts for a token. You'll be notified when the price crosses your
 <high/low>             Whether to alert on price going above (high) or below (low) threshold
 
 *EXAMPLES*
+
 /pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high
 /pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.0 low
 
@@ -737,10 +738,10 @@ Shows the hourly price change percentage for a token.
 /pricechange <token_mint_address>
 
 *ARGUMENTS*
-<token_mint_address>    The Solana token mint address to check price change for
+<token\\_mint\\_address>   The Solana token mint address to check price change for
 
 *EXAMPLES*
-/pricechange 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+/pricechange 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 
 
 *OUTPUT*
 - Hourly price change percentage
