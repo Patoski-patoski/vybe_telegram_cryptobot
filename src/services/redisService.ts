@@ -75,10 +75,16 @@ export class RedisService {
     // Whale Alerts
     async setWhaleAlert(chatId: number, alert: WhaleAlertSettings): Promise<void> {
         try {
-            await this.client.hSet(`whale_alerts:${chatId}`, {
-                minAmount: alert.minAmount.toString(),
-                tokens: JSON.stringify(alert.tokens)
-            });
+            // Use tokenMint as the key for each alert
+            const tokens = Array.isArray(alert.tokens) ? alert.tokens : [alert.tokens];
+
+            for (const token of tokens) {
+                const alertKey = `${token}`;
+                await this.client.hSet(`whale_alerts:${chatId}`, alertKey, JSON.stringify({
+                    minAmount: alert.minAmount.toString(),
+                    tokens: JSON.stringify([token])
+                }));
+            }
         } catch (error) {
             logger.error('Failed to set whale alert:', error);
             throw error;
@@ -88,14 +94,29 @@ export class RedisService {
     async getWhaleAlerts(chatId: number): Promise<WhaleAlertSettings[]> {
         try {
             const alerts = await this.client.hGetAll(`whale_alerts:${chatId}`);
-            return Object.entries(alerts).map(([key, value]) => ({
-                chatId,
-                minAmount: parseFloat(key),
-                tokens: JSON.parse(value)
-            }));
+            if (!alerts || Object.keys(alerts).length === 0) {
+                return [];
+            }
+
+            const whaleAlerts: WhaleAlertSettings[] = [];
+
+            for (const [token, valueStr] of Object.entries(alerts)) {
+                try {
+                    const parsedValue = JSON.parse(valueStr);
+                    whaleAlerts.push({
+                        chatId,
+                        minAmount: parseFloat(parsedValue.minAmount),
+                        tokens: parsedValue.tokens ? JSON.parse(parsedValue.tokens) : [token]
+                    });
+                } catch (e) {
+                    logger.error(`Failed to parse whale alert data for token ${token}:`, e);
+                }
+            }
+
+            return whaleAlerts;
         } catch (error) {
             logger.error('Failed to get whale alerts:', error);
-            throw error;
+            return [];
         }
     }
 
@@ -179,16 +200,16 @@ export class RedisService {
     }
 
     async getAllUserIds(): Promise<string[]> {
-    try {
-        // Get all keys that match the tracked_wallets:* pattern
-        const keys = await this.client.keys('tracked_wallets:*');
-        // Extract user IDs from keys
-        return keys.map(key => key.split(':')[1]);
-    } catch (error) {
-        logger.error('Failed to get all user IDs:', error);
-        return [];
+        try {
+            // Get all keys that match the whale_alerts:* pattern
+            const keys = await this.client.keys('whale_alerts:*');
+            // Extract user IDs from keys
+            return keys.map(key => key.split(':')[1]);
+        } catch (error) {
+            logger.error('Failed to get all user IDs:', error);
+            return [];
+        }
     }
-}
 
     // Historical Values
     async setHistoricalValues(chatId: number, walletAddress: string, values: Map<string, string>): Promise<void> {

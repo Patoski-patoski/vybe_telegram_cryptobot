@@ -168,11 +168,6 @@ export class WhaleWatcherHandler extends BaseHandler {
         const chatId = msg.chat.id;
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
-        console.log("Parts", parts)
-        console.log("Parts 0 ", parts[0])
-        console.log("Parts 1", parts[1])
-        console.log("Par t2", parts[2])
-        console.log("Parts len", parts.length)
 
         if (parts[1] === 'help') {
             return this.bot.sendMessage(chatId,
@@ -190,28 +185,23 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         const mintAddress = parts[1];
         const minAmount = parseFloat(parts[2]);
+
         if (isNaN(minAmount) || minAmount <= 0) {
             return this.bot.sendMessage(chatId, "⛔ Minimum amount must be a positive number.");
         }
-        console.log("Typeof minamount", typeof (minAmount));
 
         // Store the alert settings
         const alertId = `${chatId}-${mintAddress}`;
         const existingAlert = this.alerts.get(alertId);
 
-        console.log("existingAlert", existingAlert);
-
         if (existingAlert) {
             existingAlert.minAmount = minAmount;
             this.alerts.set(alertId, existingAlert);
-            console.log("this.alers", this.alerts);
 
-
-            // Save to Redis if available
+            // Save to Redis
             if (this.redisService) {
                 await this.redisService.setWhaleAlert(chatId, existingAlert);
             }
-            await this.saveAlerts();
 
             await this.bot.sendMessage(chatId,
                 `*🟡 Updated whale alert!!*\n\nYou will be notified of transfers over *${minAmount}* for token \`\`\`${mintAddress}\`\`\``,
@@ -226,11 +216,10 @@ export class WhaleWatcherHandler extends BaseHandler {
             };
             this.alerts.set(alertId, newAlert);
 
-            // Save to Redis if available
+            // Save to Redis
             if (this.redisService) {
                 await this.redisService.setWhaleAlert(chatId, newAlert);
             }
-            await this.saveAlerts();
 
             await this.bot.sendMessage(chatId,
                 `*✅  Whale alert set!!*\n\nYou will be notified of transfers over *${minAmount}* for token \`\`\`${mintAddress}\`\`\``,
@@ -321,11 +310,10 @@ export class WhaleWatcherHandler extends BaseHandler {
         if (this.alerts.has(alertId)) {
             this.alerts.delete(alertId);
 
-            // Remove from Redis if available
+            // Remove from Redis
             if (this.redisService) {
                 await this.redisService.removeWhaleAlert(chatId, mintAddress);
             }
-            await this.saveAlerts();
 
             await this.bot.sendMessage(chatId,
                 `✅ Successfully removed whale alert for token \`\`\`${mintAddress}\`\`\``,
@@ -338,7 +326,6 @@ export class WhaleWatcherHandler extends BaseHandler {
             );
         }
     }
-
     // Command handler for checking latest whale transfers (one-time check)
     async handleCheckWhales(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
@@ -452,11 +439,8 @@ export class WhaleWatcherHandler extends BaseHandler {
     private async loadAlerts() {
         try {
             if (!this.redisService) {
-                // Fallback to file system if Redis is not available
-                const filePath = path.join(__dirname, '../data/whale-alerts.json');
-                const data = await fs.readFile(filePath, 'utf-8');
-                const entries = JSON.parse(data);
-                this.alerts = new Map(entries);
+                logger.warn('Redis service not available, using empty alerts map');
+                this.alerts = new Map();
                 return;
             }
 
@@ -469,8 +453,15 @@ export class WhaleWatcherHandler extends BaseHandler {
                 const whaleAlerts = await this.redisService.getWhaleAlerts(chatId);
 
                 for (const alert of whaleAlerts) {
-                    const alertId = `${chatId}-${alert.tokens[0]}`;
-                    this.alerts.set(alertId, alert);
+                    const tokens = Array.isArray(alert.tokens) ? alert.tokens : [alert.tokens];
+                    for (const token of tokens) {
+                        const alertId = `${chatId}-${token}`;
+                        this.alerts.set(alertId, {
+                            chatId,
+                            minAmount: alert.minAmount,
+                            tokens: [token]
+                        });
+                    }
                 }
             }
 
