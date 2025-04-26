@@ -855,7 +855,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                         await this.sendTransferMessage(chatId, allTransfers[i]);
                     }
                 }, 3000);
-               
+
             }
 
         } catch (error) {
