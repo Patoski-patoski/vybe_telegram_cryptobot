@@ -34,14 +34,15 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     constructor(bot: TelegramBot, api: VybeApiService, checkIntervalMs = DEFAULT_CHECK_INTERVAL_MS) {
         super(bot, api);
         this.walletAnalysis = new WalletAnalysisService(api);
-        this.initRedis();  // Initialize Redis first
+        this.initRedis(checkIntervalMs);  // Initialize Redis first
     }
 
-    private async initRedis() {
+    private async initRedis(checkIntervalMs: number) {
         try {
             this.redisService = await RedisService.getInstance();
+            logger.info("Redis initialized for EnhancedWalletTrackerHandler");
             await this.loadAlerts();
-            this.startWatchingWallets(DEFAULT_CHECK_INTERVAL_MS);
+            this.startWatchingWallets(checkIntervalMs);
             this.setupGracefulShutdown();
             logger.info("Redis initialized for EnhancedWalletTrackerHandler");
         } catch (error) {
@@ -895,6 +896,13 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             // Save each wallet alert
             for (const [walletAddress, userAlerts] of this.alerts) {
                 for (const [chatId, settings] of userAlerts) {
+                    const value = this.historicalValues.get(walletAddress);
+                    if (value) {
+                        const historicalMap = new Map();
+                        historicalMap.set('value', value.value);
+                        historicalMap.set('timestamp', value.timestamp.toString());
+                        await this.redisService.setHistoricalValues(chatId, walletAddress, historicalMap);
+                    }
                     // Convert lastBalances Map to a format that can be stored in Redis
                     const serializableSettings = {
                         ...settings,
@@ -947,38 +955,89 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
             // Get all user IDs that have tracked wallets
             const userIds = await this.redisService.getAllUserIds();
+            logger.info(`Found ${userIds.length} users with tracked wallets`);
 
             for (const userId of userIds) {
                 const chatId = parseInt(userId);
                 const trackedWallets = await this.redisService.getTrackedWallets(chatId);
+                logger.info(`User ${chatId} has ${trackedWallets.size} tracked wallets`);
 
                 for (const [walletAddress, settings] of trackedWallets) {
                     if (!this.alerts.has(walletAddress)) {
                         this.alerts.set(walletAddress, new Map());
                     }
 
-                    // Convert lastBalances array back to Map
-                    const settingsWithMap = {
-                        ...settings,
-                        lastBalances: new Map(settings.lastBalances || [])
-                    };
+                    try {
+                        // Ensure settings is an object and has required properties
+                        if (!settings || typeof settings !== 'object') {
+                            logger.warn(`Invalid settings for wallet ${walletAddress}, skipping...`);
+                            continue;
+                        }
 
-                    this.alerts.get(walletAddress)!.set(chatId, settingsWithMap);
+                        // Convert lastBalances to Map if it exists and is valid
+                        let lastBalances = new Map();
+                        if (settings.lastBalances) {
+                            try {
+                                if (Array.isArray(settings.lastBalances)) {
+                                    lastBalances = new Map(settings.lastBalances);
+                                } else if (settings.lastBalances instanceof Map) {
+                                    lastBalances = settings.lastBalances;
+                                } else if (typeof settings.lastBalances === 'object') {
+                                    lastBalances = new Map(Object.entries(settings.lastBalances));
+                                }
+                            } catch (mapError) {
+                                logger.warn(`Error converting lastBalances for wallet ${walletAddress}:`, mapError);
+                            }
+                        }
 
-                    // Load historical values for this wallet
-                    const historicalValues = await this.redisService.getHistoricalValues(0, walletAddress);
-                    if (historicalValues.size > 0) {
-                        this.historicalValues.set(walletAddress, {
-                            value: historicalValues.get('value') || '0',
-                            timestamp: parseInt(historicalValues.get('timestamp') || '0')
-                        });
+                        // Create settings object with proper Map conversion
+                        const settingsWithMap = {
+                            ...settings,
+                            walletAddress,
+                            lastBalances,
+                            lastTokenList: Array.isArray(settings.lastTokenList) ? settings.lastTokenList : [],
+                            errorCount: settings.errorCount || 0,
+                            lastCheckedTime: settings.lastCheckedTime || Math.floor(Date.now() / 1000)
+                        };
+
+                        // Ensure we refresh the lastKnownSignature on reload
+                        if (!settingsWithMap.lastKnownSignature) {
+                            try {
+                                const recentTransfers = await this.api.getWalletRecentTransfers({
+                                    senderAddress: walletAddress,
+                                    limit: 1
+                                });
+
+                                if (recentTransfers?.transfers.length > 0) {
+                                    settingsWithMap.lastKnownSignature = recentTransfers.transfers[0].signature;
+                                    logger.info(`Updated signature for wallet ${walletAddress}: ${settingsWithMap.lastKnownSignature}`);
+                                }
+                            } catch (signatureError) {
+                                logger.warn(`Could not fetch recent transfers for wallet ${walletAddress}:`, signatureError);
+                            }
+                        }
+
+                        this.alerts.get(walletAddress)!.set(chatId, settingsWithMap);
+
+                        // Load historical values for this wallet
+                        const historicalValues = await this.redisService.getHistoricalValues(chatId, walletAddress);
+                        if (historicalValues && historicalValues.size > 0) {
+                            this.historicalValues.set(walletAddress, {
+                                value: historicalValues.get('value') || '0',
+                                timestamp: parseInt(historicalValues.get('timestamp') || '0')
+                            });
+                        }
+                    } catch (walletError) {
+                        logger.error(`Error processing wallet ${walletAddress}:`, walletError);
+                        continue;
                     }
                 }
             }
 
-            logger.info(`Loaded ${this.alerts.size} tracked wallets from Redis`);
+            logger.info(`Successfully loaded ${this.alerts.size} tracked wallets from Redis`);
         } catch (error) {
-            logger.warn('Error loading wallet alerts:', error);
+            logger.error('Error loading wallet alerts:', error);
+            // Initialize empty maps on error
             this.alerts = new Map();
             this.historicalValues = new Map();
         }

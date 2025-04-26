@@ -201,10 +201,16 @@ export class RedisService {
 
     async getAllUserIds(): Promise<string[]> {
         try {
-            // Get all keys that match the whale_alerts:* pattern
-            const keys = await this.client.keys('whale_alerts:*');
-            // Extract user IDs from keys
-            return keys.map(key => key.split(':')[1]);
+            // Get user IDs from multiple key patterns
+            const [whaleAlertKeys, trackedWalletKeys] = await Promise.all([
+                this.client.keys('whale_alerts:*'),
+                this.client.keys('tracked_wallets:*')
+            ]);
+
+            // Combine, extract user IDs, and deduplicate
+            const allKeys = [...whaleAlertKeys, ...trackedWalletKeys];
+            const userIds = allKeys.map(key => key.split(':')[1]);
+            return [...new Set(userIds)]; // Remove duplicates
         } catch (error) {
             logger.error('Failed to get all user IDs:', error);
             return [];
