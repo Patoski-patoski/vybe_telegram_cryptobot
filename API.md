@@ -228,6 +228,35 @@ interface NFTPortfolioResponse {
 }
 ```
 
+#### 7. Token Analysis
+
+```typescript
+GET / token / analysis / { symbol };
+```
+
+Get detailed token information including price, metadata, and category.
+
+**Parameters:**
+
+- `symbol`: Token symbol (e.g., "SOL", "JUP")
+
+**Response:**
+
+```typescript
+interface TokenAnalysisResponse {
+  symbol: string;
+  name: string;
+  mintAddress: string;
+  amount: string;
+  priceUsd: string;
+  valueUsd: string;
+  priceUsd1dChange: string;
+  priceUsd7dTrend: string[];
+  category: string;
+  logoUrl: string;
+}
+```
+
 ## Bot Commands
 
 ### Whale Watch Commands
@@ -398,6 +427,57 @@ View NFT portfolio for a wallet.
 /nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
 ```
 
+### Token Analysis Commands
+
+#### 1. Analyze Token
+
+```bash
+/analyze <symbol>
+```
+
+Get detailed token analysis including price, category, and interactive chart.
+
+**Parameters:**
+
+- `symbol`: Token symbol (e.g., "JUP", "SOL")
+
+**Example:**
+
+```bash
+/analyze JUP
+```
+
+**Response Format:**
+
+```bash
+📊 Token Analysis
+
+Token Symbol: JUP (Jupiter)
+Token name: Jupiter
+Token Address: [mint_address]
+
+Amount owned: 0.000
+Current Price: $1.23
+Total Value: $0.00
+Price Change (24h): +5.67%
+
+Category: DeFi
+[Logo URL]
+
+[📈 View Price Chart for JUP]
+```
+
+**Special Cases:**
+
+- SOL token analysis uses Wrapped SOL (wSOL) as price reference
+- Maintains native SOL branding in output
+- Shows accurate price data while displaying as native SOL
+
+**Interactive Features:**
+
+- Click "📈 View Price Chart for [SYMBOL]" to view 7-day price trend
+- Chart includes daily points, trend line, and clear labels
+
 ## Error Handling
 
 ### Common Error Codes
@@ -460,6 +540,37 @@ Description of the new command
 
 *TROUBLESHOOTING*
 - Common issues
-- Solutions`,
+- Solutions`,****
 };
+```
+
+4. Add Response Interfaces
+
+Update `src/interfaces/vybeApiInterface.ts`:
+
+```typescript
+export interface TokenAnalysisResponse {
+  symbol: string;
+  name: string;
+  mintAddress: string;
+  amount: string;
+  priceUsd: string;
+  valueUsd: string;
+  priceUsd1dChange: string;
+  priceUsd7dTrend: string[];
+  category: string;
+  logoUrl: string;
+}
+
+export interface ChartData {
+  labels: string[];
+  datasets: Array<{
+    label: string;
+    data: number[];
+    borderColor: string;
+    backgroundColor: string;
+    fill: boolean;
+    tension: number;
+  }>;
+}
 ```

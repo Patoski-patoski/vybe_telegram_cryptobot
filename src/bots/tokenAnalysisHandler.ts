@@ -24,11 +24,12 @@ export class TokenAnalysisHandler extends BaseHandler {
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
                 "Usage: /analyze <symbol>\n" +
-                "Example: /analyze JUP"
+                "Example: /analyze JUP" +
+                "Note that: Symbol characters are case sensitive"
             );
         }
 
-        const symbol: string = parts[1].toUpperCase();
+        const symbol: string = parts[1];
 
         if (symbol === 'HELP') {
             return this.bot.sendMessage(chatId,
@@ -77,29 +78,31 @@ export class TokenAnalysisHandler extends BaseHandler {
 
             if (!tokenData) {
                 return this.bot.sendMessage(chatId,
-                    "⛔ No data found for the specified token."
+                    "⛔ No data found for the specified token.\n" +
+                    "Note: Symbol characters are case-sensitive" +
+                    "Example: wSOL is correct, WSOL is incorrect\n" +
+                    "Example: SOL is correct, Sol is incorrect\n"
                 );
             }
 
             // Prepare message with token information
             let message = `📊 *Token Analysis*\n\n`;
-            message += `*Token Symbol:* ${tokenData.symbol} (${tokenData.name})\n`;
-            message += `*Token name:* ${tokenData.name})\n`;
-            message += `*Token Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
-            message += `*Amount owned:* ${parseFloat(tokenData.amount || '0').toFixed(3)}\n`;
+            message += `*Token name:* ${tokenData.name}\n`;
+            message += `*Symbol:* ${tokenData.symbol}\n`;
+            message += `*mint Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
             message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd.toLocaleString())}\n`;
-            message += `*Total Value:* ${formatUsdValue(tokenData.valueUsd?.toLocaleString() || '0')}\n`;
             message += `*Price Change (24h):* ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange).toFixed(2)}%\n\n`;
             message += `*Category:* ${tokenData.category}\n`
-            message += `[Logo ](${tokenData.logoUrl})`;
+            message += `*Token Verification status:* ${tokenData.verified ? "Verified ✅" : "Not Verified ❓"}\n`
+            message += `[Logo url](${tokenData.logoUrl})`;
 
 
             // Create inline keyboard with View Price Chart button
             const keyboard = {
                 inline_keyboard: [
                     [{
-                        text: `📈 View Price Chart for ${symbol}`,
-                        callback_data: `price_chart_${symbol}`
+                        text: `📈 View Price Chart for ${tokenData.symbol}`,
+                        callback_data: `price_chart_${tokenData.symbol}`
                     }]
                 ]
             };
@@ -126,7 +129,8 @@ export class TokenAnalysisHandler extends BaseHandler {
         const chatId = query.message?.chat.id;
         if (!chatId) return;
 
-        const symbol = query.data.replace('price_chart_', '');
+        let symbol = query.data.replace('price_chart_', '');
+        if (symbol === "SOL") symbol = "wSOL";
 
         try {
             await this.bot.answerCallbackQuery(query.id, { text: "Generating price chart..." });
@@ -149,7 +153,7 @@ export class TokenAnalysisHandler extends BaseHandler {
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
             await this.bot.sendPhoto(chatId, chartBuffer, {
-                caption: `7-day price trend for ${symbol}`,
+                caption: `7-day price trend for ${tokenData.name === "Wrapped SOL" ? "wSOL/SOL" : symbol}`,
                 parse_mode: "Markdown"
             });
 
