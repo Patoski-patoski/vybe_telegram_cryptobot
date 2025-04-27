@@ -143,7 +143,8 @@ export class WhaleWatcherHandler extends BaseHandler {
         }
 
         const getTokenSymbol = await this.api.getTopTokenHolder(transfer.mintAddress);
-        tokenSymbol = getTokenSymbol.data[0].tokenSymbol;
+        tokenSymbol = getTokenSymbol.data[0].tokenSymbol || "";
+        console.log("Whale watch token symbol\n\n\n", tokenSymbol)
 
         const solscanUrl = `https://solscan.io/tx/${transfer.signature}`;
         const valueUsd = transfer.valueUsd ? `${formatUsdValue(transfer.valueUsd)}` : "N/A";

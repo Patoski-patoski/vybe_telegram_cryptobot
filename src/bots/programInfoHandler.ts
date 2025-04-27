@@ -5,6 +5,7 @@ import { Program } from "../interfaces/vybeApiInterface";
 import { VybeApiService } from "../services/vybeAPI";
 import { deleteDoubleSpace } from "../utils/utils";
 import { RedisService } from "../services/redisService";
+import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class ProgramInfoHandler extends BaseHandler {
     private programs: Program[] = [];
@@ -117,6 +118,12 @@ export class ProgramInfoHandler extends BaseHandler {
         }
 
         const label = parts[1].toUpperCase();
+        if (label === 'HELP') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.EXPLORE_HELP,
+                {parse_mode: "Markdown"}
+            );
+        }
         try {
             // Check Redis cache first
             let programs: Program[] | null = null;
@@ -168,6 +175,8 @@ export class ProgramInfoHandler extends BaseHandler {
                 }
                 
             }
+            message += "To view more information about a program, use\n"
+            message += "/program\\_info Bonkswap\n/program\\_info Monaco Protocol"
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
             });

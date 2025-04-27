@@ -66,15 +66,15 @@ export class BotHandler {
 
     private setUpCommands() {
         const cmds = [
-            { cmd: /\/start/, handler: this.handleStart.bind(this) },
+            { cmd: /\/(start|help|commands)/, handler: this.handleStart.bind(this) },
             { cmd: /\/top_holders/, handler: this.tokenHolderHandler.handleTopToken.bind(this.tokenHolderHandler) },
             { cmd: /\/transfers/, handler: this.recentTransferHandler.handleTransfers.bind(this.recentTransferHandler) },
 
             // Whale commands
-            { cmd: /\/whalealert/, handler: this.whaleWatcherHandler.handleSetWhaleAlert.bind(this.whaleWatcherHandler) },
-            { cmd: /\/listwhalealerts/, handler: this.whaleWatcherHandler.handleListWhaleAlerts.bind(this.whaleWatcherHandler) },
-            { cmd: /\/removewhalealert/, handler: this.whaleWatcherHandler.handleRemoveWhaleAlert.bind(this.whaleWatcherHandler) },
-            { cmd: /\/checkwhales/, handler: this.whaleWatcherHandler.handleCheckWhales.bind(this.whaleWatcherHandler) },
+            { cmd: /\/whale_alert/, handler: this.whaleWatcherHandler.handleSetWhaleAlert.bind(this.whaleWatcherHandler) },
+            { cmd: /\/list_whale_alerts/, handler: this.whaleWatcherHandler.handleListWhaleAlerts.bind(this.whaleWatcherHandler) },
+            { cmd: /\/remove_whale_alert/, handler: this.whaleWatcherHandler.handleRemoveWhaleAlert.bind(this.whaleWatcherHandler) },
+            { cmd: /\/check_whales/, handler: this.whaleWatcherHandler.handleCheckWhales.bind(this.whaleWatcherHandler) },
 
             // Token Analysis commands
             { cmd: /\/analyze/, handler: this.tokenAnalysisHandler.handleTokenAnalysis.bind(this.tokenAnalysisHandler) },
@@ -82,32 +82,32 @@ export class BotHandler {
             { cmd: /\/holder_distribution/, handler: this.holderDistributionHandler.handleHolderDistribution.bind(this.holderDistributionHandler) },
 
             // Wallet Tracker commands
-            { cmd: /\/trackwallet/, handler: this.walletTrackerHandler.handleTrackWallet.bind(this.walletTrackerHandler) },
-            { cmd: /\/listtrackedwallets/, handler: this.walletTrackerHandler.handleListTrackedWallets.bind(this.walletTrackerHandler) },
-            { cmd: /\/removetrackedwallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
-            { cmd: /\/analyzewallet/, handler: this.walletTrackerHandler.handleWalletAnalysis.bind(this.walletTrackerHandler) },
+            { cmd: /\/track_wallet/, handler: this.walletTrackerHandler.handleTrackWallet.bind(this.walletTrackerHandler) },
+            { cmd: /\/list_tracked_wallets/, handler: this.walletTrackerHandler.handleListTrackedWallets.bind(this.walletTrackerHandler) },
+            { cmd: /\/remove_tracked_wallet/, handler: this.walletTrackerHandler.handleRemoveTrackedWallet.bind(this.walletTrackerHandler) },
+            { cmd: /\/analyze_wallet/, handler: this.walletTrackerHandler.handleWalletAnalysis.bind(this.walletTrackerHandler) },
 
             // Program Info commands
-            { cmd: /\/programinfo/, handler: this.programInfoHandler.handleProgramInfo.bind(this.programInfoHandler) },
+            { cmd: /\/program_info/, handler: this.programInfoHandler.handleProgramInfo.bind(this.programInfoHandler) },
             { cmd: /\/explore/, handler: this.programInfoHandler.handleExploreProgram.bind(this.programInfoHandler) },
 
             // Program Active Users commands
-            { cmd: /\/topusers/, handler: this.programActiveUsersHandler.handleTopUsers.bind(this.programActiveUsersHandler) },
-            { cmd: /\/usersinsights/, handler: this.programActiveUsersHandler.handleUserInsights.bind(this.programActiveUsersHandler) },
-            { cmd: /\/activitychange/, handler: this.programActiveUsersHandler.handleActivityChange.bind(this.programActiveUsersHandler) },
-            { cmd: /\/checkwhaleusers/, handler: this.programActiveUsersHandler.handleCheckWhaleUsers.bind(this.programActiveUsersHandler) },
+            { cmd: /\/top_users/, handler: this.programActiveUsersHandler.handleTopUsers.bind(this.programActiveUsersHandler) },
+            { cmd: /\/users_insights/, handler: this.programActiveUsersHandler.handleUserInsights.bind(this.programActiveUsersHandler) },
+            { cmd: /\/activity_change/, handler: this.programActiveUsersHandler.handleActivityChange.bind(this.programActiveUsersHandler) },
+            { cmd: /\/check_whale_users/, handler: this.programActiveUsersHandler.handleCheckWhaleUsers.bind(this.programActiveUsersHandler) },
 
             // NFT commands
-            { cmd: /\/nftportfolio/, handler: this.nftPortfolioHandler.handleNFTPortfolio.bind(this.nftPortfolioHandler) },
-            { cmd: /\/registernftwallet/, handler: this.nftPortfolioHandler.handleRegisterNFTWallet.bind(this.nftPortfolioHandler) },
-            { cmd: /\/listnftwallets/, handler: this.nftPortfolioHandler.handleListNFTWallets.bind(this.nftPortfolioHandler) },
-            { cmd: /\/removenftwallet/, handler: this.nftPortfolioHandler.handleRemoveNFTWallet.bind(this.nftPortfolioHandler) },
-            { cmd: /\/nftcollection/, handler: this.nftPortfolioHandler.handleCollectionDetails.bind(this.nftPortfolioHandler) },
+            { cmd: /\/nft_portfolio/, handler: this.nftPortfolioHandler.handleNFTPortfolio.bind(this.nftPortfolioHandler) },
+            { cmd: /\/register_nft_wallet/, handler: this.nftPortfolioHandler.handleRegisterNFTWallet.bind(this.nftPortfolioHandler) },
+            { cmd: /\/list_nft_wallets/, handler: this.nftPortfolioHandler.handleListNFTWallets.bind(this.nftPortfolioHandler) },
+            { cmd: /\/remove_nft_wallet/, handler: this.nftPortfolioHandler.handleRemoveNFTWallet.bind(this.nftPortfolioHandler) },
+            { cmd: /\/nft_collection/, handler: this.nftPortfolioHandler.handleCollectionDetails.bind(this.nftPortfolioHandler) },
 
             // Price commands
             { cmd: /\/price (.+)/, handler: this.priceHandler.handlePriceCommand.bind(this.priceHandler) },
-            { cmd: /\/pricealert (.+)/, handler: this.priceHandler.handlePriceAlertCommand.bind(this.priceHandler) },
-            { cmd: /\/pricechange (.+)/, handler: this.priceHandler.handlePriceChangeCommand.bind(this.priceHandler) },
+            { cmd: /\/price_alert (.+)/, handler: this.priceHandler.handlePriceAlertCommand.bind(this.priceHandler) },
+            { cmd: /\/price_change (.+)/, handler: this.priceHandler.handlePriceChangeCommand.bind(this.priceHandler) },
         ];
 
         cmds.forEach(({ cmd, handler }) => {

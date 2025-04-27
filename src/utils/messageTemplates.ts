@@ -2,87 +2,53 @@ export const BOT_MESSAGES = {
         WELCOME: `
 🚀 Welcome to Vybe's Analytical Bot!
 
-
-Here are some command suggestions based on the Vybe API's features, categorised for clarity
+Here are all available commands, organized by category:
 
 💳 *Wallet Management:*
-- /trackwallet - Track wallet activity
-- /listtrackedwallets - List tracked wallets
-- /removetrackedwallet - Remove tracked wallet
-- /walletstatus - View wallet status
+- /track\\_wallet <address> <min_value> - Track wallet activity
+- /list\\_tracked\\_wallets - List tracked wallets
+- /remove\\_tracked\\_wallet <address> - Remove tracked wallet
+- /analyze\\_wallet <address> - Detailed wallet analysis
 
 💰 *Token Analysis:*
-- /analyze  - Analyze token
-- /series - Token time series analysis
-- /holder\\_distribution - Token holder distribution
+- /analyze <symbol> - Analyze token (e.g., /analyze JUP)
+- /series <symbol> - Token time series analysis
+- /holder\\_distribution <symbol> - Token holder distribution
+- /price <symbol> - Get current token price
+- /price\\_alert <symbol> <threshold> <high/low> - Set price alerts
+- /price\\_change <symbol> - Get price changes
 
 🐋 *Whale Watching:*
-- /whalealert - Set whale alert
-- /listwhalealerts - List whale alerts
-- /removewhalealert - Remove whale alert
-- /checkwhales - Check recent whale movements
+- /whale\\_alert <token> <amount> - Set whale alert
+- /list\\_whale\\_alerts - List whale alerts
+- /remove\\_whale\\_alert <token> - Remove whale alert
+- /check\\_whales <token> <amount> - Check recent whale movements
 
-🔍 *Recent Transfers:*
-- /transfers - Recent transfers
+🖼️ *NFT Portfolio:*
+- /nft\\_portfolio [address] - View NFT portfolio
+- /register\\_nft\\_wallet <address> - Register wallet for NFT tracking
+- /list\\_nft\\_wallets - List registered NFT wallets
+- /remove\\_nft\\_wallet <address> - Remove NFT wallet
+- /nft\\_collection <address>, <name> - View collection details
 
-👤 *Top Holders:*
-- /top\\_holders - Top holders
+🔍 *Program Analysis:*
+- /program\\_info <id> - Get program information
+- /explore <id> - Explore program details
+- /top\\_users <id> - View top program users
+- /users\\_insights <id> - Get user insights
+- /activity\\_change <id> - Check activity changes
+- /check\\_whale\\_users <id> - Check whale users
 
+📊 *General Analysis:*
+- /transfers <address> - View recent transfers
+- /top\\_holders <token> - View top token holders
 
-To see a full details of a specific command, use <command> help
-e.g /analyze help
+To see detailed help for any command, use:
+<command> help
+Example: /analyze help
 
+For support or questions, please contact our team.
 `,
-
-
-        PROFILE_TEMPLATE: `👤 *User Profile*
-
-*🆔 Copperx ID:* %id%
-
-*💌 Email:* %email%
-
-*👤 Role:* %role%
-
-*🔒 Status:* %status%
-
-*🏦 Relayer Address:* %relayerAddress%
-
-*💳 Wallet Address:* %walletAddress%
-
-*💳 Wallet Account Type:* %walletAccountType%`,
-
-        COMMANDS_MESSAGE: `
-
-🚀 *Quick Start Guide:*
-
-1️⃣ Use /login to connect your account.
-2️⃣ Use /logout — Logout of your account
-3️⃣ Check /help for all available commands.  
-
-🛠️ *Available Commands:*
-
-🎯 *Wallet Management:*
-- 💰 /balance — Check wallet balances
-- 🏦 /wallets — View all wallets
-- ⭐ /default — View default wallet
-
-
-🎯 *Transactions:*
-- ✈️ /send — Send funds
-- 🏧 /withdraw — Create Offramp transfer
-- 📦 /bulk — Bulk transfer funds
-- ➕ /add\\_recipient — Add recipient to bulk transfer
-- 🔍 /review — Review bulk transfer list
-
-🎯 *Account Information:*
-- 🆔 /profile — View Copperx profile
-- 🏷️ /kyc — Check KYC status
-- 📜 /history — View transaction history
-- ❓ /help — Show help message
-
-
-
-📣 Contact Support: https://t.me/copperxcommunity/2183`,
 
 
         WALLET_BALANCE_TEMPLATE: `💰 *Wallet Balances*
@@ -94,82 +60,76 @@ Balance: %balance%
 Symbol: %symbol%`,
 
 
-        TRANSFER_EMAIL_INTRO: `📤 *Send Funds by Email*
+        TOPTOKENHOLDERS_HELP: `📊 *Top Holders Command (/top_holders)*
 
-Send funds to any email address. The recipient will be notified to claim the funds.
+*DESCRIPTION*
+Shows the top token holders for a specific token, including their balances and percentage of total supply.
 
-Please follow these steps:
-1. Enter recipient email
-2. Enter amount to send
-3. Select purpose
-4. Review and confirm`,
+*SYNOPSIS*
+/top_holders <token_mint_address> [limit]
 
+*ARGUMENTS*
+<token_mint_address>    The Solana token mint address to check holders for
+[limit]                 Optional limit for number of holders to display (default: 10)
 
-        TOPTOKENHOLDERS_HELP: `*Usage:* /top_holders <token_mint_address> [limit]\n" +
-                "*DESCRIPTION*: Shows the top token holders for a specific token.\n\n" +
-                "*SYNOPSIS*: /top_holders <token_mint_address> [limit]\n" +
-                "*ARGUMENTS*: <token_mint_address> The Solana token mint address to check holders for\n" +
-                "*USER STORY*: \n" +
-                "As a user, I want to analyze the top token holders for a specific token.\n" +
-                "I want to be able to see the top holders for a specific token.\n\n" +
-                "*EXAMPLES*: \n" +
-                "/top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n" +
-                "/top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10\n" +
-                "[limit] Optional limit for the number of top holders to display (default: 10)\n" +
-                "Limit: 1-100"
-                
-                *OUTPUT*:
+*EXAMPLES*
+/top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+/top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 20
 
-💰 Transfer Summary
+*USER STORY*
+As a user, I want to analyze the distribution of token holdings and identify major holders.
 
-👤 From: mmkyprqAN3ukTQF78ck8F9K5UfN8t9qQLet8RRVTcaC
+*OUTPUT*
+- List of top holders with:
+  * Holder address
+  * Balance amount
+  * Percentage of total supply
+  * Value in USD
+  * Last update time
 
-📥 To: HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe
+*TROUBLESHOOTING*
+- Invalid token address
+- No holders found
+- Network connectivity issues
+- Check the space between command and arguments
 
-💸 Transfer Amount(SOL): 0.000002 SOL
+*SEE ALSO*
+/analyze, /holder_distribution, /series`,
 
-🕒 Block Time: 13 hours ago
+        TOKENHOLDERANALYSIS_HELP: `📊 *Token Holder Analysis Command (/holders)*
 
-🔗 🔍 View on Solscan`,
+*DESCRIPTION*
+Analyzes token holder and volume trends over time, including correlation analysis and holder behavior patterns.
 
-        TOKENHOLDERANALYSIS_HELP: ` *Usage:* /holders <token_mint_address> [timeframe]
+*SYNOPSIS*
+/holders <token_mint_address> [timeframe]
 
-*DESCRIPTION*: Analyzes token holder and volume trends over time,
-including correlation analysis.
+*ARGUMENTS*
+<token_mint_address>    The Solana token mint address to analyze
+[timeframe]            Optional timeframe in YYYY/MM/DD format
 
-*USER STORY*:
-As a user, I want to analyze the token holder and volume trends over time,
-including correlation analysis.
+*EXAMPLES*
+/holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+/holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025/03/26 2025/03/30
 
-*SYNOPSIS*: /holders <token_mint_address> [timeframe]
+*USER STORY*
+As a user, I want to understand how token holder behavior changes over time and correlate it with trading volume.
 
-*ARGUMENTS*: <token_mint_address> The Solana token mint address to analyze
+*OUTPUT*
+- Current holder count and changes
+- Top holders list with balances
+- Volume analysis
+- Holder-Volume correlation
+- Historical trends
 
-[timeframe] Optional timeframe in YYYY/MM/DD format
+*TROUBLESHOOTING*
+- Invalid token address
+- Invalid date format
+- Insufficient historical data
+- Network connectivity issues
 
-Example: /holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025/03/26 2025/03/30
-
-Output:
-
-📊 Token Holder Analysis
-
-Token: mmkyprqAN3ukTQF78ck8F9K5UfN8t9qQLet8RRVTcaC
-Timeframe: 24h
-
-Current Holders: 1500
-Change in Holders: 100 (6.67%)
-
-Top Holders:
-1. mmkyprqAN3ukTQF78ck8F9K5UfN8t9qQLet8RRVTcaC
-   Balance: 1000
-   Percentage: 6.67%
-
-2. HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe
-   Balance: 500
-   Percentage: 3.33%
-
-Data as of 24 hours ago
-                `,
+*SEE ALSO*
+/analyze, /holder_distribution, /series`,
 
         TOKEN_HOLDER: `📊 *Rank*: %index%
 
@@ -181,32 +141,6 @@ Data as of 24 hours ago
 * Total % supply held:* %formattedSupply%
 
 * Token balance* %formattedValue%`,
-
-        WITHDRAWAL_MESSAGE: `💳 * Confirm Withdrawal Summary*
-
-*🏧 Amount to Withdraw:* %amount%
-
-*💲 Currency:* %currency%
-
-*🚕 Fee Percentage:* %feePercentage%
-
-*✅ Total Fee:* %totalFee%
-
-*🏦 Transfer Method:* %transferMethod%
-
-*🏦 Withdraw from Bank:* %bankName%
-
-*📤 Withdrawer Account Number:* %accountNumber%
-
-*⏳ ArrivalTime:* %arrivalTime%
-
-
-* ⚠ Total amount to withdraw \\+ Fee/Charges Applied:*
-
-* %toAmount% *
-
-
-*Note*: Please ensure that the details are correct before proceeding with the withdrawal`,
 
         // Token Analysis Commands
         TOKEN_ANALYSIS_USAGE: "Usage: /analyze <token_mint_address>\n\nExample: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
@@ -295,7 +229,7 @@ As a user, I want to analyze token holder and volume trends over time, including
 /analyze, /holder\\_distribution`,
 
         HOLDER_DISTRIBUTION_USAGE: "Usage: /holder_distribution <token_mint_address>\n\nExample: /holder_distribution 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
-        HOLDER_DISTRIBUTION_HELP: `📊 *Holder Distribution Command (/holder_distribution)*
+        HOLDER_DISTRIBUTION_HELP: `📊 *Holder Distribution Command (/holder\\_distribution)*
 
 *DESCRIPTION*
 Analyzes the distribution of token holders across different balance ranges.
@@ -545,39 +479,43 @@ Shows detailed information about a wallet's current state.
 /trackwallet, /listtrackedwallets, /removetrackedwallet`,
 
         // Recent Transfers Command
-        // RECENT_TRANSFERS_USAGE: "Usage: /transfers <token_mint_address>\n\nExample: /transfers 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
         RECENT_TRANSFERS_USAGE: "Usage: /transfers wa_wallet_address [limit]\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 10",
         RECENT_TRANSFERS_HELP: `🔄 *Recent Transfers Command (/transfers)*
 
 *DESCRIPTION*
-Shows recent token transfers for a specific token.
+Shows recent token transfers for a specific wallet, including transaction details and value changes.
 
 *SYNOPSIS*
-/transfers <wallet_address>
+/transfers <wallet_address> [limit]
 
 *ARGUMENTS*
 <wallet_address>    The Solana wallet address to check transfers for
-
-*USER STORY*:
-As a user, I want to see recent token transfers for a specific token.
+[limit]            Optional limit for number of transfers to display (default: 10)
 
 *EXAMPLES*
 /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+/transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 20
+
+*USER STORY*
+As a user, I want to monitor recent token transfers for a specific wallet to track activity and value changes.
 
 *OUTPUT*
-- Recent transfer list
-- Transfer amounts
-- Source and destination addresses
-- Timestamps
+- Transfer list with:
+  * Transaction signature
+  * Amount transferred
+  * Source and destination addresses
+  * Timestamp
+  * Value in USD
+  * Transaction status
 
 *TROUBLESHOOTING*
+- Invalid wallet address
 - No recent transfers found
-- Invalid token address
 - Network connectivity issues
-- Check the space between the commands
+- Check the space between command and arguments
 
 *SEE ALSO*
-/whalealert, /checkwhales`,
+/whalealert, /checkwhales, /analyze_wallet`,
 
         // Top Holders Command
         TOP_HOLDERS_USAGE: "Usage: /top_holders <token_mint_address>\n\nExample: /top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
@@ -617,15 +555,18 @@ As a user, I want to see the top token holders for a specific token.
 
 `,
 
-        PROGRAMS_HELP: `📚 *Programs Explorer Commands*
+        PROGRAMS_HELP: `🔍 *Programs Explorer Command (/programs)*
 
 *DESCRIPTION*
-Explore and search through known Solana programs.
+Explore and search through known Solana programs, including their details, usage statistics, and user information.
 
-*COMMANDS*
-/programs - List all programs
-/programs <search_term> - Search programs by name, description, or labels
-/program <program_id> - Get detailed information about a specific program
+*SYNOPSIS*
+/programs [search_term]
+/program <program_id>
+
+*ARGUMENTS*
+[search_term]    Optional search term to filter programs
+<program_id>     Specific program ID to view details
 
 *EXAMPLES*
 /programs
@@ -633,17 +574,26 @@ Explore and search through known Solana programs.
 /programs defi
 /program SAGEqqFewepDHH6hMDcmWy7yjHPpyKLDnRXKb3Ki8e6
 
-*FEATURES*
-- Paginated program listing
-- Search by name, description, or labels
-- Detailed program information
-- Links to websites, Twitter, and IDL files
-- Program categories and labels
+*USER STORY*
+As a user, I want to explore Solana programs and get detailed information about their usage, users, and activity.
+
+*OUTPUT*
+- Program listing with:
+  * Program name and ID
+  * Description and category
+  * Usage statistics
+  * User information
+  * Activity metrics
+  * Links to resources
 
 *TROUBLESHOOTING*
 - Program not found
 - Invalid program ID
-- Search returned no results`,
+- Search returned no results
+- Network connectivity issues
+
+*SEE ALSO*
+/program_info, /top_users, /users_insights`,
 
         PROGRAM_INFO_HELP: `🔍 *Program Info Command (/programinfo)*
 
@@ -870,5 +820,56 @@ Shows detailed information about a specific NFT collection in a wallet.
 *TROUBLESHOOTING*
 - Invalid wallet address
 - Collection not found
-- Network connectivity issues`
+- Network connectivity issues`,
+
+        EXPLORE_HELP: `🔍 *Explore Programs (/explore)*
+
+*DESCRIPTION*
+Explores and lists Solana programs by category (e.g., GAMING, DEFI, NFT), providing a comprehensive overview of programs in each category.
+
+*SYNOPSIS*
+/explore <category>
+
+*ARGUMENTS*
+<category>    The category to explore (e.g., gaming, defi, nft)
+
+*EXAMPLES*
+/explore gaming
+/explore defi
+/explore nft
+
+*USER STORY*
+As a user, I want to discover Solana programs by category to understand what's available in each ecosystem.
+
+*OUTPUT*
+- Category Overview:
+  * List of programs found for the specified category
+  * Program names with brief descriptions
+  * Links to detailed program information
+
+- Example Output:
+  Programs found for GAMING label
+
+  ⋆ Star Atlas SAGE
+  ⋆ Star Atlas - PROFILE ACTION
+  ⋆ Star Atlas - CRAFTING
+  ⋆ Star Atlas Proxy Rewarder
+  ⋆ Star Atlas - CARGO
+  ⋆ Bonkswap
+  ⋆ Star Atlas Score
+  ⋆ STEPN Dooar Swap
+  ⋆ Genopets Habitat Management
+  ⋆ Star Atlas Marketplace
+
+  To view more information about a program, use:
+  /program_info <program_name>
+
+*TROUBLESHOOTING*
+- Invalid category name
+- No programs found in category
+- Network connectivity issues
+- Check the space between command and category
+
+*SEE ALSO*
+/program_info, /programs, /top_users`,
 };
