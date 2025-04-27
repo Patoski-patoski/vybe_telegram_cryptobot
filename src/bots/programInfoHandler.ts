@@ -59,6 +59,12 @@ export class ProgramInfoHandler extends BaseHandler {
                 "Example: /programinfo Raydium Liquidity Pool V4");
         }
         const ID = parts.slice(1).join(" ").trim();
+        if (ID === 'help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.PROGRAM_INFO_HELP,
+                { parse_mode: "Markdown" }
+            );
+        }
 
         try {
             // Check Redis cache first
@@ -151,7 +157,7 @@ export class ProgramInfoHandler extends BaseHandler {
 
                 // Save to Redis if available
                 if (this.redisService) {
-                    await this.redisService.setCachedResponse(`explore:${label}`, programs, 86400); // 24 hours
+                    await this.redisService.setCachedResponse(`explore:${label}`, programs, 7200); // 2 hours
                 }
 
                 // Also save to in-memory cache

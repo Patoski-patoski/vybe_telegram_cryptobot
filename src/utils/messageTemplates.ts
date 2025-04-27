@@ -32,8 +32,8 @@ Here are all available commands, organized by category:
 - /nft\\_collection <address>, <name> - View collection details
 
 🔍 *Program Analysis:*
-- /program\\_info <id> - Get program information
-- /explore <id> - Explore program details
+- /program\\_info <program_id_or_name> - Get program information
+- /explore <label> - Explore and list Solana programs by category
 - /top\\_users <id> - View top program users
 - /users\\_insights <id> - Get user insights
 - /activity\\_change <id> - Check activity changes
@@ -49,15 +49,6 @@ Example: /analyze help
 
 For support or questions, please contact our team.
 `,
-
-
-        WALLET_BALANCE_TEMPLATE: `💰 *Wallet Balances*
-%balances%
-WalletId: %walletId%
-Network: %network%
-Walletaddress: %walletAddress%
-Balance: %balance%
-Symbol: %symbol%`,
 
 
         TOPTOKENHOLDERS_HELP: `📊 *Top Holders Command (/top_holders)*
@@ -223,7 +214,6 @@ As a user, I want to analyze token holder and volume trends over time, including
 - Ensure valid date format (YYYY-MM-DD)
 - Check if token has sufficient historical data
 - Verify network connectivity
-- Check the space between the command and the token address
 
 *SEE ALSO*
 /analyze, /holder\\_distribution`,
@@ -595,32 +585,40 @@ As a user, I want to explore Solana programs and get detailed information about 
 *SEE ALSO*
 /program_info, /top_users, /users_insights`,
 
-        PROGRAM_INFO_HELP: `🔍 *Program Info Command (/programinfo)*
+        PROGRAM_INFO_HELP: `🔍 *Program Info Command (/program_info)*
 
 *DESCRIPTION*
-Look up information about a specific Solana program.
+Provides detailed information about a specific Solana program, including its name, entity, labels, description, and logo.
 
 *SYNOPSIS*
-/programinfo <program_id>
+/program_info <program_id_or_name>
 
 *ARGUMENTS*
-<program_id>    The Solana program ID to look up
+<program_name>    The name of the program to get information about (e.g., Sunny, Bonkswap)
 
 *EXAMPLES*
-/programinfo SAGEqqFewepDHH6hMDcmWy7yjHPpyKLDnRXKb3Ki8e6
+/program_info Sunny
+/program_info Bonkswap
+/program_info Raydium
+
+*USER STORY*
+As a user, I want to get detailed information about a specific Solana program to understand its purpose and features.
 
 *OUTPUT*
-- Program Name
-- Labels
-- Description
-- Website (if available)
-- Logo URL (if available)
-- Main Category
+- Program Information:
+  - Program Name
+  - Entity Name
+  - Labels (e.g., DEFI, AGGREGATOR, STAKING, DEX, AMM)
+  - Description
+  - Logo URL
 
 *TROUBLESHOOTING*
-- Program ID not found
-- Invalid program ID format
-- Check the space between the command and the program ID`,
+- Invalid program name
+- Program not found
+- Network connectivity issues
+
+*SEE ALSO*
+/explore, /top_users, /users_insights`,
 
         PRICE_USAGE: "Usage: /price <token_mint_address>\n\nExample: /price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
         PRICE_HELP: `💰 *Price Command (/price)*
@@ -843,33 +841,91 @@ As a user, I want to discover Solana programs by category to understand what's a
 
 *OUTPUT*
 - Category Overview:
-  * List of programs found for the specified category
-  * Program names with brief descriptions
-  * Links to detailed program information
-
-- Example Output:
-  Programs found for GAMING label
-
-  ⋆ Star Atlas SAGE
-  ⋆ Star Atlas - PROFILE ACTION
-  ⋆ Star Atlas - CRAFTING
-  ⋆ Star Atlas Proxy Rewarder
-  ⋆ Star Atlas - CARGO
-  ⋆ Bonkswap
-  ⋆ Star Atlas Score
-  ⋆ STEPN Dooar Swap
-  ⋆ Genopets Habitat Management
-  ⋆ Star Atlas Marketplace
-
-  To view more information about a program, use:
-  /program_info <program_name>
+  - List of programs found for the specified category
+  - Program names with brief descriptions
+  - Links to detailed program information
 
 *TROUBLESHOOTING*
 - Invalid category name
 - No programs found in category
 - Network connectivity issues
-- Check the space between command and category
 
 *SEE ALSO*
-/program_info, /programs, /top_users`,
+/program\\_info, /programs, /top\\_users`,
+
+        TOP_USERS_HELP: `👑 *Top Users Command (/top_users)*
+
+*DESCRIPTION*
+Shows the top active users of a specific Solana program, ranked by their transaction count and activity level.
+
+*SYNOPSIS*
+/top_users <program\\_id\\_or\\_name>
+
+*ARGUMENTS*
+<program_name>    The name of the program to get top users for (e.g., Bonkswap, Raydium)
+
+*EXAMPLES*
+/top\\_users Bonkswap
+/top\\_users Raydium
+/top\\_users Sunny
+
+*USER STORY*
+As a user, I want to identify the most active users of a Solana program to understand user engagement and activity patterns.
+
+*OUTPUT*
+- Top Users List:
+  - Ranked list of top 10 users
+  - User wallet addresses
+  - Transaction counts
+  - Timestamp of data retrieval
+
+*TROUBLESHOOTING*
+- Invalid program id/name
+- Program not found
+- No user data available
+- Network connectivity issues
+
+*SEE ALSO*
+/program\\_info, /users\\_insights, /activity\\_change`,
+
+        USERS_INSIGHTS_HELP: `📊 *Users Insights Command (/users_insights)*
+
+*DESCRIPTION*
+Provides detailed insights about users of a specific Solana program, including transaction statistics and whale wallet analysis.
+
+*SYNOPSIS*
+/users\\_insights <program\\_id\\_or\\_name>
+
+*ARGUMENTS*
+<program\\_name>   The name of the program to get user insights for (e.g., Monaco Protocol, Bonkswap)
+
+*EXAMPLES*
+/users\\_insights Monaco Protocol
+/users\\_insights Bonkswap
+/users\\_insights Raydium
+
+*USER STORY*
+As a user, I want to understand the user base and transaction patterns of a Solana program to analyze its adoption and usage.
+
+*OUTPUT*
+- User Statistics:
+  - Total Users Analyzed
+  - Total Transactions
+  - Average Transactions per User
+  - Transaction Range
+
+- Whale Analysis:
+  - List of top whale wallets
+  - Transaction counts for each whale
+  - Percentage of total transactions
+
+
+*TROUBLESHOOTING*
+- Invalid program name
+- Program not found
+- No user data available
+- Network connectivity issues
+
+*SEE ALSO*
+/program\\_info, /top\\_users, /activity\\_change`,
 };

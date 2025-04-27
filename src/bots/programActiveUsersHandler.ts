@@ -6,6 +6,7 @@ import { VybeApiService } from "../services/vybeAPI";
 import { ProgramActiveUser } from "../interfaces/vybeApiInterface";
 import logger from "../config/logger";
 import { deleteDoubleSpace } from "../utils/utils";
+import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 
 export class ProgramActiveUsersHandler extends BaseHandler {
@@ -32,6 +33,12 @@ export class ProgramActiveUsersHandler extends BaseHandler {
         }
 
         const identifier = this.capitalizeTheFirstLetter(parts.slice(1).join(" ").trim());
+        if (identifier === 'Help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.TOP_USERS_HELP,
+                {parse_mode: "Markdown"}
+            )
+        }
 
 
         // Default limit logic
@@ -66,17 +73,26 @@ export class ProgramActiveUsersHandler extends BaseHandler {
     }
 
     /**
-     * Handles the /usersinsights command to provide insights about program users
+     * Handles the /users_insights command to provide insights about program users
      */
     async handleUserInsights(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
-            return this.bot.sendMessage(chatId, "Usage: /usersinsights <program_id_or_name>");
+            return this.bot.sendMessage(chatId,
+                "Usage: /users_insights <program_id_or_name>\n" +
+                "Example: /users_insights Monaco Protocol"
+            );
         }
 
         const identifier = this.capitalizeTheFirstLetter(parts.slice(1).join(" ").trim());
+        if (identifier.toLowerCase() === 'help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.USERS_INSIGHTS_HELP,
+                {parse_mode: "Markdown"}
+            )
+        }
 
         try {
             // Get program info first to resolve the identifier
