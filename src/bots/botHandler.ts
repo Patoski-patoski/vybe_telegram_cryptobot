@@ -95,7 +95,7 @@ export class BotHandler {
             { cmd: /\/top_users/, handler: this.programActiveUsersHandler.handleTopUsers.bind(this.programActiveUsersHandler) },
             { cmd: /\/users_insights/, handler: this.programActiveUsersHandler.handleUserInsights.bind(this.programActiveUsersHandler) },
             { cmd: /\/activity_change/, handler: this.programActiveUsersHandler.handleActivityChange.bind(this.programActiveUsersHandler) },
-            { cmd: /\/check_whale_users/, handler: this.programActiveUsersHandler.handleCheckWhaleUsers.bind(this.programActiveUsersHandler) },
+            { cmd: /\/check_program_whale_users/, handler: this.programActiveUsersHandler.handleCheckWhaleUsers.bind(this.programActiveUsersHandler) },
 
             // NFT commands
             { cmd: /\/nft_portfolio/, handler: this.nftPortfolioHandler.handleNFTPortfolio.bind(this.nftPortfolioHandler) },

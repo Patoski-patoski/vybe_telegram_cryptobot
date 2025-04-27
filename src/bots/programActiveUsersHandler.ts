@@ -7,19 +7,21 @@ import { ProgramActiveUser } from "../interfaces/vybeApiInterface";
 import logger from "../config/logger";
 import { deleteDoubleSpace } from "../utils/utils";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
-
+import { RedisService } from "../services/redisService";
 
 export class ProgramActiveUsersHandler extends BaseHandler {
-    private activeUsersCache: Map<string, { users: ProgramActiveUser[], timestamp: number }> = new Map();
-    private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minutes in milliseconds
     private minTransactionsForWhale = 200_000;
-
-    // To store previous day's data for comparison
-    private previousDayData: Map<string, { users: ProgramActiveUser[], timestamp: number }> = new Map();
+    private redisService!: RedisService;
 
     constructor(bot: TelegramBot, api: VybeApiService) {
         super(bot, api);
+        RedisService.getInstance().then(service => {
+            this.redisService = service;
+        }).catch(error => {
+            logger.error("Failed to initialize Redis Service:", error);
+        });
     }
+
 
     /**
      * Handles the /topusers command to display top active users for a program
@@ -176,15 +178,15 @@ export class ProgramActiveUsersHandler extends BaseHandler {
                 return this.bot.sendMessage(chatId, "❌ No active users found for this program.");
             }
 
+
+            // Get Redis service
+            const redisService = await RedisService.getInstance();
             // Check if we have previous data
-            const previousData = this.previousDayData.get(programId)?.users;
+            const previousData = await redisService.getPreviousDayData(programId);
 
             if (!previousData) {
                 // Store current data for future comparison
-                this.previousDayData.set(programId, {
-                    users: currentData,
-                    timestamp: Date.now()
-                });
+                await redisService.setPreviousDayData(programId, currentData);
 
                 return this.bot.sendMessage(
                     chatId,
@@ -200,10 +202,7 @@ export class ProgramActiveUsersHandler extends BaseHandler {
             const message = this.formatActivityChangesMessage(changes, programInfo[0].name);
 
             // Update previous day data
-            this.previousDayData.set(programId, {
-                users: currentData,
-                timestamp: Date.now()
-            });
+            await redisService.setPreviousDayData(programId, currentData);
 
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
@@ -226,18 +225,23 @@ export class ProgramActiveUsersHandler extends BaseHandler {
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /checkprogramwhaleusers <program_id_or_name> [min_transactions]\n" +
-                "Example: /checkprogramwhaleusers 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8 100000" +
-                "Example: /checkprogramwhaleusers Raydium Liquidity Pool V4 100000"
+                "Usage: /check_program_whale_users <program_id_or_name>\n" +
+                "Example: /check_program_whale_users 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8" +
+                "Example: /check_program_whale_users Raydium Liquidity Pool V4"
             );
         }
 
         const identifier = this.capitalizeTheFirstLetter(parts.slice(1).join(" ").trim());
+        if (identifier.toLowerCase() === 'help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.CHECK_PROGRAM_WHALE_USERS,
+                { parse_mode: "Markdown" }
+            );
+        }
 
         // Default limit logic
         const limit = parts.length > 2 ? parseInt(parts[2]) : 10;
         const safeLimit = isNaN(limit) || limit <= 0 ? 10 : limit;
-
 
         try {
             // Get program info first to resolve the identifier
@@ -290,32 +294,24 @@ export class ProgramActiveUsersHandler extends BaseHandler {
      * Helper method to get active users with caching
      */
     private async getActiveUsersWithCache(programId: string, limit: number = 10): Promise<ProgramActiveUser[]> {
-        // Check cache first
-        const cached = this.activeUsersCache.get(programId);
-        const now = Date.now();
-
-        if (cached && (now - cached.timestamp < this.CACHE_TTL)) {
-            logger.info(`Cache hit for active users of program ${programId}`);
-            return cached.users;
-        }
-
-        logger.info(`Cache miss for active users of program ${programId}, fetching from API`);
+        const cacheKey = `active_users:${programId}:${limit}`;
 
         try {
-            const activeUsers = await this.api.getProgramActiveUsers(programId, limit);
-            // Update cache
-            this.activeUsersCache.set(programId, {
-                users: activeUsers.data,
-                timestamp: now
-            });
+            // Try to get from Redis cache
+            const redisService = await RedisService.getInstance();
+            const cachedData = await redisService.getCachedResponse(cacheKey);
 
-            // Set cache expiration
-            setTimeout(() => {
-                if (this.activeUsersCache.has(programId)) {
-                    this.activeUsersCache.delete(programId);
-                    logger.info(`Cache entry expired for program active users ${programId}`);
-                }
-            }, this.CACHE_TTL);
+            if (cachedData) {
+                logger.info(`Cache hit for active users of program ${programId}`);
+                return cachedData;
+            }
+
+            logger.info(`Cache miss for active users of program ${programId}, fetching from API`);
+
+            const activeUsers = await this.api.getProgramActiveUsers(programId, limit);
+
+            // Store in Redis with TTL (30 minutes)
+            await redisService.setCachedResponse(cacheKey, activeUsers.data, 1800);
 
             return activeUsers.data;
         } catch (error) {
@@ -323,7 +319,6 @@ export class ProgramActiveUsersHandler extends BaseHandler {
             throw error;
         }
     }
-
     /**
      * Format top users message
      */

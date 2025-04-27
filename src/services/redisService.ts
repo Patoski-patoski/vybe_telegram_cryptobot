@@ -280,6 +280,26 @@ export class RedisService {
         }
     }
 
+    
+    async setPreviousDayData(programId: string, users: ProgramActiveUser[]): Promise<void> {
+        try {
+            await this.client.set(`previous_day_data:${programId}`, JSON.stringify(users), { EX: 604800 }); // 7 days TTL
+        } catch (error) {
+            logger.error('Failed to set previous day data:', error);
+            throw error;
+        }
+    }
+
+    async getPreviousDayData(programId: string): Promise<ProgramActiveUser[] | null> {
+        try {
+            const data = await this.client.get(`previous_day_data:${programId}`);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            logger.error('Failed to get previous day data:', error);
+            return null;
+        }
+    }
+
     // Cleanup
     async cleanup(): Promise<void> {
         try {

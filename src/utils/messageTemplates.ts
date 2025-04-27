@@ -862,7 +862,7 @@ Shows the top active users of a specific Solana program, ranked by their transac
 /top_users <program\\_id\\_or\\_name>
 
 *ARGUMENTS*
-<program_name>    The name of the program to get top users for (e.g., Bonkswap, Raydium)
+<program\\_id\\_or\\_name>    The name of the program to get top users for (e.g., Bonkswap, 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8)
 
 *EXAMPLES*
 /top\\_users Bonkswap
@@ -897,12 +897,12 @@ Provides detailed insights about users of a specific Solana program, including t
 /users\\_insights <program\\_id\\_or\\_name>
 
 *ARGUMENTS*
-<program\\_name>   The name of the program to get user insights for (e.g., Monaco Protocol, Bonkswap)
+<program\\_id\\_or\\_name>   The name of the program to get user insights for (e.g., Monaco Protocol, 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8)
 
 *EXAMPLES*
 /users\\_insights Monaco Protocol
 /users\\_insights Bonkswap
-/users\\_insights Raydium
+/users\\_insights 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8
 
 *USER STORY*
 As a user, I want to understand the user base and transaction patterns of a Solana program to analyze its adoption and usage.
@@ -928,4 +928,40 @@ As a user, I want to understand the user base and transaction patterns of a Sola
 
 *SEE ALSO*
 /program\\_info, /top\\_users, /activity\\_change`,
+
+        CHECK_PROGRAM_WHALE_USERS: `🐋 *Check Program Whale Users Command (/check\\_program\\_whale\\_users)*
+
+*DESCRIPTION*
+Identifies and displays whale users of a specific Solana program based on their transaction activity, using a predefined threshold.
+
+*SYNOPSIS*
+/check\\_program\\_whale\\_users <program\\_id\\_or\\_name>
+
+*ARGUMENTS*
+<program\\_id\\_or\\_name>   The name of the program to check whale users for (e.g., Monaco Protocol, 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8)
+
+*EXAMPLES*
+/check\\_program\\_whale\\_users Monaco Protocol
+/check\\_program\\_whale\\_users Bonkswap
+/check\\_program\\_whale\\_users 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8
+
+*USER STORY*
+As a user, I want to identify whale users of a Solana program to understand the distribution of activity and potential market impact.
+
+*OUTPUT*
+- Whale Users List:
+  - Program name
+  - Transaction threshold
+  - Ranked list of whale wallets
+  - Transaction counts for each whale
+  - Total whale user count
+
+*TROUBLESHOOTING*
+- Invalid program name
+- Program not found
+- No whale users found
+- Network connectivity issues
+
+*SEE ALSO*
+/program\\_info, /users\\_insights, /top\\_users`,
 };
