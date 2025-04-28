@@ -862,12 +862,13 @@ Shows the top active users of a specific Solana program, ranked by their transac
 /top_users <program\\_id\\_or\\_name>
 
 *ARGUMENTS*
-<program\\_id\\_or\\_name>    The name of the program to get top users for (e.g., Bonkswap, 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8)
+<program\\_id\\_or\\_name>    The name of the program to get top users for
+(e.g., Bonkswap, 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8)
 
 *EXAMPLES*
 /top\\_users Bonkswap
-/top\\_users Raydium
-/top\\_users Sunny
+/top\\_users 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8
+/top\\_users SPQR4kT3q2oUKEJes2L6NNSBCiPW9SfuhkuqC9bp6Sx
 
 *USER STORY*
 As a user, I want to identify the most active users of a Solana program to understand user engagement and activity patterns.
@@ -897,7 +898,8 @@ Provides detailed insights about users of a specific Solana program, including t
 /users\\_insights <program\\_id\\_or\\_name>
 
 *ARGUMENTS*
-<program\\_id\\_or\\_name>   The name of the program to get user insights for (e.g., Monaco Protocol, 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8)
+<program\\_id\\_or\\_name>   The name of the program to get user insights for
+(e.g., Monaco Protocol, 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8)
 
 *EXAMPLES*
 /users\\_insights Monaco Protocol
@@ -932,18 +934,19 @@ As a user, I want to understand the user base and transaction patterns of a Sola
         CHECK_PROGRAM_WHALE_USERS: `🐋 *Check Program Whale Users Command (/check\\_program\\_whale\\_users)*
 
 *DESCRIPTION*
-Identifies and displays whale users of a specific Solana program based on their transaction activity, using a predefined threshold.
+Identifies and displays whale users of a specific Solana program based on their transaction activity, using a predefined threshold. 
 
 *SYNOPSIS*
 /check\\_program\\_whale\\_users <program\\_id\\_or\\_name>
 
 *ARGUMENTS*
-<program\\_id\\_or\\_name>   The name of the program to check whale users for (e.g., Monaco Protocol, 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8)
+<program\\_id\\_or\\_name>   The name of the program to check whale users for
+(e.g., Monaco Protocol, SPQR4kT3q2oUKEJes2L6NNSBCiPW9SfuhkuqC9bp6Sx)
 
 *EXAMPLES*
-/check\\_program\\_whale\\_users Monaco Protocol
-/check\\_program\\_whale\\_users Bonkswap
-/check\\_program\\_whale\\_users 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8
+/activity\\_change Monaco Protocol
+/activity\\_change Bonkswap
+/activity\\_change SPQR4kT3q2oUKEJes2L6NNSBCiPW9SfuhkuqC9bp6Sx
 
 *USER STORY*
 As a user, I want to identify whale users of a Solana program to understand the distribution of activity and potential market impact.
@@ -964,4 +967,39 @@ As a user, I want to identify whale users of a Solana program to understand the 
 
 *SEE ALSO*
 /program\\_info, /users\\_insights, /top\\_users`,
+        ACTIVITY_CHANGE_HELP: `🐋 *Activity change Command (/activity\\_change)*
+
+*DESCRIPTION*
+Identifies and displays any notable changes in user activity for Solana programs over time.
+
+*SYNOPSIS*
+/activity\\_change) <program\\_id\\_or\\_name>
+
+
+*ARGUMENTS*
+<program\\_id\\_or\\_name>   The name of the program to track it's activity whale
+(e.g., Monaco Protocol, SPQR4kT3q2oUKEJes2L6NNSBCiPW9SfuhkuqC9bp6Sx)
+
+*EXAMPLES*
+/activity\\_change Monaco Protocol
+/activity\\_change Bonkswap
+/activity\\_change SPQR4kT3q2oUKEJes2L6NNSBCiPW9SfuhkuqC9bp6Sx
+
+*USER STORY*
+As a user, I want to track and compare user activity data for Solana programs over time
+
+*OUTPUT*
+- Whale Users List:
+  - Program name
+  - Transaction activities e.g A new user
+  - Increased activity,
+  - Decreased activity
+
+*TROUBLESHOOTING*
+- Invalid program name
+- Program not found
+- Network connectivity issues
+
+*SEE ALSO*
+/check\\_program\\_whale\\_users, /users\\_insights, /top\\_users`,
 };

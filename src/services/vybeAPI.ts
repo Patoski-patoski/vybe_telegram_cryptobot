@@ -500,10 +500,7 @@ export class VybeApiService {
                 limit: limit.toString(),
             });
 
-            console.log("Params", params);
-
             const response = await this.api.get(`/price/${mintAddress}/token-ohlcv`, {params});
-            console.log("API getTokenOHLCV", response.data);
             return response.data as GetTokenOHLCVResponse;
         } catch (error: any) {
             logger.error('Failed to fetch token OHLCV data:', error);

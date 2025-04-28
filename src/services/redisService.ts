@@ -11,6 +11,12 @@ import logger from '../config/logger';
 export class RedisService {
     private client: RedisClientType;
     private static instance: RedisService;
+    public THREE_MIN = 180;  // 3 minutes in seconds
+    public THIRTY_MIN = 1800 
+    public ONE_HOUR = 3600
+    public TWO_HOUR = 7200
+    public FIVE_HOUR = 18000
+    public ONE_DAY = 86400 // 1 day in seconds
 
     private constructor() {
         this.client = createClient({
@@ -249,7 +255,7 @@ export class RedisService {
     // Program Info Cache
     async setProgramInfo(programId: string, programInfo: any): Promise<void> {
         try {
-            await this.client.set(`program_info:${programId}`, JSON.stringify(programInfo), { EX: 86400 }); // Expire after 24 hours
+            await this.client.set(`program_info:${programId}`, JSON.stringify(programInfo), { EX: this.ONE_DAY }); // Expire after 24 hours
         } catch (error) {
             logger.error('Failed to set program info:', error);
             throw error;
@@ -267,7 +273,7 @@ export class RedisService {
     }
 
     // API Response Cache
-    async setCachedResponse(key: string, data: any, ttl: number = 300): Promise<void> {
+    async setCachedResponse(key: string, data: any, ttl: number = this.THIRTY_MIN): Promise<void> {
         try {
             await this.client.set(`cache:${key}`, JSON.stringify(data), { EX: ttl });
         } catch (error) {
@@ -286,7 +292,7 @@ export class RedisService {
         }
     }
 
-    
+
     async setPreviousDayData(programId: string, users: ProgramActiveUser[]): Promise<void> {
         try {
             await this.client.set(`previous_day_data:${programId}`, JSON.stringify(users), { EX: 604800 }); // 7 days TTL
@@ -302,6 +308,26 @@ export class RedisService {
             return data ? JSON.parse(data) : null;
         } catch (error) {
             logger.error('Failed to get previous day data:', error);
+            return null;
+        }
+    }
+
+    // Top Users Cache
+    async setTopUsersCache(programId: string, users: any[]): Promise<void> {
+        try {
+            await this.client.set(`top_users:${programId}`, JSON.stringify(users), { EX: this.THREE_MIN });
+        } catch (error) {
+            logger.error('Failed to set top users cache:', error);
+            throw error;
+        }
+    }
+
+    async getTopUsersCache(programId: string): Promise<any[] | null> {
+        try {
+            const data = await this.client.get(`top_users:${programId}`);
+            return data ? JSON.parse(data) : null;
+        } catch (error) {
+            logger.error('Failed to get top users cache:', error);
             return null;
         }
     }

@@ -31,17 +31,16 @@ export class ProgramActiveUsersHandler extends BaseHandler {
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
-            return this.bot.sendMessage(chatId, "Usage: /topusers <program_id_or_name> [limit]");
+            return this.bot.sendMessage(chatId, "Usage: /topusers <program_id_or_name>");
         }
 
         const identifier = this.capitalizeTheFirstLetter(parts.slice(1).join(" ").trim());
         if (identifier === 'Help') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.TOP_USERS_HELP,
-                {parse_mode: "Markdown"}
+                { parse_mode: "Markdown" }
             )
         }
-
 
         // Default limit logic
         const limit = parts.length > 2 ? parseInt(parts[2]) : 10;
@@ -55,7 +54,21 @@ export class ProgramActiveUsersHandler extends BaseHandler {
             }
 
             const programId = programInfo[0].programId;
-            const activeUsers = await this.getActiveUsersWithCache(programId, safeLimit);
+
+            // Try to get from cache first
+            const redisService = await RedisService.getInstance();
+            const cachedUsers = await redisService.getTopUsersCache(programId);
+
+            let activeUsers;
+            if (cachedUsers) {
+                activeUsers = cachedUsers;
+                logger.info(`Using cached top users data for program ${programId}`);
+            } else {
+                activeUsers = await this.getActiveUsersWithCache(programId, safeLimit);
+                // Cache the results
+                await redisService.setTopUsersCache(programId, activeUsers);
+                logger.info(`Cached top users data for program ${programId}`);
+            }
 
             if (!activeUsers || activeUsers.length === 0) {
                 return this.bot.sendMessage(chatId, "❌ No active users found for this program.");
@@ -89,10 +102,10 @@ export class ProgramActiveUsersHandler extends BaseHandler {
         }
 
         const identifier = this.capitalizeTheFirstLetter(parts.slice(1).join(" ").trim());
-        if (identifier.toLowerCase() === 'help') {
+        if (identifier === 'Help') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.USERS_INSIGHTS_HELP,
-                {parse_mode: "Markdown"}
+                { parse_mode: "Markdown" }
             )
         }
 
@@ -311,7 +324,7 @@ export class ProgramActiveUsersHandler extends BaseHandler {
             const activeUsers = await this.api.getProgramActiveUsers(programId, limit);
 
             // Store in Redis with TTL (30 minutes)
-            await redisService.setCachedResponse(cacheKey, activeUsers.data, 1800);
+            await redisService.setCachedResponse(cacheKey, activeUsers.data);
 
             return activeUsers.data;
         } catch (error) {

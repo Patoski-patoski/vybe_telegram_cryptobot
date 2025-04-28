@@ -29,8 +29,13 @@ export class PriceHandler extends BaseHandler {
         const mintAddress = parts[1];
 
         try {
-            const ohlcvData = await this.api.getTokenOHLCV(mintAddress);
+            const [ohlcvData, holders] = await Promise.all([
+                this.api.getTokenOHLCV(mintAddress),
+                this.api.getTopTokenHolder(mintAddress)]
+            )
             console.log("ohlcvData", ohlcvData);
+
+            const tokenName =  holders.data[0].tokenSymbol
 
             if (!ohlcvData || !ohlcvData.data) {
                 await this.bot.sendMessage(chatId, 'No price data available for this token.');
@@ -42,7 +47,6 @@ export class PriceHandler extends BaseHandler {
             await this.bot.sendPhoto(chatId, chartImage, { caption: '📊 Token Price Chart' });
 
             const len = ohlcvData.data.length;
-            console.log("Length", len);
             let latest, previous;
 
             if (len >= 2) {
@@ -57,16 +61,35 @@ export class PriceHandler extends BaseHandler {
             }
 
             const change = ((parseFloat(latest.close) - parseFloat(previous.close)) / parseFloat(previous.close)) * 100;
-            const changeEmoji = change >= 0 ? '📈' : '📉';
+            const changeEmoji = change >= 0 ? '📈 +' : '📉 -';
+            const timestamp = latest.time; 
+            const date = new Date(timestamp * 1000); // Convert to milliseconds
+            
+            const humanReadableDate = date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short'
+            });
 
-            const message = `💰 *Token Price Summary*
+            const message = `💰 *Token Price Summary as of ${humanReadableDate}*
 
-*Last Close:* ${formatUsdValue(latest.close)}
+
+*Token name:* ${tokenName}
+
+*Current Price(Close):* ${formatUsdValue(latest.close)}
 
 *24h High:* ${formatUsdValue(latest.high)}
 *24h Low:* ${formatUsdValue(latest.low)}
 
-*Volume:* ${formatUsdValue(latest.volumeUsd).toLocaleString()}
+*Number of trades*: ${latest.count.toLocaleString()}
+
+*Total amount of ${tokenName} traded:* ${latest.volume.toLocaleString()}
+*Total Value of ${tokenName} traded(USD):* ${formatUsdValue(latest.volumeUsd)}
+
 *Change:* ${changeEmoji} ${change.toFixed(2)}%`;
 
             await this.bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
