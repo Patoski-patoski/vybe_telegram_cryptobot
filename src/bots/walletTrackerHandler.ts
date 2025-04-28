@@ -1084,6 +1084,5 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         return await chartJSNodeCanvas.renderToBuffer(configuration);
     }
 
-    // Add this to handle callback queries
 
 }

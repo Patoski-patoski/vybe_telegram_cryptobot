@@ -10,7 +10,7 @@ import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { RedisService } from "../services/redisService";
 
 export class ProgramActiveUsersHandler extends BaseHandler {
-    private minTransactionsForWhale = 200_000;
+    private minTransactionsForWhale = 150_000;
     private redisService!: RedisService;
 
     constructor(bot: TelegramBot, api: VybeApiService) {
@@ -49,8 +49,19 @@ export class ProgramActiveUsersHandler extends BaseHandler {
         try {
             // Get program info first to resolve the identifier
             const programInfo = await this.api.getProgramInfoByIdOrName(identifier);
+                
             if (!programInfo || programInfo.length === 0) {
-                return this.bot.sendMessage(chatId, "❌ Program not found. Please check the program ID or name and try again.");
+                return this.bot.sendMessage(chatId,
+                    "❌ Program not found. Please check the program ID or name and try again.",
+                    {
+                        parse_mode: "Markdown",
+                        reply_markup: {
+                            inline_keyboard: [
+                                [{ text: "💨 View commands", callback_data: 'command' }]
+                            ]
+                        }
+                    }
+                );
             }
 
             const programId = programInfo[0].programId;
@@ -76,10 +87,27 @@ export class ProgramActiveUsersHandler extends BaseHandler {
 
             // Format message
             const message = this.formatTopUsersMessage(activeUsers, identifier);
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "🐋 View Program's Whale Users",
+                            callback_data: `check_whale_users_${programId}`
+                        },
+                        {
+                            text: "👀 Get Programs Users insight",
+                            callback_data: `get_users_insights${programId}`
+                        }
+                    ],
+                    
+                    [{text: "💨 View commands", callback_data: `command`}]
+                ]
+            };
 
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
-                disable_web_page_preview: true
+                disable_web_page_preview: true,
+                reply_markup: keyboard
             });
         } catch (error) {
             logger.error(`Error fetching top users for program ${identifier}:`, error);
@@ -149,10 +177,26 @@ export class ProgramActiveUsersHandler extends BaseHandler {
                     message += `_...and ${whales.length - 5} more_\n`;
                 }
             }
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "🔝 View Programs Top Users",
+                            callback_data: `view_top_users_${programName}`
+                        },
+                        {
+                            text: "🐋 View Program's Whale Users",
+                            callback_data: `check_whale_users_${programName}`
+                        }
+                    ],
+                    [{ text: "💨 View commands", callback_data: `command` }]
+                ]
+            };
 
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
-                disable_web_page_preview: true
+                disable_web_page_preview: true,
+                reply_markup: keyboard
             });
         } catch (error) {
             logger.error(`Error fetching user insights for program ${identifier}:`, error);
@@ -217,9 +261,35 @@ export class ProgramActiveUsersHandler extends BaseHandler {
             // Update previous day data
             await redisService.setPreviousDayData(programId, currentData);
 
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "🔝 View Programs Top Users",
+                            callback_data: `view_top_users_${programId}`
+                        },
+                        {
+                            text: "🐋 View Program's Whale Users",
+                            callback_data: `check_whale_users_${programId}`
+                        }
+                    ],
+                    [
+                        {
+                            text: "👀 Get Programs Users insight",
+                            callback_data: `get_users_insights${programId}`
+                        },
+                        {
+                            text: "💨 View commands",
+                            callback_data: `command`
+                        },
+                    ]
+                ]
+            };
+
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
-                disable_web_page_preview: true
+                disable_web_page_preview: true,
+                reply_markup: keyboard
             });
         } catch (error) {
             logger.error(`Error tracking activity changes for program ${identifier}:`, error);
@@ -266,9 +336,31 @@ export class ProgramActiveUsersHandler extends BaseHandler {
 
             const programId = programInfo[0].programId;
             const activeUsers = await this.getActiveUsersWithCache(programId, safeLimit); // Get more data for whale analysis
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "🔝 View Programs Top Users",
+                            callback_data: `view_top_users_${programName}`
+                        },
+                        {
+                            text: "👀 Get Programs Users insight",
+                            callback_data: `get_users_insights${programName}`
+                        },
+                    ],
+
+                    [{ text: "💨 View commands", callback_data: `command` }]
+                ]
+            };
 
             if (!activeUsers || activeUsers.length === 0) {
-                return this.bot.sendMessage(chatId, "❌ No active users found for this program.");
+                return this.bot.sendMessage(chatId,
+                    "❌ No active users found for this program.",
+                    {
+                        parse_mode: "Markdown",
+                        reply_markup: keyboard
+                    }
+                );
             }
 
             // Filter whales
@@ -278,7 +370,10 @@ export class ProgramActiveUsersHandler extends BaseHandler {
                 return this.bot.sendMessage(
                     chatId,
                     `No whale users found with ≥ ${this.minTransactionsForWhale.toLocaleString()} transactions.`,
-                    { parse_mode: "Markdown" }
+                    {
+                        parse_mode: "Markdown",
+                        reply_markup: keyboard
+                    }
                 );
             }
 
@@ -293,9 +388,11 @@ export class ProgramActiveUsersHandler extends BaseHandler {
 
             message += `\n_Total whale users: ${whales.length}_`;
 
+
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
-                disable_web_page_preview: true
+                disable_web_page_preview: true,
+                reply_markup: keyboard
             });
         } catch (error) {
             logger.error(`Error checking whale users for program ${identifier}:`, error);

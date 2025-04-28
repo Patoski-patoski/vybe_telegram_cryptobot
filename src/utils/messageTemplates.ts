@@ -591,15 +591,15 @@ As a user, I want to explore Solana programs and get detailed information about 
 Provides detailed information about a specific Solana program, including its name, entity, labels, description, and logo.
 
 *SYNOPSIS*
-/program_info <program_id_or_name>
+/program\\_info <program\\_id\\_or\\_name>
 
 *ARGUMENTS*
-<program_name>    The name of the program to get information about (e.g., Sunny, Bonkswap)
+<program\\_name>    The name of the program to get information about (e.g., 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN, Bonkswap)
 
 *EXAMPLES*
-/program_info Sunny
-/program_info Bonkswap
-/program_info Raydium
+/program\\_info Monaco Protocol
+/program\\_info Bonkswap
+/program\\_info 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 
 *USER STORY*
 As a user, I want to get detailed information about a specific Solana program to understand its purpose and features.

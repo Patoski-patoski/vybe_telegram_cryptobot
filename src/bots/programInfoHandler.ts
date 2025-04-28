@@ -102,11 +102,36 @@ export class ProgramInfoHandler extends BaseHandler {
             if (!program) {
                 return this.bot.sendMessage(chatId, "❌ Program not found. Please check the program ID and try again.");
             }
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "🔝 View Programs Top Users",
+                            callback_data: `view_top_users_${program.name}`
+                        },
+                        {
+                            text: "🐋 View Program's Whale Users",
+                            callback_data: `check_whale_users_${program.name}`
+                        }
+                    ],
+                    [
+                        {
+                            text: "👀 Get Programs Users insight",
+                            callback_data: `get_users_insights${program.name}`
+                        },
+                        {
+                            text: "💨 View commands",
+                            callback_data: `command`
+                        },
+                    ]
+                ]
+            };
 
             let message = this.formatProgramMessage(program);
-
             await this.bot.sendMessage(chatId, message, {
-                parse_mode: "Markdown"
+                parse_mode: "Markdown",
+                reply_markup: keyboard
+
             });
 
         } catch (error) {
@@ -127,7 +152,7 @@ export class ProgramInfoHandler extends BaseHandler {
         if (label === 'HELP') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.EXPLORE_HELP,
-                {parse_mode: "Markdown"}
+                { parse_mode: "Markdown" }
             );
         }
         try {
@@ -179,7 +204,7 @@ export class ProgramInfoHandler extends BaseHandler {
                         message += `⋆ ${program.name}\n`;
                     }
                 }
-                
+
             }
             message += "To view more information about a program, use\n"
             message += "/program\\_info Bonkswap\n/program\\_info Monaco Protocol"

@@ -154,6 +154,42 @@ export class BotHandler {
                     await this.tokenAnalysisHandler.handlePriceChartButton(callbackQuery);
                 }
 
+                if (data.startsWith("view_top_users_")) {
+                    const programName = data.replace("view_top_users_", "");
+                    const msg = {
+                        chat: { id: callbackQuery.message?.chat.id },
+                        text: `/topusers ${programName}`
+                    } as TelegramBot.Message;
+
+                    await this.programActiveUsersHandler.handleTopUsers(msg);
+
+                } else if (data.startsWith("check_whale_users_")) {
+                    const programName = data.replace("check_whale_users_", "");
+                    const msg = {
+                        chat: { id: callbackQuery.message?.chat.id },
+                        text: `/check_program_whale_users ${programName}`
+                    } as TelegramBot.Message;
+
+                    await this.programActiveUsersHandler.handleCheckWhaleUsers(msg);
+                
+                } else if (data.startsWith("get_users_insights")) {
+                    const programName = data.replace("get_users_insights", "");
+                    const msg = {
+                        chat: { id: callbackQuery.message?.chat.id },
+                        text: `/users_insights ${programName}`
+                    } as TelegramBot.Message;
+
+                    await this.programActiveUsersHandler.handleUserInsights(msg);
+                }
+
+                if (data === "help" || data === 'command') {
+                    const msg = {
+                        chat: { id: callbackQuery.message?.chat.id },
+                        text: "/start"
+                    } as TelegramBot.Message;
+                    await this.handleStart(msg)
+                }
+
                 // Always answer the callback query
                 await this.bot.answerCallbackQuery(callbackQuery.id);
             } catch (error) {
