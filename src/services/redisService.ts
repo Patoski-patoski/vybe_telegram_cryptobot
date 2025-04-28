@@ -1,5 +1,11 @@
 import { createClient, RedisClientType } from 'redis';
-import { PriceAlert, WhaleAlertSettings, NftCollection, WalletAlertSettings } from '../interfaces/vybeApiInterface';
+import {
+    PriceAlert,
+    WhaleAlertSettings,
+    NftCollection,
+    WalletAlertSettings,
+    ProgramActiveUser
+} from '../interfaces/vybeApiInterface';
 import logger from '../config/logger';
 
 export class RedisService {

@@ -96,3 +96,15 @@ export function formatPnLAlert(pnlData: WalletPnL): string {
 export function deleteDoubleSpace(parts: string[]): string[] {
     return parts.filter(part => part !== "");
 }
+
+
+export function tokenOHLCV7Days(): string | number {
+    const currentDate = new Date();
+    // Subtract 6 days
+    currentDate.setDate(currentDate.getDate() - 6);
+    // Set the time to 6:00 AM
+    currentDate.setHours(6, 0, 0, 0); // hours, minutes, seconds, milliseconds
+    // Get the Unix timestamp (in seconds)
+    const timestamp = Math.floor(currentDate.getTime() / 1000); // Convert milliseconds to seconds
+    return timestamp;
+}

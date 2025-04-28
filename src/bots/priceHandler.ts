@@ -6,6 +6,7 @@ import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { BaseHandler } from "./baseHandler";
 import { PriceAlert } from "@/interfaces/vybeApiInterface";
 import { deleteDoubleSpace, formatUsdValue } from "../utils/utils";
+import { createOHLCVChart } from '../utils/chartUtils';
 
 
 export class PriceHandler extends BaseHandler {
@@ -26,7 +27,6 @@ export class PriceHandler extends BaseHandler {
         }
 
         const mintAddress = parts[1];
-        console.log("MintAddress", mintAddress)
 
         try {
             const ohlcvData = await this.api.getTokenOHLCV(mintAddress);
@@ -37,8 +37,24 @@ export class PriceHandler extends BaseHandler {
                 return;
             }
 
-            const latest = ohlcvData.data[0];
-            const previous = ohlcvData.data[1];
+            // Generate and send the chart
+            const chartImage = await createOHLCVChart(ohlcvData.data);
+            await this.bot.sendPhoto(chatId, chartImage, { caption: '📊 Token Price Chart' });
+
+            const len = ohlcvData.data.length;
+            console.log("Length", len);
+            let latest, previous;
+
+            if (len >= 2) {
+                [previous, latest] = ohlcvData.data.slice(-2); // Get the last two entries
+            } else if (len === 1) {
+                latest = ohlcvData.data[len - 1];
+                previous = latest;
+            } else {
+                return this.bot.sendMessage(chatId,
+                    "No OHLCV data available."
+                );
+            }
 
             const change = ((parseFloat(latest.close) - parseFloat(previous.close)) / parseFloat(previous.close)) * 100;
             const changeEmoji = change >= 0 ? '📈' : '📉';
@@ -55,6 +71,7 @@ export class PriceHandler extends BaseHandler {
 
             await this.bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
         } catch (error) {
+            console.error('Error in handlePriceCommand:', error);
             await this.bot.sendMessage(chatId, 'Error fetching price data. Please try again later.');
         }
     }
@@ -71,7 +88,7 @@ export class PriceHandler extends BaseHandler {
             return;
         }
 
-        
+
         const mintAddress = parts[1];
         const threshold = parts[2];
         const type = parts[3];

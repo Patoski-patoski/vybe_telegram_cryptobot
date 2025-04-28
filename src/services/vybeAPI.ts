@@ -1,7 +1,13 @@
 //src/services/vybeAPI.ts
 import dotenv from "dotenv";
 import config from "../config/config";
-import { formatUsdValue, isValidMintAddress, isValidWalletAddress } from "../utils/utils";
+import {
+    formatUsdValue,
+    isValidMintAddress,
+    isValidWalletAddress,
+    tokenOHLCV7Days
+} from "../utils/utils";
+
 import axios, {
     AxiosInstance,
     AxiosResponse
@@ -25,8 +31,11 @@ import {
 
 dotenv.config();
 
+
 export class VybeApiService {
     private api: AxiosInstance;
+    public gettokenOHLCV7Days =  tokenOHLCV7Days();
+
 
     /**
      * Initializes the Vybe API service with the given configuration.
@@ -472,7 +481,7 @@ export class VybeApiService {
     async getTokenOHLCV(
         mintAddress: string,
         resolution: string = '1d',
-        timeStart?: number,
+        timeStart: string | number = this.gettokenOHLCV7Days,
         timeEnd?: number,
         limit: number = 10,
     ): Promise<GetTokenOHLCVResponse> {
