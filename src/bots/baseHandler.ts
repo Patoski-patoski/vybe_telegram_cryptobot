@@ -18,6 +18,7 @@ export class BaseHandler {
     protected async setupBotCommands() {
         try {
             const commands = [
+                // Wallets and Tokens users comands
                 { command: 'start', description: 'Start the bot' },
                 { command: 'transfers', description: 'View the transaction history of a token' },
                 { command: 'top_holders', description: 'View a token top holders' },
@@ -32,17 +33,19 @@ export class BaseHandler {
                 { command: 'list_tracked_wallets', description: 'List tracked wallets' },
                 { command: 'remove_tracked_wallet', description: 'Remove a tracked wallet' },
                 { command: 'wallet_status', description: 'View a wallet status' },
-                { command: 'program_info', description: 'View a program info' },
-                { command: 'explore', description: 'Explore a program' },
+              
                 // Program active users commands
                 { command: 'top_users', description: 'View top active users for a program' },
+                { command: 'program_info', description: 'View a program info' },
+                { command: 'explore', description: 'Explore a program' },
                 { command: 'users_insights', description: 'Get insights about program users' },
                 { command: 'activity_change', description: 'Track changes in program activity' },
                 { command: 'check_program_whale_users', description: 'Check whale users for a program' },
                 // Price commands
-                { command: 'price', description: 'Get current price information for a token' },
+                { command: 'check_price', description: 'Get current price information for a token' },
                 { command: 'price_alert', description: 'Set price alerts for a token' },
-                { command: 'price_change', description: 'Get hourly price changes for a token' },
+                { command: 'remove_price_alert', description: 'Remove price alerts for a token' },
+                { command: 'list_price_alert', description: 'A List of all set price alerts' },
                 // NFT commands
                 { command: 'nft_portfolio', description: 'View NFT portfolio for a wallet' },
                 { command: 'register_nft_wallet', description: 'Register wallet for NFT tracking' },

@@ -47,13 +47,15 @@ export class RedisService {
     }
 
     // Price Alerts
+    // Updates for the RedisService class
+
     async setPriceAlert(userId: number, alert: PriceAlert): Promise<void> {
         try {
-            await this.client.hSet(`price_alerts:${userId}`, {
-                tokenMint: alert.tokenMint,
-                threshold: alert.threshold.toString(),
-                isHigh: alert.isHigh.toString()
-            });
+            const alertKey = `${alert.tokenMint}`;
+            await this.client.hSet(`price_alerts:${userId}`, alertKey, JSON.stringify({
+                threshold: alert.threshold,
+                isHigh: alert.isHigh
+            }));
         } catch (error) {
             logger.error('Failed to set price alert:', error);
             throw error;
@@ -62,16 +64,31 @@ export class RedisService {
 
     async getPriceAlerts(userId: number): Promise<PriceAlert[]> {
         try {
-            const alerts = await this.client.hGetAll(`price_alerts:${userId}`);
-            return Object.entries(alerts).map(([key, value]) => ({
-                tokenMint: key,
-                threshold: parseFloat(value.split(':')[0]),
-                isHigh: value.split(':')[1] === 'true',
-                userId
-            }));
+            const alertsData = await this.client.hGetAll(`price_alerts:${userId}`);
+            if (!alertsData || Object.keys(alertsData).length === 0) {
+                return [];
+            }
+
+            const alerts: PriceAlert[] = [];
+
+            for (const [tokenMint, alertStr] of Object.entries(alertsData)) {
+                try {
+                    const parsedAlert = JSON.parse(alertStr);
+                    alerts.push({
+                        tokenMint,
+                        threshold: parsedAlert.threshold,
+                        isHigh: parsedAlert.isHigh,
+                        userId
+                    });
+                } catch (e) {
+                    logger.error(`Failed to parse price alert data for token ${tokenMint}:`, e);
+                }
+            }
+
+            return alerts;
         } catch (error) {
             logger.error('Failed to get price alerts:', error);
-            throw error;
+            return [];
         }
     }
 

@@ -57,7 +57,7 @@ export class BotHandler {
         // Set up periodic price alert checks
         setInterval(() => {
             this.priceHandler.checkPriceAlerts();
-        }, 60000); // Check every minute
+        }, 120_000); // Check every 2 minutes
     }
 
     getBot(): TelegramBot {
@@ -105,9 +105,10 @@ export class BotHandler {
             { cmd: /\/nft_collection/, handler: this.nftPortfolioHandler.handleCollectionDetails.bind(this.nftPortfolioHandler) },
 
             // Price commands
-            { cmd: /\/price (.+)/, handler: this.priceHandler.handlePriceCommand.bind(this.priceHandler) },
-            { cmd: /\/price_alert (.+)/, handler: this.priceHandler.handlePriceAlertCommand.bind(this.priceHandler) },
-            { cmd: /\/price_change (.+)/, handler: this.priceHandler.handlePriceChangeCommand.bind(this.priceHandler) },
+            { cmd: /\/check_price/, handler: this.priceHandler.handlePriceCommand.bind(this.priceHandler) },
+            { cmd: /\/price_alert/, handler: this.priceHandler.handlePriceAlertCommand.bind(this.priceHandler) },
+            { cmd: /\/list_price_alert/, handler: this.priceHandler.handleListPriceAlertsCommand.bind(this.priceHandler) },
+            { cmd: /\/remove_price_alert/, handler: this.priceHandler.handleRemovePriceAlertCommand.bind(this.priceHandler) },
         ];
 
         cmds.forEach(({ cmd, handler }) => {
@@ -171,7 +172,7 @@ export class BotHandler {
                     } as TelegramBot.Message;
 
                     await this.programActiveUsersHandler.handleCheckWhaleUsers(msg);
-                
+
                 } else if (data.startsWith("get_users_insights")) {
                     const programName = data.replace("get_users_insights", "");
                     const msg = {

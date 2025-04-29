@@ -620,35 +620,43 @@ As a user, I want to get detailed information about a specific Solana program to
 *SEE ALSO*
 /explore, /top_users, /users_insights`,
 
-        PRICE_USAGE: "Usage: /price <token_mint_address>\n\nExample: /price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
-        PRICE_HELP: `💰 *Price Command (/price)*
+        CHECK_PRICE_USAGE: "Usage: /check_price <token_mint_address>\n\nExample: /price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+        CHECK_PRICE_HELP: `💰 *Price Command (/check_price)*
 
 *DESCRIPTION*
 Shows current price information for a token, including last close, 24h high/low, and volume.
 
 *SYNOPSIS*
-/price <token_mint_address>
+/check\\_price <token\\_mint\\_address>
 
 *ARGUMENTS*
-<token_mint_address>    The Solana token mint address to check price for
+<token\\_mint\\_address>    The Solana token mint address to check price for
+
+
+*USER STORY*
+As a user, I want to get detailed information about a specific Solana token, including it's trading view, volume,
+24h high and low and its current price.
 
 *EXAMPLES*
-/price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+/check\\_price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 
 *OUTPUT*
+- Token Name
 - Last Close Price
 - 24h High
 - 24h Low
 - Volume
+- Number of Trade
 - Price Change
+- More...
 
 *TROUBLESHOOTING*
 - Invalid token address
-- Network connectivity issues
-- Check the space between the command and the token address`,
+- Network connectivity issues`,
 
-        PRICE_ALERT_USAGE: "Usage: /pricealert <token_mint_address> <threshold> <high/low>\n\nExample: /pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high\n\n This will alert when USDC price goes above $1.50",
-        PRICE_ALERT_HELP: `⚠️ *Price Alert Command (/pricealert)*
+        PRICE_ALERT_USAGE: "Usage: /price_alert <token_mint_address> <threshold> <high/low>\n\n" +
+        "Example: /price_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high\n\n This will alert when USDC price goes above $7.50",
+        PRICE_ALERT_HELP: `⚠️ *Price Alert Command (/price\\_alert)*
 
 *DESCRIPTION*
 Sets up price alerts for a token. You'll be notified when the price crosses your specified threshold.
@@ -673,32 +681,8 @@ Sets up price alerts for a token. You'll be notified when the price crosses your
 *TROUBLESHOOTING*
 - Invalid token address
 - Invalid threshold value
-- Invalid high/low parameter
-- Check the space between the command and arguments`,
+- Invalid high/low parameter`,
 
-        PRICE_CHANGE_USAGE: "Usage: /pricechange <token_mint_address>\n\nExample: /pricechange 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
-        PRICE_CHANGE_HELP: `📊 *Price Change Command (/pricechange)*
-
-*DESCRIPTION*
-Shows the hourly price change percentage for a token.
-
-*SYNOPSIS*
-/pricechange <token_mint_address>
-
-*ARGUMENTS*
-<token\\_mint\\_address>   The Solana token mint address to check price change for
-
-*EXAMPLES*
-/pricechange 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 
-
-*OUTPUT*
-- Hourly price change percentage
-- Direction indicator (up/down)
-
-*TROUBLESHOOTING*
-- Invalid token address
-- Network connectivity issues
-- Check the space between the command and the token address`,
 
         // NFT Commands Help
         NFT_PORTFOLIO_USAGE: "Usage: /nftportfolio [wallet_address]\n\nExample: /nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q",

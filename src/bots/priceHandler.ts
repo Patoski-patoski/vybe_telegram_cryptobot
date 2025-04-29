@@ -1,29 +1,49 @@
-// src/bot/priceHandler.ts
-
 import TelegramBot from "node-telegram-bot-api";
 import { VybeApiService } from "../services/vybeAPI";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { BaseHandler } from "./baseHandler";
 import { PriceAlert } from "@/interfaces/vybeApiInterface";
-import { deleteDoubleSpace, formatUsdValue } from "../utils/utils";
-import { createOHLCVChart } from '../utils/chartUtils';
 
+import {
+    deleteDoubleSpace,
+    formatUsdValue,
+    sendAndDeleteMessage
+} from "../utils/utils";
+
+import { createOHLCVChart } from '../utils/chartUtils';
+import { RedisService } from "../services/redisService";
 
 export class PriceHandler extends BaseHandler {
-    private readonly PRICE_ALERTS: PriceAlert[] = [];
+    private redisService!: RedisService;
 
     constructor(bot: TelegramBot, api: VybeApiService) {
         super(bot, api);
+        // Initialize Redis service
+        this.initRedis();
     }
 
-    async handlePriceCommand(msg: TelegramBot.Message, match: RegExpExecArray | null) {
-        if (!match) return;
+    private async initRedis() {
+        try {
+            this.redisService = await RedisService.getInstance();
+        } catch (error) {
+            console.error('Failed to initialize Redis service:', error);
+        }
+    }
+
+    async handlePriceCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (!parts[1]) {
-            await this.bot.sendMessage(chatId, BOT_MESSAGES.PRICE_USAGE);
+            await this.bot.sendMessage(chatId, BOT_MESSAGES.CHECK_PRICE_USAGE);
             return;
+        }
+
+        if (parts[1] === 'help') {
+            return this.bot.sendMessage(chatId,
+                BOT_MESSAGES.CHECK_PRICE_HELP,
+                { parse_mode: "Markdown" }
+            );
         }
 
         const mintAddress = parts[1];
@@ -35,7 +55,7 @@ export class PriceHandler extends BaseHandler {
             )
             console.log("ohlcvData", ohlcvData);
 
-            const tokenName =  holders.data[0].tokenSymbol
+            const tokenName = holders.data[0].tokenSymbol
 
             if (!ohlcvData || !ohlcvData.data) {
                 await this.bot.sendMessage(chatId, 'No price data available for this token.');
@@ -61,10 +81,10 @@ export class PriceHandler extends BaseHandler {
             }
 
             const change = ((parseFloat(latest.close) - parseFloat(previous.close)) / parseFloat(previous.close)) * 100;
-            const changeEmoji = change >= 0 ? '📈 +' : '📉 -';
-            const timestamp = latest.time; 
+            const changeEmoji = change >= 0 ? '📈 +' : '📉';
+            const timestamp = latest.time;
             const date = new Date(timestamp * 1000); // Convert to milliseconds
-            
+
             const humanReadableDate = date.toLocaleString('en-US', {
                 year: 'numeric',
                 month: '2-digit',
@@ -74,9 +94,9 @@ export class PriceHandler extends BaseHandler {
                 second: '2-digit',
                 timeZoneName: 'short'
             });
+            const tokenVolume = parseFloat(latest.volume).toLocaleString()
 
             const message = `💰 *Token Price Summary as of ${humanReadableDate}*
-
 
 *Token name:* ${tokenName}
 
@@ -87,7 +107,7 @@ export class PriceHandler extends BaseHandler {
 
 *Number of trades*: ${latest.count.toLocaleString()}
 
-*Total amount of ${tokenName} traded:* ${latest.volume.toLocaleString()}
+*Total amount of ${tokenName} traded:* ${tokenVolume}
 *Total Value of ${tokenName} traded(USD):* ${formatUsdValue(latest.volumeUsd)}
 
 *Change:* ${changeEmoji} ${change.toFixed(2)}%`;
@@ -95,97 +115,165 @@ export class PriceHandler extends BaseHandler {
             await this.bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
         } catch (error) {
             console.error('Error in handlePriceCommand:', error);
-            await this.bot.sendMessage(chatId, 'Error fetching price data. Please try again later.');
+
+            const errorMsg = 'Error fetching price data. Please try again later.'
+            sendAndDeleteMessage(this.bot, msg, errorMsg);
         }
     }
 
     async handlePriceAlertCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
+        const userId = msg.from?.id;
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
-        console.log("Parts", parts);
-        console.log("Parts.length", parts.length);
+        
 
         if (parts.length < 4) {
             await this.bot.sendMessage(chatId, BOT_MESSAGES.PRICE_ALERT_USAGE);
             return;
         }
 
-
         const mintAddress = parts[1];
         const threshold = parts[2];
         const type = parts[3];
+
+        if (!userId) {
+            const errorMsg = 'Error: Could not identify user.';
+            sendAndDeleteMessage(this.bot, msg, errorMsg);
+            return;
+        }
+
+        try {
+            const alert: PriceAlert = {
+                tokenMint: mintAddress,
+                threshold: parseFloat(threshold),
+                isHigh: type.toLowerCase() === 'high',
+                userId
+            };
+            console.log("alert\n\n\n", alert)
+
+            // Store alert in Redis
+            await this.redisService.setPriceAlert(userId, alert);
+            const setPriceAlert = await this.bot.sendMessage(chatId, `✅ Price alert set for ${mintAddress} at $${threshold} (${type})`);
+
+            setTimeout(async () => {
+                await this.bot.deleteMessage(chatId, msg.message_id, setPriceAlert);
+            }, 5000);
+        } catch (error) {
+            console.error('Error setting price alert:', error);
+            const errorMsg = 'Error setting price alert. Please try again later.';
+            sendAndDeleteMessage(this.bot, msg, errorMsg);
+        }
+    }
+
+    async handleListPriceAlertsCommand(msg: TelegramBot.Message) {
+        const chatId = msg.chat.id;
         const userId = msg.from?.id;
+        console.log("handleListPriceAlertsCommand", msg);
 
         if (!userId) {
             await this.bot.sendMessage(chatId, 'Error: Could not identify user.');
             return;
         }
 
-        const alert: PriceAlert = {
-            tokenMint: mintAddress,
-            threshold: parseFloat(threshold),
-            isHigh: type.toLowerCase() === 'high',
-            userId
-        };
-
-        this.PRICE_ALERTS.push(alert);
-        await this.bot.sendMessage(chatId, `✅ Price alert set for ${mintAddress} at $${threshold} (${type})`);
-    }
-
-    async handlePriceChangeCommand(msg: TelegramBot.Message, match: RegExpExecArray | null) {
-        if (!match) return;
-        const parts = match[1].split(' ');
-
-        if (!parts[0]) {
-            await this.bot.sendMessage(msg.chat.id, BOT_MESSAGES.PRICE_CHANGE_USAGE);
-            return;
-        }
-
-        const mintAddress = parts[0];
         try {
-            const ohlcvData = await this.api.getTokenOHLCV(mintAddress);
-            if (!ohlcvData || !ohlcvData.data || ohlcvData.data.length === 0) {
-                await this.bot.sendMessage(msg.chat.id, 'No price data available for this token.');
+            const alerts = await this.redisService.getPriceAlerts(userId);
+
+            if (!alerts || alerts.length === 0) {
+                const errorMsg = 'You have no price alerts set.';
+                sendAndDeleteMessage(this.bot, msg, errorMsg);
                 return;
             }
 
-            const latest = ohlcvData.data[0];
-            const previous = ohlcvData.data[1];
+            const alertsMessage = alerts.map(alert => {
+                const direction = alert.isHigh ? 'high' : 'low';
+                return `- ${alert.tokenMint}: $${alert.threshold} (${direction})`;
+            }).join('\n');
 
-            const change = ((parseFloat(latest.close) - parseFloat(previous.close)) / parseFloat(previous.close)) * 100;
-            const changeEmoji = change >= 0 ? '📈' : '📉';
-
-            const message = `${changeEmoji} Token price is ${change >= 0 ? 'up' : 'down'} ${Math.abs(change).toFixed(2)}% this hour.`;
-            await this.bot.sendMessage(msg.chat.id, message);
+            await this.bot.sendMessage(userId,
+                `*Your Price Alerts:*\n${alertsMessage}`,
+                { parse_mode: 'Markdown' }
+            );
         } catch (error) {
-            await this.bot.sendMessage(msg.chat.id, 'Error fetching price data. Please try again later.');
+            console.error('Error listing price alerts:', error);
+            const errorMsg = 'Error retrieving price alerts. Please try again later.';
+            sendAndDeleteMessage(this.bot, msg, errorMsg);
+
+        }
+    }
+
+    async handleRemovePriceAlertCommand(msg: TelegramBot.Message) {
+        const chatId = msg.chat.id;
+        const text = msg.text || "";
+        const parts = deleteDoubleSpace(text.split(" "));
+        const userId = msg.from?.id;
+
+        if (!userId) {
+            const errorMsg = 'Error: Could not identify user.';
+            sendAndDeleteMessage(this.bot, msg, errorMsg);
+            return;
+        }
+
+        if (parts.length < 2) {
+            const errorMsg = 'Usage: /removealert [mint_address]';
+            sendAndDeleteMessage(this.bot, msg, errorMsg, 30);
+            return;
+        }
+
+        const mintAddress = parts[1];
+
+        try {
+            await this.redisService.removePriceAlert(userId, mintAddress);
+            sendAndDeleteMessage(this.bot, msg, `✅ Price alert for ${mintAddress} removed.`, 10);
+
+        } catch (error) {
+            console.error('Error removing price alert:', error);
+            const errorMsg = 'Error removing price alert. Please try again later.';
+            sendAndDeleteMessage(this.bot, msg, errorMsg);
         }
     }
 
     async checkPriceAlerts() {
-        for (const alert of this.PRICE_ALERTS) {
-            try {
-                const ohlcvData = await this.api.getTokenOHLCV(alert.tokenMint);
-                if (!ohlcvData || !ohlcvData.data) continue;
+        try {
+            // Get all user IDs
+            const userIds = await this.redisService.getAllUserIds();
 
-                const latest = ohlcvData.data[0];
-                const currentPrice = parseFloat(latest.close);
+            for (const userIdStr of userIds) {
+                const userId = parseInt(userIdStr);
+                // Get alerts for this user
+                const alerts = await this.redisService.getPriceAlerts(userId);
 
-                if (alert.isHigh && currentPrice >= alert.threshold) {
-                    await this.bot.sendMessage(
-                        alert.userId,
-                        `⚠️ Alert: ${alert.tokenMint} has reached $${currentPrice.toFixed(2)} (threshold: $${alert.threshold})`
-                    );
-                } else if (!alert.isHigh && currentPrice <= alert.threshold) {
-                    await this.bot.sendMessage(
-                        alert.userId,
-                        `⚠️ Alert: ${alert.tokenMint} has dropped to $${currentPrice.toFixed(2)} (threshold: $${alert.threshold})`
-                    );
+                for (const alert of alerts) {
+                    try {
+                        const ohlcvData = await this.api.getTokenOHLCV(alert.tokenMint);
+                        if (!ohlcvData || !ohlcvData.data || ohlcvData.data.length === 0) continue;
+
+                        const latest = ohlcvData.data[ohlcvData.data.length - 1];
+                        const currentPrice = parseFloat(latest.close);
+
+                        if (alert.isHigh && currentPrice >= alert.threshold) {
+                            await this.bot.sendMessage(
+                                userId,
+                                `⚠️ Alert: ${alert.tokenMint} has reached $${currentPrice.toFixed(2)} (threshold: $${alert.threshold})`
+                            );
+                            // remove the alert after it's triggered
+                            await this.redisService.removePriceAlert(userId, alert.tokenMint);
+                        } else if (!alert.isHigh && currentPrice <= alert.threshold) {
+                            await this.bot.sendMessage(
+                                userId,
+                                `⚠️ Alert: ${alert.tokenMint} has dropped to $${currentPrice.toFixed(2)} (threshold: $${alert.threshold})`
+                            );
+                            // remove the alert after it's triggered
+                            await this.redisService.removePriceAlert(userId, alert.tokenMint);
+                        }
+
+                    } catch (error) {
+                        console.error(`Error checking price alert for ${alert.tokenMint}:`, error);
+                    }
                 }
-            } catch (error) {
-                console.error('Error checking price alerts:', error);
             }
+        } catch (error) {
+            console.error('Error in checkPriceAlerts:', error);
         }
     }
-} 
+}

@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+import TelegramBot from "node-telegram-bot-api";
 import { WalletPnL } from "../interfaces/vybeApiInterface";
 /**
  * Validates if a given string is a valid Solana mint address.
@@ -107,4 +108,24 @@ export function tokenOHLCV7Days(): string | number {
     // Get the Unix timestamp (in seconds)
     const timestamp = Math.floor(currentDate.getTime() / 1000); // Convert milliseconds to seconds
     return timestamp;
+}
+
+
+export async function sendAndDeleteMessage(
+    bot: TelegramBot,
+    msg: TelegramBot.Message,
+    text: string,
+    delay: number = 7) {
+    
+    const chatId = msg.chat.id;
+
+    try {
+        const sentMessage = await bot.sendMessage(chatId, text);
+        // Wait for the specified delay before deleting the message
+        await new Promise(resolve => setTimeout(resolve, delay * 1000)); // Convert seconds to milliseconds
+        await bot.deleteMessage(chatId, sentMessage.message_id);
+
+    } catch (error) {
+        console.error(`Error in deleteMessage: ${error}`);
+    }
 }
