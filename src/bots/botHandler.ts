@@ -102,7 +102,7 @@ export class BotHandler {
             { cmd: /\/register_nft_wallet/, handler: this.nftPortfolioHandler.handleRegisterNFTWallet.bind(this.nftPortfolioHandler) },
             { cmd: /\/list_nft_wallets/, handler: this.nftPortfolioHandler.handleListNFTWallets.bind(this.nftPortfolioHandler) },
             { cmd: /\/remove_nft_wallet/, handler: this.nftPortfolioHandler.handleRemoveNFTWallet.bind(this.nftPortfolioHandler) },
-            { cmd: /\/nft_collection/, handler: this.nftPortfolioHandler.handleCollectionDetails.bind(this.nftPortfolioHandler) },
+         
 
             // Price commands
             { cmd: /\/check_price/, handler: this.priceHandler.handlePriceCommand.bind(this.priceHandler) },

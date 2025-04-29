@@ -12,7 +12,7 @@ export class RedisService {
     private client: RedisClientType;
     private static instance: RedisService;
     public THREE_MIN = 180;  // 3 minutes in seconds
-    public THIRTY_MIN = 1800 
+    public THIRTY_MIN = 1800
     public ONE_HOUR = 3600
     public TWO_HOUR = 7200
     public FIVE_HOUR = 18000
@@ -46,16 +46,103 @@ export class RedisService {
         }
     }
 
-    // Price Alerts
-    // Updates for the RedisService class
+    // NFT Wallet Management
+    /**
+     * Get registered NFT wallet addresses for a chat ID
+     * @param chatId Telegram chat ID
+     * @returns Array of registered wallet addresses
+     */
+    async getNFTWallets(chatId: number): Promise<string[]> {
+        try {
+            const key = `nft_wallets:${chatId}`;
+            const walletsData = await this.client.get(key);
+            return walletsData ? JSON.parse(walletsData) : [];
+        } catch (error) {
+            logger.error(`Failed to get NFT wallets for chat ID ${chatId} from Redis`, { error });
+            return [];
+        }
+    }
 
+    /**
+     * Save NFT wallet addresses for a chat ID
+     * @param chatId Telegram chat ID
+     * @param wallets Array of wallet addresses
+     */
+    async saveNFTWallets(chatId: number, wallets: string[]): Promise<void> {
+        try {
+            const key = `nft_wallets:${chatId}`;
+            await this.client.set(key, JSON.stringify(wallets));
+        } catch (error) {
+            logger.error(`Failed to save NFT wallets for chat ID ${chatId} to Redis`, { error });
+            throw error;
+        }
+    }
+
+    /**
+     * Add a new NFT wallet address for a chat ID
+     * @param chatId Telegram chat ID
+     * @param walletAddress Wallet address to add
+     * @returns Boolean indicating success
+     */
+    async addNFTWallet(chatId: number, walletAddress: string): Promise<boolean> {
+        try {
+            // Get existing wallets
+            const existingWallets = await this.getNFTWallets(chatId);
+
+            // Check if wallet already exists
+            if (existingWallets.includes(walletAddress)) {
+                return false;
+            }
+
+            // Add new wallet and save
+            existingWallets.push(walletAddress);
+            await this.saveNFTWallets(chatId, existingWallets);
+            return true;
+        } catch (error) {
+            logger.error(`Failed to add NFT wallet ${walletAddress} for chat ID ${chatId}`, { error });
+            throw error;
+        }
+    }
+
+    /**
+     * Remove an NFT wallet address for a chat ID
+     * @param chatId Telegram chat ID
+     * @param walletAddress Wallet address to remove
+     * @returns Boolean indicating if a wallet was removed
+     */
+    async removeNFTWallet(chatId: number, walletAddress: string): Promise<boolean> {
+        try {
+            // Get existing wallets
+            const existingWallets = await this.getNFTWallets(chatId);
+
+            // Filter out the wallet to remove
+            const updatedWallets = existingWallets.filter(w => w !== walletAddress);
+
+            // Check if a wallet was removed
+            if (existingWallets.length === updatedWallets.length) {
+                return false;
+            }
+
+            // Save updated wallets
+            await this.saveNFTWallets(chatId, updatedWallets);
+            return true;
+        } catch (error) {
+            logger.error(`Failed to remove NFT wallet ${walletAddress} for chat ID ${chatId}`, { error });
+            throw error;
+        }
+    }
+
+    // Price Alerts
     async setPriceAlert(userId: number, alert: PriceAlert): Promise<void> {
         try {
             const alertKey = `${alert.tokenMint}`;
-            await this.client.hSet(`price_alerts:${userId}`, alertKey, JSON.stringify({
+            const alertData = {
+                tokenMint: alert.tokenMint,
                 threshold: alert.threshold,
-                isHigh: alert.isHigh
-            }));
+                isHigh: alert.isHigh,
+                userId: alert.userId
+            };
+            await this.client.hSet(`price_alerts:${userId}`, alertKey, JSON.stringify(alertData));
         } catch (error) {
             logger.error('Failed to set price alert:', error);
             throw error;
@@ -65,6 +152,7 @@ export class RedisService {
     async getPriceAlerts(userId: number): Promise<PriceAlert[]> {
         try {
             const alertsData = await this.client.hGetAll(`price_alerts:${userId}`);
+            console.log("getPriceAlerts", alertsData);
             if (!alertsData || Object.keys(alertsData).length === 0) {
                 return [];
             }
@@ -74,16 +162,26 @@ export class RedisService {
             for (const [tokenMint, alertStr] of Object.entries(alertsData)) {
                 try {
                     const parsedAlert = JSON.parse(alertStr);
+                    console.log("parsedAlert\n\n", parsedAlert);
+
+                    // Ensure we have all required properties
+                    if (parsedAlert.threshold === undefined) {
+                        throw new Error(`Missing threshold in alert data for token ${tokenMint}`);
+                    }
+
                     alerts.push({
-                        tokenMint,
+                        tokenMint: parsedAlert.tokenMint || tokenMint, // Fallback to key if tokenMint is missing
                         threshold: parsedAlert.threshold,
                         isHigh: parsedAlert.isHigh,
-                        userId
+                        userId: parsedAlert.userId || userId // Fall back to userId if missing
                     });
+                    console.log("parsedAlert\n\n", parsedAlert);
+
                 } catch (e) {
                     logger.error(`Failed to parse price alert data for token ${tokenMint}:`, e);
                 }
             }
+            console.log("alert\n\n", alert);
 
             return alerts;
         } catch (error) {
@@ -231,13 +329,14 @@ export class RedisService {
     async getAllUserIds(): Promise<string[]> {
         try {
             // Get user IDs from multiple key patterns
-            const [whaleAlertKeys, trackedWalletKeys] = await Promise.all([
+            const [whaleAlertKeys, trackedWalletKeys, nftWalletKeys] = await Promise.all([
                 this.client.keys('whale_alerts:*'),
-                this.client.keys('tracked_wallets:*')
+                this.client.keys('tracked_wallets:*'),
+                this.client.keys('nft_wallets:*')
             ]);
 
             // Combine, extract user IDs, and deduplicate
-            const allKeys = [...whaleAlertKeys, ...trackedWalletKeys];
+            const allKeys = [...whaleAlertKeys, ...trackedWalletKeys, ...nftWalletKeys];
             const userIds = allKeys.map(key => key.split(':')[1]);
             return [...new Set(userIds)]; // Remove duplicates
         } catch (error) {
@@ -358,4 +457,4 @@ export class RedisService {
             throw error;
         }
     }
-} 
+}

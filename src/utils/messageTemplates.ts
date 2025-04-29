@@ -655,7 +655,7 @@ As a user, I want to get detailed information about a specific Solana token, inc
 - Network connectivity issues`,
 
         PRICE_ALERT_USAGE: "Usage: /price_alert <token_mint_address> <threshold> <high/low>\n\n" +
-        "Example: /price_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high\n\n This will alert when USDC price goes above $7.50",
+                "Example: /price_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high\n\n This will alert when USDC price goes above $7.50",
         PRICE_ALERT_HELP: `⚠️ *Price Alert Command (/price\\_alert)*
 
 *DESCRIPTION*
@@ -674,6 +674,10 @@ Sets up price alerts for a token. You'll be notified when the price crosses your
 /pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high
 /pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.0 low
 
+
+*USER STORY*
+As a user, I want to set an alert, similar to a stop-loss, that alerts me when a token prices hit the threshold.
+
 *OUTPUT*
 - Confirmation of alert setup
 - Alert notifications when price crosses threshold
@@ -683,22 +687,81 @@ Sets up price alerts for a token. You'll be notified when the price crosses your
 - Invalid threshold value
 - Invalid high/low parameter`,
 
+        LIST_PRICE_ALERT_USAGE: "Usage: /list_price_alert\n\nExample: /list_price_alert",
+        LIST_PRICE_ALERT_HELP: `📋 *List Price Alerts Command (/list_price_alert)*
+
+*DESCRIPTION*
+Lists all active price alerts you have set up for different tokens.
+
+*SYNOPSIS*
+/list_price_alert
+
+*EXAMPLES*
+/list_price_alert
+
+*USER STORY*
+As a user, I want to view all my active price alerts to manage my token price monitoring.
+
+*OUTPUT*
+- List of active price alerts including:
+  * Token mint address
+  * Price threshold
+  * Alert type (high/low)
+  * Current price status
+
+*TROUBLESHOOTING*
+- No active alerts found
+- Network connectivity issues
+
+*SEE ALSO*
+/price_alert, /remove_price_alert`,
+
+        REMOVE_PRICE_ALERT_USAGE: "Usage: /remove_price_alert <token_mint_address>\n\nExample: /remove_price_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+        REMOVE_PRICE_ALERT_HELP: `❌ *Remove Price Alert Command (/remove_price_alert)*
+
+*DESCRIPTION*
+Removes a price alert for a specific token.
+
+*SYNOPSIS*
+/remove_price_alert <token_mint_address>
+
+*ARGUMENTS*
+<token_mint_address>    The Solana token mint address to remove alert for
+
+*EXAMPLES*
+/remove_price_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+
+*USER STORY*
+As a user, I want to remove a price alert for a token I no longer want to monitor.
+
+*OUTPUT*
+- Confirmation of alert removal
+- Updated list of active alerts
+
+*TROUBLESHOOTING*
+- Alert not found
+- Invalid token address
+- Network connectivity issues
+
+*SEE ALSO*
+/price_alert, /list_price_alert`,
 
         // NFT Commands Help
-        NFT_PORTFOLIO_USAGE: "Usage: /nftportfolio [wallet_address]\n\nExample: /nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q",
-        NFT_PORTFOLIO_HELP: `🖼️ *NFT Portfolio Command (/nftportfolio)*
+        // NFT_PORTFOLIO_USAGE: "Usage: /nft_portfolio [wallet_address]\n\nExample: /nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q",
+        NFT_PORTFOLIO_HELP: `🖼️ *NFT Portfolio Command (/nft_portfolio)*
 
 *DESCRIPTION*
 Shows the NFT portfolio for a wallet, including total value, collections, and individual NFTs.
 
 *SYNOPSIS*
-/nftportfolio [wallet_address]
+/nft\\_portfolio [wallet_address]
 
 *ARGUMENTS*
-[wallet_address]    Optional Solana wallet address. If not provided, uses your registered wallet.
+[wallet\\_address]    Optional Solana wallet address. If not provided, uses your registered wallet.
 
 *EXAMPLES*
-/nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+/nft\\_portfolio 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+
 
 *OUTPUT*
 - Total portfolio value
@@ -711,20 +774,23 @@ Shows the NFT portfolio for a wallet, including total value, collections, and in
 - No NFTs found
 - Network connectivity issues`,
 
-        NFT_REGISTER_USAGE: "Usage: /registernftwallet <wallet_address>\n\nExample: /registernftwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q",
-        NFT_REGISTER_HELP: `📝 *Register NFT Wallet Command (/registernftwallet)*
+        NFT_REGISTER_USAGE: "Usage: /register_nft_wallet <wallet_address>\n\nExample: /registernftwallet 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+        NFT_REGISTER_HELP: `📝 *Register NFT Wallet Command (/register_nft_wallet)*
 
 *DESCRIPTION*
-Registers a wallet for NFT tracking. You can then use /nftportfolio without specifying the wallet address.
+Registers a wallet for NFT tracking. You can then use /nft\\_portfolio without specifying the wallet address.
 
 *SYNOPSIS*
-/registernftwallet <wallet_address>
+/register\\_nft\\_wallet <wallet\\_address>
 
 *ARGUMENTS*
-<wallet_address>    The Solana wallet address to register
+<wallet\\_address>   The Solana wallet address to register
+
+*USER STORY*
+As a User, I want to register a wallet for NFT tracking so that I can easily monitor my NFTs.
 
 *EXAMPLES*
-/registernftwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+/register\\_nft\\_wallet 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9
 
 *OUTPUT*
 - Confirmation of wallet registration
@@ -733,16 +799,29 @@ Registers a wallet for NFT tracking. You can then use /nftportfolio without spec
 *TROUBLESHOOTING*
 - Invalid wallet address
 - Wallet already registered
-- Network connectivity issues`,
+- Network connectivity issues
 
-        NFT_LIST_USAGE: "Usage: /listnftwallets",
-        NFT_LIST_HELP: `📋 *List NFT Wallets Command (/listnftwallets)*
+
+* SEE ALSO *
+/nft\\_portfolio, /remove\\_nft\\_wallet, /list\\_nft\\_wallets`,
+
+
+        NFT_LIST_HELP: `📋 *List NFT Wallets Command (/list_nft_wallets)*
 
 *DESCRIPTION*
 Lists all wallets you have registered for NFT tracking.
 
 *SYNOPSIS*
-/listnftwallets
+/list\\_nft\\_wallets
+
+*ARGUMENTS*
+</list\\_nft\\_wallets>    No arguments required
+
+*USER STORY*
+As a User, I want to see all the wallets I have registered for NFT tracking.
+
+*EXAMPLES*
+</list\\_nft\\_wallets>
 
 *OUTPUT*
 - List of registered wallet addresses
@@ -750,22 +829,28 @@ Lists all wallets you have registered for NFT tracking.
 
 *TROUBLESHOOTING*
 - No wallets registered
-- Network connectivity issues`,
+- Network connectivity issues
 
-        NFT_REMOVE_USAGE: "Usage: /removenftwallet <wallet_address>\n\nExample: /removenftwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q",
-        NFT_REMOVE_HELP: `❌ *Remove NFT Wallet Command (/removenftwallet)*
+* SEE ALSO *
+/ nft\\_portfolio, /remove\\_nft\\_wallet`,        
+
+        NFT_REMOVE_USAGE: "Usage: /removenftwallet <wallet_address>\n\nExample: /removenftwallet 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+        NFT_REMOVE_HELP: `❌ *Remove NFT Wallet Command (/remove_nft_wallet)*
 
 *DESCRIPTION*
 Removes a wallet from NFT tracking.
 
 *SYNOPSIS*
-/removenftwallet <wallet_address>
+/remove\\_nft\\_wallet <wallet\\_address>
 
 *ARGUMENTS*
-<wallet_address>    The Solana wallet address to remove
+<wallet\\_address>    The Solana wallet address to remove
+
+*USER STORY*
+As a User, I want to remove a wallet from NFT tracking so that I can manage my registered wallets.
 
 *EXAMPLES*
-/removenftwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+/remove\\_nft\\_wallet 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9
 
 *OUTPUT*
 - Confirmation of wallet removal
@@ -774,35 +859,11 @@ Removes a wallet from NFT tracking.
 *TROUBLESHOOTING*
 - Invalid wallet address
 - Wallet not registered
-- Network connectivity issues`,
+- Network connectivity issues
 
-        NFT_COLLECTION_USAGE: "Usage: /nftcollection <wallet_address>, <collection_name>\n\nExample: /nftcollection 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q, Solana Monkey Business",
-        NFT_COLLECTION_HELP: `🏛️ *NFT Collection Command (/nftcollection)*
+* SEE ALSO *
+/nft\\_portfolio, /list\\_nft\\_wallets`,
 
-*DESCRIPTION*
-Shows detailed information about a specific NFT collection in a wallet.
-
-*SYNOPSIS*
-/nftcollection <wallet_address>, <collection_name>
-
-*ARGUMENTS*
-<wallet_address>    The Solana wallet address
-<collection_name>   The name of the NFT collection
-
-*EXAMPLES*
-/nftcollection 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q, Solana Monkey Business
-
-*OUTPUT*
-- Collection name and address
-- Number of items owned
-- Total value
-- Floor price
-- Collection logo (if available)
-
-*TROUBLESHOOTING*
-- Invalid wallet address
-- Collection not found
-- Network connectivity issues`,
 
         EXPLORE_HELP: `🔍 *Explore Programs (/explore)*
 
@@ -986,4 +1047,52 @@ As a user, I want to track and compare user activity data for Solana programs ov
 
 *SEE ALSO*
 /check\\_program\\_whale\\_users, /users\\_insights, /top\\_users`,
+
+                HANDLE_NFT_PORTFOLIO_USAGE:
+                        "Usage: /nft_portfolio [wallet_address]\n\n" +
+                        "Example: /nft_portfolio GZfYZiH6zHrwpzJNnV7PEF9GWJEr3kRKz7Rj5umKDhbj\n" +
+                        "Example: /nft_portfolio (uses your registered wallet if available)",
+
+                HANDLE_NFT_PORTFOLIO_HELP:
+                        `🖼️ *NFT Portfolio Analysis Command (/nft_portfolio)*
+
+*DESCRIPTION*
+Displays detailed information about NFT holdings in a wallet, including collection values, floor prices, and total portfolio worth.
+
+*SYNOPSIS*
+/nft\\_portfolio [wallet\\_address]
+
+*ARGUMENTS*
+[wallet\\_address]    Optional Solana wallet address. If omitted, uses your registered wallet
+
+*USER STORY*
+As a user, I want to analyze NFT holdings in a wallet to understand portfolio value and collection distribution.
+
+*OUTPUT*
+- Total Portfolio Value (USD & SOL)
+- Number of Collections
+- Total NFTs Owned
+- Top Collections by Value:
+  * Collection Names
+  * Items Owned
+  * Collection Values
+  * Floor Prices
+
+*EXAMPLES*
+/nft\\_portfolio GZfYZiH6zHrwpzJNnV7PEF9GWJEr3kRKz7Rj5umKDhbj
+/nft\\_portfolio (uses registered wallet)
+
+*TROUBLESHOOTING*
+- Invalid wallet address format
+- No NFTs found in wallet
+- Network connectivity issues
+- Redis caching errors
+
+
+*SEE ALSO*
+/register\\_nft_wallet, /list\\_nft\\_wallets, /nft\\_collection`,
+        
+                HANDLE_NFT_COLLECTION_USAGE:
+                        "Usage: /nft_collection <wallet_address>, <collection_name>\n\n" +
+                        "Example: /nft_collection GZfYZiH6zHrwpzJNnV7PEF9GWJEr3kRKz7Rj5umKDhbj, Solana Monkey Business",
 };
