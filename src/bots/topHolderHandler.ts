@@ -15,8 +15,13 @@
  * @requires node-telegram-bot-api
  * @requires ../bots/baseHandler
  * @requires ../interfaces/vybeApiInterface
- * @requires ../utils/solana
+ * @requires ../utils/utils
  * @requires ../utils/messageTemplates
+ * @requires
+ * 
+ * @method handleTopToken
+ * 
+ * @exports TopTokenHandler
  */
 
 import TelegramBot from "node-telegram-bot-api";
@@ -27,7 +32,12 @@ import {
     TopHolder
 } from "../interfaces/vybeApiInterface";
 
-import { formatUsdValue, deleteDoubleSpace } from "../utils/utils";
+import {
+    formatUsdValue,
+    deleteDoubleSpace,
+    sendAndDeleteMessage
+} from "../utils/utils";
+
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 
@@ -39,11 +49,10 @@ export class TopTokenHandler extends BaseHandler {
 
 
         if (parts.length < 2) {
-            await this.bot.sendMessage(chatId,
-                "Please provide a mint address. Usage: /top_holders mintAddress"
-            );
+            sendAndDeleteMessage(this.bot, msg, BOT_MESSAGES.TOP_HOLDERS_USAGE, 10);
             return;
         }
+
         const mintAddress = parts[1];
         if (mintAddress === 'help') {
             return this.bot.sendMessage(chatId,
@@ -55,11 +64,11 @@ export class TopTokenHandler extends BaseHandler {
         const limit: number = Number(parts[2]);
 
         if (limit && isNaN(limit)) {
-            await this.bot.sendMessage(chatId,
-                "Invalid limit. Please provide a valid number for the limit."
-            );
+            sendAndDeleteMessage(this.bot, msg, "Invalid limit. Please provide a valid number for the limit.");
+
             return;
         }
+
         if (limit && limit > 10) {
             await this.bot.sendMessage(chatId,
                 "Limit exceeded. Please provide a limit of 10 or less." +
@@ -81,11 +90,12 @@ export class TopTokenHandler extends BaseHandler {
         }
 
         if (!mintAddress) {
-            await this.bot.sendMessage(chatId,
+            sendAndDeleteMessage(this.bot, msg,
                 "Invalid mint address. Please provide a valid mint address."
             );
             return;
         }
+
         // Fetch top token holders from the API using the provided mint address
         const topHoldersResponse: GetTopHoldersResponse = await
             this.api.getTopTokenHolder(mintAddress, limit ? limit : 5);
@@ -100,9 +110,9 @@ export class TopTokenHandler extends BaseHandler {
                 "⏳ Fetching top token holders...",
             );
             // Remove the message after fetching
-            setTimeout(async () => {
-                await this.bot.deleteMessage(chatId, fetching.message_id);
-            }, 3000);
+
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.bot.deleteMessage(chatId, fetching.message_id);
 
             const mintSymbol = topHolders[0].tokenSymbol || 'N/A';
             await this.bot.sendMessage(chatId,

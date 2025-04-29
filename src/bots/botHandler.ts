@@ -67,6 +67,7 @@ export class BotHandler {
     private setUpCommands() {
         const cmds = [
             { cmd: /\/(start|help|commands)/, handler: this.handleStart.bind(this) },
+            
             { cmd: /\/top_holders/, handler: this.tokenHolderHandler.handleTopToken.bind(this.tokenHolderHandler) },
             { cmd: /\/transfers/, handler: this.recentTransferHandler.handleTransfers.bind(this.recentTransferHandler) },
 
@@ -102,7 +103,6 @@ export class BotHandler {
             { cmd: /\/register_nft_wallet/, handler: this.nftPortfolioHandler.handleRegisterNFTWallet.bind(this.nftPortfolioHandler) },
             { cmd: /\/list_nft_wallets/, handler: this.nftPortfolioHandler.handleListNFTWallets.bind(this.nftPortfolioHandler) },
             { cmd: /\/remove_nft_wallet/, handler: this.nftPortfolioHandler.handleRemoveNFTWallet.bind(this.nftPortfolioHandler) },
-         
 
             // Price commands
             { cmd: /\/check_price/, handler: this.priceHandler.handlePriceCommand.bind(this.priceHandler) },

@@ -206,7 +206,7 @@ export class ProgramInfoHandler extends BaseHandler {
                 }
 
             }
-            message += "To view more information about a program, use\n"
+            message += "\nTo view more information about a program, use\n"
             message += "/program\\_info Bonkswap\n/program\\_info Monaco Protocol"
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",

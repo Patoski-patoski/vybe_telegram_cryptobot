@@ -1,3 +1,51 @@
+
+/**
+ * @file redisService.ts
+ * @description This file contains the RedisService class, which provides methods to interact with a Redis database.
+ * It includes methods for managing NFT wallets, price alerts, whale alerts, NFT portfolio data, wallet tracking, historical values, program info cache, API response cache, and top users cache.
+ * 
+ * 
+ * @module redisService
+ * 
+ * 
+ * @requires redis
+ * @requires ../interfaces/vybeApiInterface
+ * @requires ../config/logger
+ * 
+ * 
+ * @method getNFTWallets
+ * @method saveNFTWallets
+ * @method addNFTWallet
+ * @method removeNFTWallet
+ * @method setPriceAlert
+ * @method getPriceAlerts
+ * @method removePriceAlert
+ * @method setWhaleAlert
+ * @method getWhaleAlerts
+ * @method removeWhaleAlert
+ * @method updateWhaleAlert
+ * @method setNFTPortfolio
+ * @method getNFTPortfolio
+ * @method setTrackedWallet
+ * @method getTrackedWallets
+ * @method removeTrackedWallet
+ * @method getAllUserIds
+ * @method setHistoricalValues
+ * @method getHistoricalValues
+ * @method setProgramInfo
+ * @method getProgramInfo
+ * @method setCachedResponse
+ * @method getCachedResponse
+ * @method setPreviousDayData
+ * @method getPreviousDayData
+ * @method setTopUsersCache
+ * @method getTopUsersCache
+ * @method cleanup
+ * 
+ * @class RedisService
+ */
+
+
 import { createClient, RedisClientType } from 'redis';
 import {
     PriceAlert,
