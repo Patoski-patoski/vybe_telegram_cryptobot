@@ -1,3 +1,5 @@
+// src/services/tokenAnalyzer.ts
+
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
 import { formatUsdValue, deleteDoubleSpace } from "../utils/utils";
@@ -5,6 +7,23 @@ import logger from "../config/logger";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { ChartConfiguration, Scale, Tick } from 'chart.js';
+
+// Store top Solana addresses to search through
+const ADDRESSES = {
+    SYSTEM_PROGRAM: "11111111111111111111111111111111",
+    WRAPPED_SOL: "So11111111111111111111111111111111111111112",
+    JUPITER: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    STAR_ATLAS: "ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx",
+    TENSOR: "TNSR1kWyGqr7FzGEJgJmvKRoqsdKhkbBJMrFLJyLMKG",
+    BONK: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    BONFIDA: "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp",
+    SOLEND: "SLNDpmoWTVADgEdndyvWzroNL7zSi1dF9PC3xHGtPwp",
+    ORCA: "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
+    SERUM: "SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt",
+};
+
+// Convert object to array for easier iteration
+const MINT_ADDRESSES = Object.values(ADDRESSES);
 
 export class TokenAnalysisHandler extends BaseHandler {
     private chart: ChartJSNodeCanvas | null;
@@ -18,8 +37,6 @@ export class TokenAnalysisHandler extends BaseHandler {
         const chatId = msg.chat.id;
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
-        const systemProgram = "11111111111111111111111111111111";
-        const WRAPPED_SOL_MINT = "So11111111111111111111111111111111111111112"; // Wrapped SOL mint address
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
@@ -43,76 +60,44 @@ export class TokenAnalysisHandler extends BaseHandler {
                 "🔍 Analyzing token data..."
             );
 
-            let tokenData;
-
             // Special handling for SOL
             if (symbol === 'SOL') {
-                // Fetch data for Wrapped SOL which will have the same price data as SOL
-                const tokenBalanceResponse = await this.api.getTokenBalance(systemProgram);
-                tokenData = tokenBalanceResponse.data.find(
-                    token => token.mintAddress === WRAPPED_SOL_MINT
-                );
+                const tokenData = await this.findTokenBySymbol(chatId, 'wSOL');
 
                 if (tokenData) {
                     // Modify the token data to show it's SOL instead of Wrapped SOL
-                    tokenData = {
+                    const solTokenData = {
                         ...tokenData,
                         symbol: 'SOL',
                         name: 'Solana',
-                        mintAddress: systemProgram,
+                        mintAddress: ADDRESSES.SYSTEM_PROGRAM,
                         // Keep the price data from wSOL
                         priceUsd: tokenData.priceUsd,
                         priceUsd1dChange: tokenData.priceUsd1dChange,
                         priceUsd7dTrend: tokenData.priceUsd7dTrend
                     };
+
+                    await this.bot.deleteMessage(chatId, loadingMsg.message_id);
+                    await this.displayTokenInfo(chatId, solTokenData);
+                    return;
                 }
-            } else {
-                // For other tokens, proceed as normal
-                const tokenBalanceResponse = await this.api.getTokenBalance(systemProgram);
-                tokenData = tokenBalanceResponse.data.find(
-                    tokenSymbol => tokenSymbol.symbol === symbol
-                );
             }
+
+            // For all other tokens, search through all mint addresses
+            const tokenData = await this.findTokenBySymbol(chatId, symbol);
 
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
             if (!tokenData) {
                 return this.bot.sendMessage(chatId,
                     "⛔ No data found for the specified token.\n" +
-                    "Note: Symbol characters are case-sensitive" +
+                    "Note: Symbol characters are case-sensitive\n" +
                     "Example: wSOL is correct, WSOL is incorrect\n" +
                     "Example: SOL is correct, Sol is incorrect\n"
                 );
             }
 
-            // Prepare message with token information
-            let message = `📊 *Token Analysis*\n\n`;
-            message += `*Token name:* ${tokenData.name}\n`;
-            message += `*Symbol:* ${tokenData.symbol}\n`;
-            message += `*mint Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
-            message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd.toLocaleString())}\n`;
-            message += `*Price Change (24h):* ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange).toFixed(2)}%\n\n`;
-            message += `*Category:* ${tokenData.category}\n`
-            message += `*Token Verification status:* ${tokenData.verified ? "Verified ✅" : "Not Verified ❓"}\n`
-            message += `[Logo url](${tokenData.logoUrl})`;
-
-
-            // Create inline keyboard with View Price Chart button
-            const keyboard = {
-                inline_keyboard: [
-                    [{
-                        text: `📈 View Price Chart for ${tokenData.symbol}`,
-                        callback_data: `price_chart_${tokenData.symbol}`
-                    }]
-                ]
-            };
-
-            // Send initial message with button
-            await this.bot.sendMessage(chatId, message, {
-                parse_mode: "Markdown",
-                reply_markup: keyboard,
-                disable_web_page_preview: false
-            });
+            await this.displayTokenInfo(chatId, tokenData);
 
         } catch (error: any) {
             logger.error("Error in token analysis:", error);
@@ -120,6 +105,91 @@ export class TokenAnalysisHandler extends BaseHandler {
                 `❌ Error: ${error.message}`
             );
         }
+    }
+
+    /**
+     * Searches for a token by symbol across multiple mint addresses
+     * @param symbol Token symbol to search for
+     * @returns Token data if found, null otherwise
+     */
+    private async findTokenBySymbol(chatId: number, symbol: string): Promise<any | null> {
+        let statusMessageSent = false;
+        let statusMessageId: number | null = null;
+
+        for (let i = 0; i < MINT_ADDRESSES.length; i++) {
+            const mintAddress = MINT_ADDRESSES[i];
+
+            try {
+                // If the search is taking too long, send an interactive message
+                if (i > 0 && !statusMessageSent) {
+                    const statusMsg = await this.bot.sendMessage(
+                        chatId,
+                        "Oops... This is taking longer than usual. Still searching for your token..."
+                    );
+                    statusMessageSent = true;
+                    statusMessageId = statusMsg.message_id;
+                }
+
+                // Fetch token data from the current mint address
+                const tokenBalanceResponse = await this.api.getTokenBalance(mintAddress);
+                const tokenData = tokenBalanceResponse.data.find(
+                    (tokenSymbol: any) => tokenSymbol.symbol === symbol
+                );
+
+                // If token is found, clean up status message and return the data
+                if (tokenData) {
+                    if (statusMessageSent && statusMessageId) {
+                        await this.bot.deleteMessage(chatId, statusMessageId);
+                    }
+                    return tokenData;
+                }
+            } catch (error) {
+                logger.error(`Error fetching token data from ${mintAddress}:`, error);
+                // Continue to the next address even if this one fails
+            }
+        }
+
+        // Clean up status message if token wasn't found
+        if (statusMessageSent && statusMessageId) {
+            await this.bot.deleteMessage(chatId, statusMessageId);
+        }
+
+        return null;
+    }
+
+    /**
+     * Displays token information in a formatted message with chart button
+     * @param chatId Chat ID to send the message to
+     * @param tokenData Token data to display
+     */
+    private async displayTokenInfo(chatId: number, tokenData: any) {
+        // Prepare message with token information
+        let message = `📊 *Token Analysis*\n\n`;
+        message += `*Token name:* ${tokenData.name}\n`;
+        message += `*Symbol:* ${tokenData.symbol}\n`;
+        message += `*mint Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
+        message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd.toLocaleString())}\n`;
+        message += `*Price Change (24h):* ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange).toFixed(2)}%\n\n`;
+        message += `*Category:* ${tokenData.category}\n`;
+        message += `*Token Verification status:* ${tokenData.verified ? "Verified ✅" : "Not Verified ❓"}\n`;
+        message += `[Logo url](${tokenData.logoUrl})`;
+
+        // Create inline keyboard with View Price Chart button
+        const keyboard = {
+            inline_keyboard: [
+                [{
+                    text: `📈 View Price Chart for ${tokenData.symbol}`,
+                    callback_data: `price_chart_${tokenData.symbol}`
+                }]
+            ]
+        };
+
+        // Send message with button
+        await this.bot.sendMessage(chatId, message, {
+            parse_mode: "Markdown",
+            reply_markup: keyboard,
+            disable_web_page_preview: false
+        });
     }
 
     // Add new method to handle the chart button click
@@ -130,6 +200,7 @@ export class TokenAnalysisHandler extends BaseHandler {
         if (!chatId) return;
 
         let symbol = query.data.replace('price_chart_', '');
+        const originalSymbol = symbol;
         if (symbol === "SOL") symbol = "wSOL";
 
         try {
@@ -137,11 +208,8 @@ export class TokenAnalysisHandler extends BaseHandler {
 
             const loadingMsg = await this.bot.sendMessage(chatId, "📊 Generating price chart...");
 
-            // Fetch fresh token data
-            const tokenBalanceResponse = await this.api.getTokenBalance("11111111111111111111111111111111");
-            const tokenData = tokenBalanceResponse.data.find(
-                (tokenSymbol => tokenSymbol.symbol === symbol)
-            );
+            // Find token data by searching through all mint addresses
+            const tokenData = await this.findTokenBySymbol(chatId, symbol);
 
             if (!tokenData) {
                 await this.bot.deleteMessage(chatId, loadingMsg.message_id);
@@ -153,7 +221,7 @@ export class TokenAnalysisHandler extends BaseHandler {
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
             await this.bot.sendPhoto(chatId, chartBuffer, {
-                caption: `7-day price trend for ${tokenData.name === "Wrapped SOL" ? "wSOL/SOL" : symbol}`,
+                caption: `7-day price trend for ${originalSymbol === "SOL" ? "SOL" : tokenData.symbol}`,
                 parse_mode: "Markdown"
             });
 
@@ -163,54 +231,211 @@ export class TokenAnalysisHandler extends BaseHandler {
         }
     }
 
+    // Modified generatePriceChart method for TokenAnalysisHandler class
+
     private async generatePriceChart(tokenData: any): Promise<Buffer> {
-        // Generate dates including today
-        const dates = Array.from({ length: 7 }, (_, i) => {
-            const date = new Date();
-            date.setDate(date.getDate() - (6 - i)); // Adjusted to count forward from 6 days ago
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
+        try {
+            // Determine if this is a stablecoin (approximate check)
+            const isStablecoin = tokenData.symbol === 'USDC' || tokenData.symbol === 'USDT'
+                || tokenData.symbol === 'BUSD' || tokenData.symbol === 'DAI'
+                || (tokenData.name?.toLowerCase().includes('usd') || tokenData.name?.toLowerCase().includes('stable'));
 
-        // Get the historical trend data and ensure current price is included
-        const trendData = [...tokenData.priceUsd7dTrend];
-        // Replace the last value with current price to ensure accuracy
-        trendData[trendData.length - 1] = tokenData.priceUsd;
+            // Calculate time range for the past 7 days
+            const timeEnd = Math.floor(Date.now() / 1000); // current time in seconds
+            const timeStart = timeEnd - (7 * 24 * 60 * 60); // 7 days ago in seconds
 
-        const configuration: ChartConfiguration<'line'> = {
-            type: 'line',
-            data: {
-                labels: dates,
-                datasets: [{
-                    label: 'Price (USD)',
-                    data: trendData.map((price: string) => parseFloat(price)),
-                    borderColor: '#4CAF50',
-                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: `${tokenData.symbol} Price Trend (7 Days)`
-                    }
+            // Fetch OHLCV data with volume
+            const ohlcvResponse = await this.api.getTokenOHLCV(tokenData.mintAddress,
+                '1d',
+                timeStart,
+                timeEnd,
+                7
+        );
+
+            // Format dates
+            const dates = ohlcvResponse.data.map(item => {
+                const date = new Date(item.time * 1000);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+
+            // Prepare price and volume data
+            const priceData = ohlcvResponse.data.map(item => parseFloat(item.close));
+            const volumeData = ohlcvResponse.data.map(item => parseFloat(item.volumeUsd));
+
+            // Calculate min and max price for Y-axis scaling
+            const minPrice = Math.min(...priceData);
+            const maxPrice = Math.max(...priceData);
+
+            // For stablecoins, set fixed Y-axis range near $1.00
+            let yAxisMin, yAxisMax;
+            if (isStablecoin) {
+                // Narrow range for stablecoins (e.g., $0.995 to $1.005)
+                const deviation = Math.max(0.005, Math.max(Math.abs(1 - minPrice), Math.abs(maxPrice - 1)));
+                yAxisMin = 1 - deviation;
+                yAxisMax = 1 + deviation;
+            } else {
+                // For regular tokens, calculate padding (10% padding)
+                const padding = (maxPrice - minPrice) * 0.1;
+                yAxisMin = minPrice - padding;
+                yAxisMax = maxPrice + padding;
+                // Ensure we never go below zero for token prices
+                yAxisMin = Math.max(0, yAxisMin);
+            }
+
+            // Calculate volume bar height ranges
+            const maxVolume = Math.max(...volumeData);
+
+            // Create chart configuration with price and volume
+            const configuration: ChartConfiguration = {
+                type: 'bar', // Use 'bar' as base type for combination chart
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Price (USD)',
+                            data: priceData,
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y',
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Volume (USD)',
+                            data: volumeData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1',
+                            order: 1
+                        }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        ticks: {
-                            callback: function (this: Scale, tickValue: string | number, index: number, ticks: Tick[]) {
-                                return `$${Number(tickValue).toFixed(2)}`;
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${tokenData.symbol === 'wSOL' ? 'SOL' : tokenData.symbol} Price Trend (7 Days)`,
+                            font: {
+                                size: 18
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+
+                                    if (label === 'Price (USD)') {
+                                        return `${label}: $${value.toFixed(isStablecoin ? 4 : 2)}`;
+                                    } else if (label === 'Volume (USD)') {
+                                        // Format volume with appropriate suffixes (K, M, B)
+                                        const numValue = Number(value);
+                                        if (numValue >= 1_000_000_000) {
+                                            return `${label}: $${(numValue / 1_000_000_000).toFixed(2)}B`;
+                                        } else if (numValue >= 1_000_000) {
+                                            return `${label}: $${(numValue / 1_000_000).toFixed(2)}M`;
+                                        } else if (numValue >= 1_000) {
+                                            return `${label}: $${(numValue / 1_000).toFixed(2)}K`;
+                                        }
+                                        return `${label}: $${value.toFixed(2)}`;
+                                    }
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Price (USD)'
+                            },
+                            min: yAxisMin,
+                            max: yAxisMax,
+                            ticks: {
+                                callback: function (value) {
+                                    return `$${Number(value).toFixed(isStablecoin ? 4 : 2)}`;
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Volume (USD)'
+                            },
+                            min: 0,
+                            // Add some padding to the max volume
+                            max: maxVolume * 1.1,
+                            grid: {
+                                drawOnChartArea: false // Don't show grid lines for volume axis
+                            },
+                            ticks: {
+                                callback: function (value) {
+                                    // Format volume with appropriate suffixes (K, M, B)
+                                    const numValue = Number(value);
+                                    if (numValue >= 1_000_000_000) {
+                                        return `$${(numValue / 1_000_000_000).toFixed(1)}B`;
+                                    } else if (numValue >= 1_000_000) {
+                                        return `$${(numValue / 1_000_000).toFixed(1)}M`;
+                                    } else if (numValue >= 1_000) {
+                                        return `$${(numValue / 1_000).toFixed(1)}K`;
+                                    }
+                                    return `$${value}`;
+                                }
                             }
                         }
                     }
                 }
-            }
-        };
+            };
 
-        const chartJSNodeCanvas = new ChartJSNodeCanvas({ width: 800, height: 400 });
-        return await chartJSNodeCanvas.renderToBuffer(configuration);
+            // Add special note for stablecoins
+            if (isStablecoin) {
+                // Add subtitle for stablecoins explaining the narrow range
+                configuration.options!.plugins!.subtitle = {
+                    display: true,
+                    text: 'Note: Y-axis shows minor price deviations from $1.00',
+                    font: {
+                        size: 14,
+                        style: 'italic'
+                    }
+                };
+            }
+
+            const chartJSNodeCanvas = new ChartJSNodeCanvas({
+                width: 900,
+                height: 500,
+                backgroundColour: 'white', // Add white background for better readability
+            });
+
+            return await chartJSNodeCanvas.renderToBuffer(configuration);
+        } catch (error) {
+            logger.error("Error generating chart:", error);
+            throw new Error(`Failed to generate price chart: ${error}`);
+        }
     }
-} 
+
+}
