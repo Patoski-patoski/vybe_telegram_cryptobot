@@ -122,7 +122,7 @@ export class RecentTransferHandler extends BaseHandler {
         const receiver = tx.receiverAddress || "Unknown";
         const amount = parseFloat(tx.calculatedAmount).toLocaleString(
             undefined, { maximumFractionDigits: 6 });
-        const url = `https://explorer.solana.com/tx/${tx.signature}`;
+        const url = `https://solscan.io/tx/${tx.signature}`;
         const time = timeAgo(tx.blockTime);
 
         const message =
