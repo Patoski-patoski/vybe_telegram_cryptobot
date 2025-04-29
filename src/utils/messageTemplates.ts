@@ -1,5 +1,75 @@
 export const BOT_MESSAGES = {
-        WELCOME: `
+                WELCOME: `
+🚀 *Welcome to Vybe Analytics Bot!*
+
+Your comprehensive analytics companion for the Solana ecosystem. Here's what I can do:
+
+🐋 *Whale Tracking*
+• Monitor large token transfers
+• Set custom whale alerts
+• Track whale movements
+• View whale holder analytics
+\`/whale\\_alert, /check\\_whales, /list\\_whale_alerts\`
+
+💰 *Token Analysis*
+• Real-time price tracking
+• Price alerts and monitoring
+• Holder distribution analysis
+• Token time series analysis
+\`/analyze, /series, /holder\\_distribution, /check\\_price\`
+
+📊 *Program Analytics*
+• View program information
+• Track active users
+• Monitor program activity
+• Analyze whale users
+\`/program\\_info, /top\\_users, /activity\\_change\`
+
+🖼️ *NFT Portfolio*
+• Track NFT collections
+• Monitor portfolio value
+• Register multiple wallets
+• View collection details
+\`/nft\\_portfolio, /register\\_nft\\_wallet\`
+
+👛 *Wallet Tracking*
+• Monitor wallet activity
+• Track transactions
+• Analyze holdings
+• View wallet insights
+\`/track\\_wallet, /analyze\\_wallet\`
+
+💹 *Price Tracking*
+• Set price alerts
+• Monitor price changes
+• View price charts
+• Track market data
+\`/price\\_alert, /check\\_price\`
+
+Type /help to see detailed command usage or click the commands to get started.
+
+_Powered by Vybe Network_
+`,
+        
+        UNKNOWN_COMMAND: `
+❌ *Unknown Command*
+
+Sorry, I don't recognize that command. Here are some things you can try:
+
+1️⃣ Use /help to see all available commands
+2️⃣ Check your command spelling
+3️⃣ Make sure to use the correct format:
+   Example: /analyze <token\\_address>
+
+🔍 *Popular Commands:*
+• /check\\_price - Get token price
+• /whale\\_alert - Set whale alerts
+• /nft\\_portfolio - View NFT holdings
+• /analyze - Analyze tokens
+
+Need help? Use /help for a complete command list.
+`,
+        HELP: `
 🚀 Welcome to Vybe's Analytical Bot!
 
 Here are all available commands, organized by category:
@@ -476,36 +546,35 @@ Shows detailed information about a wallet's current state.
 Shows recent token transfers for a specific wallet, including transaction details and value changes.
 
 *SYNOPSIS*
-/transfers <wallet_address> [limit]
+/transfers <wallet\\_address> [limit]
 
 *ARGUMENTS*
-<wallet_address>    The Solana wallet address to check transfers for
+<wallet\\_address>    The Solana wallet address to check transfers for
 [limit]            Optional limit for number of transfers to display (default: 10)
 
 *EXAMPLES*
-/transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
-/transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 20
+/transfers 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9
+/transfers 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9 10
 
 *USER STORY*
 As a user, I want to monitor recent token transfers for a specific wallet to track activity and value changes.
 
 *OUTPUT*
 - Transfer list with:
-  * Transaction signature
-  * Amount transferred
-  * Source and destination addresses
-  * Timestamp
-  * Value in USD
-  * Transaction status
+  - Transaction signature
+  - Amount transferred
+  - Source and destination addresses
+  - Timestamp
+  - Value in USD
+  - Transaction status
 
 *TROUBLESHOOTING*
 - Invalid wallet address
 - No recent transfers found
 - Network connectivity issues
-- Check the space between command and arguments
 
 *SEE ALSO*
-/whalealert, /checkwhales, /analyze_wallet`,
+/whale\\_alert, /check\\_whales, /analyze\\_wallet`,
 
         // Top Holders Command
         TOP_HOLDERS_USAGE: "Usage: /top_holders <token_mint_address>\n\nExample: /top_holders 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",

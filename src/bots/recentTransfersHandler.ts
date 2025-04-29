@@ -1,3 +1,5 @@
+// src/bots/recentTransfersHandler.ts
+
 /**
  * @file recentTransfersHandler.ts
  * 
@@ -12,16 +14,30 @@
  * 
  * @requires node-telegram-bot-api
  * @requires ../bots/baseHandler
- * @requires ../utils/time
+ * @requires ../utils/utils
  * @requires ../interfaces/vybeApiInterface
+ * @requires ../utils/messageTemplates
  * 
+ * @method handleTransfers
+ * @method sendTransferMessage
+ * 
+ * @exports RecentTransferHandler
  */
 
 
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
-import { timeAgo, deleteDoubleSpace } from "../utils/utils";
-import { GetRecentTransferResponse, RecentTransfer } from "../interfaces/vybeApiInterface";
+import {
+    timeAgo,
+    deleteDoubleSpace,
+    sendAndDeleteMessage
+} from "../utils/utils";
+
+import {
+    GetRecentTransferResponse,
+    RecentTransfer
+} from "../interfaces/vybeApiInterface";
+
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 
 export class RecentTransferHandler extends BaseHandler {
@@ -49,15 +65,15 @@ export class RecentTransferHandler extends BaseHandler {
         // Parse the limit (default to 5)
         const limit = Number(parts[2] || 3);
         if (isNaN(limit) || limit <= 0) {
-            return this.bot.sendMessage(chatId,
-                "Invalid limit. Please provide a positive number for the limit.");
+            sendAndDeleteMessage(this.bot, msg, "Invalid limit. Please provide a positive number for the limit.");
+            return;
+            
         }
 
         // Initialize parameters
 
         try {
-            // Send "loading" message
-            const loadingMsg = await this.bot.sendMessage(chatId, "⏳ Fetching recent transfers...");
+            sendAndDeleteMessage(this.bot, msg, "⏳ Fetching recent transfers...", 25);
 
             // Get transfers based on the filter type
             let response: GetRecentTransferResponse;
@@ -65,9 +81,6 @@ export class RecentTransferHandler extends BaseHandler {
                 this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit }),
                 this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit })
             ]);
-
-            // Delete loading message
-            await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
             // Display results
             if (!senderResponse.transfers
@@ -87,7 +100,7 @@ export class RecentTransferHandler extends BaseHandler {
 
             // Send summary message
             await this.bot.sendMessage(chatId,
-                `Showing ${Math.min(response.transfers.length, limit)} results:`,
+                `Showing ${Math.min(response.transfers.length, limit) * 2} results:`,
                 { parse_mode: "Markdown" }
             );
 
@@ -95,11 +108,11 @@ export class RecentTransferHandler extends BaseHandler {
             for (const tx of response.transfers.slice(0, response.transfers.length)) {
                 await this.sendTransferMessage(chatId, tx);
             }
+
         } catch (error: any) {
             console.error("Transfer handler error:", error);
-            return this.bot.sendMessage(chatId,
-                `❌ Error: ${error.message || "Failed to fetch transfers"}`
-            );
+            sendAndDeleteMessage(this.bot, msg, "❌ Error: Failed to fetch transfers");
+            return;
         }
     }
 

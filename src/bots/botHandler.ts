@@ -66,8 +66,9 @@ export class BotHandler {
 
     private setUpCommands() {
         const cmds = [
-            { cmd: /\/(start|help|commands)/, handler: this.handleStart.bind(this) },
-            
+            { cmd: /\/(start)/, handler: this.handleStart.bind(this) },
+            { cmd: /\/(help|commands)/, handler: this.handleHelp.bind(this) },
+
             { cmd: /\/top_holders/, handler: this.tokenHolderHandler.handleTopToken.bind(this.tokenHolderHandler) },
             { cmd: /\/transfers/, handler: this.recentTransferHandler.handleTransfers.bind(this.recentTransferHandler) },
 
@@ -114,6 +115,35 @@ export class BotHandler {
         cmds.forEach(({ cmd, handler }) => {
             this.bot.onText(cmd, handler);
         });
+
+        // Add catch-all handler for unknown commands
+        this.bot.on('message', (msg) => {
+            if (msg.text?.startsWith('/')) {
+                // Check if the command matches any known command
+                const isKnownCommand = cmds.some(({ cmd }) => cmd.test(msg.text!));
+
+                if (!isKnownCommand) {
+                    this.handleUnknownCommand(msg);
+                }
+            }
+        });
+    }
+
+    private async handleUnknownCommand(msg: TelegramBot.Message) {
+        const { chat: { id: chatId } } = msg;
+        await this.bot.sendMessage(
+            chatId,
+            BOT_MESSAGES.UNKNOWN_COMMAND,
+            { parse_mode: 'Markdown' }
+        );
+    }
+    private async handleHelp(msg: TelegramBot.Message) {
+        const { chat: { id: chatId } } = msg;
+        await this.bot.sendMessage(
+            chatId,
+            BOT_MESSAGES.HELP,
+            { parse_mode: 'Markdown' }
+        );
     }
 
     private async handleStart(msg: TelegramBot.Message) {

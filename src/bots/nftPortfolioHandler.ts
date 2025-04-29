@@ -121,7 +121,7 @@ export class NFTPortfolioHandler extends BaseHandler {
      */
     async handleListNFTWallets(msg: TelegramBot.Message): Promise<void> {
         const chatId = msg.chat.id;
-        const parts = msg.text?.split(' ');
+        const parts = msg.text?.split(' ') || [];
         const wallets = await this.redisService.getNFTWallets(chatId);
 
         if (parts[1] === 'help') {
