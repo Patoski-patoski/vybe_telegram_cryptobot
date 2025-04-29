@@ -24,14 +24,14 @@ export class TokenAnalysisHandler extends BaseHandler {
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
                 "Usage: /analyze <symbol>\n" +
-                "Example: /analyze JUP" +
+                "Example: /analyze JUP\n" +
                 "Note that: Symbol characters are case sensitive"
             );
         }
 
         const symbol: string = parts[1];
 
-        if (symbol === 'HELP') {
+        if (symbol.toUpperCase() === 'HELP') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.TOKEN_ANALYSIS_HELP,
                 { parse_mode: "Markdown" }
