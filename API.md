@@ -1,38 +1,42 @@
-# Vybe Telegram Bot API Documentation
+# Vybe Network API Documentation
 
-## Overview
+This document provides comprehensive information about the Vybe Network API integration used in the Vybe Telegram Bot.
 
-This document provides detailed information about the Vybe Telegram Bot's API integration, command structure, and response formats.
+## 📚 Overview
 
-## Vybe Network API Integration
+The Vybe Telegram Bot leverages the Vybe Network API to retrieve real-time data from the Solana blockchain. This API provides access to token balances, transaction history, wallet analytics, price data, and NFT information.
 
-### Base URL
-
-```bash
-https://api.vybenetwork.xyz
-```
-
-### Authentication
+## 🔑 Authentication
 
 All API requests require an API key in the header:
 
-```bash
+```
 X-API-KEY: your_api_key
 ```
 
-### Endpoints
+To obtain an API key for the hackathon, please contact Eric BD @ Vybe via Telegram ([@ericvybes](http://t.me/ericvybes)).
 
-#### 1. Token Balance
+## 🌐 Base URL
 
-```typescript
-GET / token / balance / { ownerAddress };
+```
+https://api.vybenetwork.xyz
 ```
 
-Get token balances for a wallet.
+## 📡 Endpoints
+
+### Token Balance
+
+Retrieve token balances for a specific wallet address.
+
+```
+GET /token/balance/{ownerAddress}
+```
 
 **Parameters:**
 
-- `ownerAddress`: Solana wallet address
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ownerAddress` | `string` | Solana wallet address |
 
 **Response:**
 
@@ -48,22 +52,31 @@ interface TokenBalanceResponse {
 }
 ```
 
-#### 2. Whale Transfers
+**Example Request:**
 
-```typescript
-GET / token / whale - transfers;
+```bash
+curl -X GET "https://api.vybenetwork.xyz/token/balance/7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q" \
+  -H "X-API-KEY: your_api_key"
 ```
 
-Get large token transfers.
+### Whale Transfers
+
+Track large token transfers across the Solana blockchain.
+
+```
+GET /token/whale-transfers
+```
 
 **Parameters:**
 
-- `mintAddress`: Token mint address
-- `minAmount`: Minimum transfer amount
-- `timeStart`: Start timestamp
-- `timeEnd`: End timestamp
-- `sortByDesc`: Sort field
-- `limit`: Result limit
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mintAddress` | `string` | Token mint address |
+| `minAmount` | `number` | Minimum transfer amount |
+| `timeStart` | `number` | Start timestamp (optional) |
+| `timeEnd` | `number` | End timestamp (optional) |
+| `sortByDesc` | `string` | Sort field (optional) |
+| `limit` | `number` | Result limit (optional) |
 
 **Response:**
 
@@ -81,21 +94,30 @@ interface WhaleTransferResponse {
 }
 ```
 
-#### 3. Recent Transfers
+**Example Request:**
 
-```typescript
-GET / token / recent - transfers;
+```bash
+curl -X GET "https://api.vybenetwork.xyz/token/whale-transfers?mintAddress=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&minAmount=1000" \
+  -H "X-API-KEY: your_api_key"
 ```
 
-Get recent token transfers.
+### Recent Transfers
+
+Get recent token transfers for analysis.
+
+```
+GET /token/recent-transfers
+```
 
 **Parameters:**
 
-- `mintAddress`: Token mint address
-- `senderAddress`: Sender wallet address
-- `receiverAddress`: Receiver wallet address
-- `tx_signature`: Transaction signature
-- `limit`: Result limit
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mintAddress` | `string` | Token mint address (optional) |
+| `senderAddress` | `string` | Sender wallet address (optional) |
+| `receiverAddress` | `string` | Receiver wallet address (optional) |
+| `tx_signature` | `string` | Transaction signature (optional) |
+| `limit` | `number` | Result limit (optional) |
 
 **Response:**
 
@@ -113,23 +135,32 @@ interface RecentTransferResponse {
 }
 ```
 
-#### 4. Wallet PnL
+**Example Request:**
 
-```typescript
-GET / account / pnl / { ownerAddress };
+```bash
+curl -X GET "https://api.vybenetwork.xyz/token/recent-transfers?mintAddress=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&limit=10" \
+  -H "X-API-KEY: your_api_key"
 ```
 
-Get wallet PnL analysis.
+### Wallet PnL
+
+Get comprehensive profit and loss analysis for a wallet.
+
+```
+GET /account/pnl/{ownerAddress}
+```
 
 **Parameters:**
 
-- `ownerAddress`: Wallet address
-- `resolution`: Time resolution (1d, 7d, 30d)
-- `tokenAddress`: Token address filter
-- `sortByAsc`: Sort ascending by field
-- `sortByDesc`: Sort descending by field
-- `limit`: Result limit
-- `page`: Page number
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ownerAddress` | `string` | Wallet address |
+| `resolution` | `string` | Time resolution (1d, 7d, 30d) (optional) |
+| `tokenAddress` | `string` | Token address filter (optional) |
+| `sortByAsc` | `string` | Sort ascending by field (optional) |
+| `sortByDesc` | `string` | Sort descending by field (optional) |
+| `limit` | `number` | Result limit (optional) |
+| `page` | `number` | Page number (optional) |
 
 **Response:**
 
@@ -167,17 +198,26 @@ interface WalletPnLResponse {
 }
 ```
 
-#### 5. Token Price OHLCV
+**Example Request:**
 
-```typescript
-GET / price / { mintAddress } / token - ohlcv;
+```bash
+curl -X GET "https://api.vybenetwork.xyz/account/pnl/7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q?resolution=7d" \
+  -H "X-API-KEY: your_api_key"
 ```
+
+### Token Price OHLCV
 
 Get OHLCV (Open, High, Low, Close, Volume) data for a token.
 
+```
+GET /price/{mintAddress}/token-ohlcv
+```
+
 **Parameters:**
 
-- `mintAddress`: Token mint address
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mintAddress` | `string` | Token mint address |
 
 **Response:**
 
@@ -196,17 +236,26 @@ interface OHLCVResponse {
 }
 ```
 
-#### 6. NFT Balance
+**Example Request:**
 
-```typescript
-GET / account / nft - balance / { ownerAddress };
+```bash
+curl -X GET "https://api.vybenetwork.xyz/price/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/token-ohlcv" \
+  -H "X-API-KEY: your_api_key"
 ```
+
+### NFT Balance
 
 Get NFT portfolio data for a wallet.
 
+```
+GET /account/nft-balance/{ownerAddress}
+```
+
 **Parameters:**
 
-- `ownerAddress`: Wallet address
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ownerAddress` | `string` | Wallet address |
 
 **Response:**
 
@@ -228,17 +277,26 @@ interface NFTPortfolioResponse {
 }
 ```
 
-#### 7. Token Analysis
+**Example Request:**
 
-```typescript
-GET / token / analysis / { symbol };
+```bash
+curl -X GET "https://api.vybenetwork.xyz/account/nft-balance/7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q" \
+  -H "X-API-KEY: your_api_key"
 ```
+
+### Token Analysis
 
 Get detailed token information including price, metadata, and category.
 
+```
+GET /token/analysis/{symbol}
+```
+
 **Parameters:**
 
-- `symbol`: Token symbol (e.g., "SOL", "JUP")
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `symbol` | `string` | Token symbol (e.g., "SOL", "JUP") |
 
 **Response:**
 
@@ -257,320 +315,113 @@ interface TokenAnalysisResponse {
 }
 ```
 
-## Bot Commands
-
-### Whale Watch Commands
-
-#### 1. Set Whale Alert
+**Example Request:**
 
 ```bash
-/whalealert <token_mint_address> <min_amount>
+curl -X GET "https://api.vybenetwork.xyz/token/analysis/JUP" \
+  -H "X-API-KEY: your_api_key"
 ```
 
-Set up alerts for large transfers of a specific token.
+## 🧩 Implementation
 
-**Parameters:**
+### TypeScript Services
 
-- `token_mint_address`: Token's mint address
-- `min_amount`: Minimum amount to trigger alert
-
-**Example:**
-
-```bash
-/whalealert EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 1000
-```
-
-#### 2. List Whale Alerts
-
-```bash
-/listwhalealerts
-```
-
-View all active whale alerts.
-
-#### 3. Remove Whale Alert
-
-```bash
-/removewhalealert <token_mint_address>
-```
-
-Remove a whale alert.
-
-#### 4. Check Whales
-
-```bash
-/checkwhales <token_mint_address> <min_amount> [limit]
-```
-
-Check recent whale transfers.
-
-### Wallet Tracking Commands
-
-#### 1. Track Wallet
-
-```bash
-/trackwallet <wallet_address> <min_value_usd>
-```
-
-Start tracking a wallet.
-
-**Parameters:**
-
-- `wallet_address`: Solana wallet address
-- `min_value_usd`: Minimum value to trigger alerts
-
-**Example:**
-
-```bash
-/trackwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh8U3dW1VQ 1000
-```
-
-#### 2. List Tracked Wallets
-
-```bash
-/listtrackedwallets
-```
-
-View all tracked wallets.
-
-#### 3. Remove Tracked Wallet
-
-```bash
-/removetrackedwallet <wallet_address>
-```
-
-Stop tracking a wallet.
-
-#### 4. Wallet Status
-
-```bash
-/walletstatus <wallet_address>
-```
-
-Get current wallet status and analysis.
-
-### Price Commands
-
-#### 1. Get Price
-
-```bash
-/price <token_mint_address>
-```
-
-Get current price information for a token.
-
-**Parameters:**
-
-- `token_mint_address`: Token's mint address
-
-**Example:**
-
-```bash
-/price EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
-```
-
-#### 2. Set Price Alert
-
-```bash
-/pricealert <token_mint_address> <threshold> <high/low>
-```
-
-Set up price alerts for a token.
-
-**Parameters:**
-
-- `token_mint_address`: Token's mint address
-- `threshold`: Price threshold
-- `high/low`: Alert direction
-
-**Example:**
-
-```bash
-/pricealert EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 7.5 high
-```
-
-#### 3. Get Price Change
-
-```bash
-/pricechange <token_mint_address>
-```
-
-Get hourly price change for a token.
-
-**Parameters:**
-
-- `token_mint_address`: Token's mint address
-
-**Example:**
-
-```bash
-/pricechange EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
-```
-
-### NFT Commands
-
-#### 1. View NFT Portfolio
-
-```bash
-/nftportfolio [wallet_address]
-```
-
-View NFT portfolio for a wallet.
-
-**Parameters:**
-
-- `wallet_address`: Optional wallet address
-
-**Example:**
-
-```bash
-/nftportfolio 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
-```
-
-### Token Analysis Commands
-
-#### 1. Analyze Token
-
-```bash
-/analyze <symbol>
-```
-
-Get detailed token analysis including price, category, and interactive chart.
-
-**Parameters:**
-
-- `symbol`: Token symbol (e.g., "JUP", "SOL")
-
-**Example:**
-
-```bash
-/analyze JUP
-```
-
-**Response Format:**
-
-```bash
-📊 Token Analysis
-
-Token Symbol: JUP (Jupiter)
-Token name: Jupiter
-Token Address: [mint_address]
-
-Amount owned: 0.000
-Current Price: $1.23
-Total Value: $0.00
-Price Change (24h): +5.67%
-
-Category: DeFi
-[Logo URL]
-
-[📈 View Price Chart for JUP]
-```
-
-**Special Cases:**
-
-- SOL token analysis uses Wrapped SOL (wSOL) as price reference
-- Maintains native SOL branding in output
-- Shows accurate price data while displaying as native SOL
-
-**Interactive Features:**
-
-- Click "📈 View Price Chart for [SYMBOL]" to view 7-day price trend
-- Chart includes daily points, trend line, and clear labels
-
-## Error Handling
-
-### Common Error Codes
-
-- `
-
-### Adding New Features
-
-1. Create a New Handler
+Below is an example of how to implement the Vybe API service in TypeScript:
 
 ```typescript
-import { BaseHandler } from "./baseHandler";
+import axios from 'axios';
+import { TokenBalanceResponse, WhaleTransferResponse, NFTPortfolioResponse } from '../interfaces/vybeApiInterface';
 
-export class NewFeatureHandler extends BaseHandler {
-  constructor(bot: TelegramBot, api: VybeApiService) {
-    super(bot, api);
+export class VybeApiService {
+  private readonly baseUrl: string;
+  private readonly apiKey: string;
+
+  constructor(apiKey: string) {
+    this.baseUrl = 'https://api.vybenetwork.xyz';
+    this.apiKey = apiKey;
   }
 
-  // Add command handlers
-  async handleNewCommand(msg: TelegramBot.Message) {
-    // Implementation
+  private async makeRequest<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    try {
+      const response = await axios.get(`${this.baseUrl}${endpoint}`, {
+        headers: { 'X-API-KEY': this.apiKey },
+        params
+      });
+      return response.data as T;
+    } catch (error) {
+      console.error(`API request failed: ${endpoint}`, error);
+      throw error;
+    }
+  }
+
+  async getTokenBalance(walletAddress: string): Promise<TokenBalanceResponse> {
+    return this.makeRequest<TokenBalanceResponse>(`/token/balance/${walletAddress}`);
+  }
+
+  async getWhaleTransfers(params: { 
+    mintAddress: string, 
+    minAmount: number,
+    limit?: number
+  }): Promise<WhaleTransferResponse> {
+    return this.makeRequest<WhaleTransferResponse>('/token/whale-transfers', params);
+  }
+
+  async getNftPortfolio(walletAddress: string): Promise<NFTPortfolioResponse> {
+    return this.makeRequest<NFTPortfolioResponse>(`/account/nft-balance/${walletAddress}`);
+  }
+
+  // Additional methods for other endpoints...
+}
+```
+
+## 🚧 Error Handling
+
+The API returns standard HTTP status codes:
+
+| Status Code | Description |
+|-------------|-------------|
+| 200 | OK - The request was successful |
+| 400 | Bad Request - Invalid parameters |
+| 401 | Unauthorized - Invalid API key |
+| 403 | Forbidden - API key doesn't have access |
+| 404 | Not Found - Resource not found |
+| 429 | Too Many Requests - Rate limit exceeded |
+| 500 | Internal Server Error - Server-side error |
+
+Example error response:
+
+```json
+{
+  "error": {
+    "code": "invalid_parameters",
+    "message": "Invalid wallet address format"
   }
 }
 ```
 
-2. Add Command Registration
+## 📋 Rate Limits
 
-Update `src/bot.ts` to register new commands:
+The Vybe Network API has rate limits to ensure fair usage:
 
-```typescript
-const newFeatureHandler = new NewFeatureHandler(bot, api);
-bot.onText(/\/newcommand/, (msg) => newFeatureHandler.handleNewCommand(msg));
-```
+- 60 requests per minute
+- 1000 requests per day
 
-3. Add Message Templates
+For increased limits, contact the Vybe team.
 
-Update `src/utils/messageTemplates.ts`:
+## 🔄 Webhooks
 
-```typescript
-export const BOT_MESSAGES = {
-  // ... existing messages
-  NEW_COMMAND_USAGE: "Usage: /newcommand <args>",
-  NEW_COMMAND_HELP: `*New Command Help*
-    
-*DESCRIPTION*
-Description of the new command
+Real-time notifications are available through webhooks. Contact the Vybe team developers to set up webhook integration for your bot.
 
-*SYNOPSIS*
-/newcommand <args>
+## 🌱 Best Practices
 
-*ARGUMENTS*
-<args>    Description of arguments
+1. **Cache Responses**: Implement caching for frequently accessed data
+2. **Respect Rate Limits**: Implement backoff strategies and pooling
+3. **Handle Errors Gracefully**: Provide user-friendly error messages
+4. **Validate Input**: Always validate user input before passing to the API
+5. **Test Thoroughly**: Test all API integrations in different scenarios
 
-*EXAMPLES*
-/newcommand example
+## 📞 Support
 
-*OUTPUT*
-- Expected output format
-- Additional details
-
-*TROUBLESHOOTING*
-- Common issues
-- Solutions`,****
-};
-```
-
-4. Add Response Interfaces
-
-Update `src/interfaces/vybeApiInterface.ts`:
-
-```typescript
-export interface TokenAnalysisResponse {
-  symbol: string;
-  name: string;
-  mintAddress: string;
-  amount: string;
-  priceUsd: string;
-  valueUsd: string;
-  priceUsd1dChange: string;
-  priceUsd7dTrend: string[];
-  category: string;
-  logoUrl: string;
-}
-
-export interface ChartData {
-  labels: string[];
-  datasets: Array<{
-    label: string;
-    data: number[];
-    borderColor: string;
-    backgroundColor: string;
-    fill: boolean;
-    tension: number;
-  }>;
-}
-```
+For API support, contact:
+- Eric BD @ Vybe via Telegram: [@ericvybes](http://t.me/ericvybes)
+- Vybe Network Community: [Telegram Group](https://t.me/VybeNetwork_Official)

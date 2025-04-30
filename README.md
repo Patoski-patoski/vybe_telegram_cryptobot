@@ -1,93 +1,94 @@
-# Vybe Telegram Bot
+# Vybe Telegram Bot 🤖
 
-A powerful Telegram bot for monitoring Solana wallets, whale transactions, token prices, and NFT portfolios, built with TypeScript and Node.js.
+<div align="center">
+  <img src="/img/logo.jpg" alt="Vybe Bot Logo" width="150"/>
+  <h3>Real-time Solana Analytics in your Telegram</h3>
+  <p><b>Bot URL:</b> <a href="https://t.me/vybe_tel_bot">https://t.me/vybe_tel_bot</a></p>
+</div>
 
-## Features
+## 🔍 Overview
 
-### 🐋 Whale Watch
+Vybe Telegram Bot delivers powerful, real-time analytics for Solana blockchain directly in Telegram. Track whale movements, monitor wallets, analyze token metrics, and manage your NFT portfolio—all from a simple chat interface.
 
-- Monitor large token transfers across Solana
-- Set custom thresholds for different tokens
-- Receive real-time alerts for significant transactions
-- Track whale movements and market impact
+Powered by Vybe Network APIs, this bot provides institutional-grade analytics in a user-friendly format that anyone can use.
 
-### 👛 Wallet Tracking
+## 🚀 Features
 
-- Monitor specific wallet addresses
-- Track wallet balances and value changes
-- Analyze wallet risk scores and categories
-- Monitor PnL (Profit and Loss) over time
-- Track protocol interactions
+### 🐋 Whale Watch System
+- Monitor large token transfers across Solana in real-time
+- Set custom thresholds for different tokens 
+- Receive instant notifications for significant market-moving transactions
+- Query recent whale movements on demand
 
-### 📊 Analytics
+### 👛 Smart Wallet Tracking
+- Track specific wallet addresses with custom alerts
+- Monitor balance changes and portfolio value fluctuations
+- Analyze wallet risk scores and categorization
+- Track profit and loss metrics over time
+- Monitor protocol interactions
 
-- Wallet categorization (CEX/DEX/NFT/Protocol)
+### 📊 Token Analytics
+- Comprehensive token data analysis
 - Risk scoring based on multiple factors
-- PnL analysis with win rates and trade metrics
+- Win rate calculations and trade metrics
 - Protocol interaction tracking
-- Token holding analysis
+- Detailed holding analysis
 
-### 💰 Price Tracking
-
+### 💰 Price Intelligence
 - Real-time token price monitoring
-- Price alerts for specific thresholds
-- Hourly price change tracking
+- Custom price alerts with threshold settings
+- Time-based price change tracking
 - Volume and market data analysis
-- Historical price trends
+- Historical price trend visualization
 
-### 🖼️ NFT Portfolio
-
-- Track NFT collections and holdings
-- Monitor portfolio value changes
+### 🖼️ NFT Portfolio Management
+- Track NFT collections and holdings across wallets
+- Monitor portfolio value changes in real-time
 - View collection details and floor prices
-- Register multiple wallets for tracking
-- Get detailed NFT analytics
+- Register multiple wallets for comprehensive tracking
+- Access detailed NFT analytics
 
-### Token Analysis
+## 📘 Command Reference
 
-- Detailed token information including:
-  - Token symbol and name
-  - Token mint address
-  - Current price and 24h change
-  - Token category
-  - Token logo preview
-  - Interactive price chart (on demand)
-  - Holdings information
-- Special handling for SOL token
-- Interactive buttons for additional information
-
-## Commands
+### Getting Started
+```
+/start - Initialize the bot and see available commands
+/help - Display help information and command details
+```
 
 ### Whale Watch Commands
-
-- `/whalealert <token_mint_address> <min_amount>` - Set up alerts for large transfers
-- `/listwhalealerts` - View your active whale alerts
-- `/removewhalealert <token_mint_address>` - Remove a whale alert
-- `/checkwhales <token_mint_address> <min_amount> [limit]` - Check recent whale transfers
+```
+/whale_alert <token_mint_address> <min_amount> - Set up alerts for large transfers
+/listwhalealerts - View your active whale alerts
+/removewhalealert <token_mint_address> - Remove a whale alert
+/checkwhales <token_mint_address> <min_amount> [limit] - Check recent whale transfers
+```
 
 ### Wallet Tracking Commands
-
-- `/trackwallet <wallet_address> <min_value_usd>` - Start tracking a wallet
-- `/listtrackedwallets` - List all tracked wallets
-- `/removetrackedwallet <wallet_address>` - Stop tracking a wallet
-- `/walletstatus <wallet_address>` - Get current wallet status
+```
+/track_wallet <wallet_address> <min_value_usd> - Start tracking a wallet
+/listtrackedwallets - List all tracked wallets
+/removetrackedwallet <wallet_address> - Stop tracking a wallet
+/walletstatus <wallet_address> - Get current wallet status
+```
 
 ### Price Commands
-
-- `/price <token_mint_address>` - Get current price information
-- `/pricealert <token_mint_address> <threshold> <high/low>` - Set price alerts
-- `/pricechange <token_mint_address>` - Get hourly price changes
+```
+/price <token_mint_address> - Get current price information
+/pricealert <token_mint_address> <threshold> <high/low> - Set price alerts
+/pricechange <token_mint_address> - Get hourly price changes
+```
 
 ### NFT Commands
-
-- `/nftportfolio [wallet_address]` - View NFT portfolio
-- `/registernftwallet <wallet_address>` - Register wallet for NFT tracking
-- `/listnftwallets` - List registered NFT wallets
-- `/removenftwallet <wallet_address>` - Remove wallet from tracking
-- `/nftcollection <wallet_address>, <collection_name>` - View collection details
+```
+/nftportfolio [wallet_address] - View NFT portfolio
+/registernftwallet <wallet_address> - Register wallet for NFT tracking
+/listnftwallets - List registered NFT wallets
+/removenftwallet <wallet_address> - Remove wallet from tracking
+/nftcollection <wallet_address>, <collection_name> - View collection details
+```
 
 ### Token Analysis
-
 ```
 /analyze <symbol> - Get detailed token information
 Example: /analyze JUP
@@ -95,13 +96,12 @@ Example: /analyze JUP
 Features:
 - View token details and current price
 - See token logo and category
-- Click button to view 7-day price chart
+- Access 7-day price chart with one click
 ```
 
-## Technical Architecture
+## 🛠️ Technical Architecture
 
 ### Core Components
-
 - `BaseHandler` - Base class for all bot handlers
 - `WhaleWatcherHandler` - Handles whale transaction monitoring
 - `WalletTrackerHandler` - Manages wallet tracking functionality
@@ -109,33 +109,32 @@ Features:
 - `VybeApiService` - Interfaces with Vybe Network API
 
 ### Data Storage
-
-- JSON-based storage for alerts and settings
+- Redis server for primary storage and caching
+- JSON-based backup storage for alerts and settings
 - Persistent tracking across bot restarts
-- Efficient Map-based data structures
+- Efficient Map-based data structures for in-memory processing
 
 ### API Integration
-
 - Real-time data from Vybe Network
 - Token balance tracking
 - Transaction monitoring
 - Wallet analytics
 
-## Setup and Installation
+## 🏗️ Installation and Setup
 
 ### Prerequisites
-
 - Node.js (v14 or higher)
 - npm or yarn
-- Telegram Bot Token
+- Redis server (optional but recommended)
+- Telegram Bot Token (from BotFather)
 - Vybe Network API Key
 
-### Installation
+### Quick Start
 
 1. Clone the repository
 
 ```bash
-git clone https://github.com/Patoski-patoski/vybe_telegram_cryptobot
+git clone https://github.com/patoski-patoski/vybe-telegram-bot
 cd vybe-telegram-bot
 ```
 
@@ -146,98 +145,73 @@ npm install
 ```
 
 3. Configure environment variables
-   Create a `.env` file with:
-
-```
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-VYBE_API_KEY=your_vybe_api_key
-```
-
-4. Build the project
 
 ```bash
-npm run build
+cp .env.example .env
+# Edit .env with your credentials:
+# TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+# VYBE_API_KEY=your_vybe_api_key
 ```
 
-5. Start the bot
+4. Start the bot
 
 ```bash
-npm start
+npm run start
 ```
 
-## Development
+For development:
 
-### Project Structure
+```bash
+npm run dev
+```
+
+### Docker Deployment
+
+```bash
+docker-compose up -d
+```
+
+## 📊 Project Structure
 
 ```bash
 src/
-├── bots/               # Bot handlers
-├── config/             # Configuration files
-├── interfaces/         # TypeScript interfaces
-├── services/           # Core services
-├── utils/              # Utility functions
-└── data/               # Data storage
+├── bots/              # Bot handlers
+├── config/            # Configuration files
+├── interfaces/        # TypeScript interfaces
+├── services/          # Core services
+├── utils/             # Utility functions
+└── data/              # Data storage
 ```
 
-### Adding New Features
+## 🤝 Contributing
 
-1. Create new handler class extending `BaseHandler`
-2. Implement required interfaces
-3. Add command handlers
-4. Update message templates
-5. Test with real data
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-### Testing
+## 📘 Documentation
 
-```bash
-npm test
-```
+- [API Documentation](API.md)
+- [Contributing Guidelines](CONTRIBUTING.md)
 
-## API Documentation
-
-### Vybe Network API Endpoints
-
-- `getTokenBalance` - Get wallet token balances
-- `getWhaleTransfers` - Get large token transfers
-- `getRecentTransfers` - Get recent transactions
-- `getWalletPnL` - Get wallet PnL analysis
-
-### Response Formats
-
-See `src/interfaces/vybeApiInterface.ts` for detailed interface definitions.
-
-## Error Handling
-
-- Comprehensive error logging
-- User-friendly error messages
-- Automatic retry mechanisms
-- Graceful degradation
-
-## Security
+## 🔒 Security
 
 - API key management
 - Input validation
-- Rate limiting
-- Error masking
+- Rate limiting protection
+- Error handling
+- User authentication
 
-## Contributing
+## 📝 License
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+MIT License - See [LICENSE](LICENSE) file for details
 
-## License
+## 🙏 Acknowledgments
 
-MIT License - See LICENSE file for details
-
-## Support
-
-For support, please open an issue in the GitHub repository or contact the development team.
-
-## Acknowledgments
-
-- Vybe Network for the API
+- [Vybe Network](https://vybenetwork.xyz) for their powerful APIs
 - Telegram Bot API
-- Solana blockchain
+- The Solana blockchain community
+
+---
+
+<div align="center">
+  <p>Built with ☕ and ❤️ for the Vybe Network Hackathon</p>
+</div>
