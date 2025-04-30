@@ -20,7 +20,6 @@ const ADDRESSES = {
     SOLEND: "SLNDpmoWTVADgEdndyvWzroNL7zSi1dF9PC3xHGtPwp",
     ORCA: "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
     SERUM: "SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt",
-    EURO_COIN: "8zUYbdB8Q6mXyH6mZuHFjKw8t6X3EwXFwYt3qb6ZT9ph"
 };
 
 // Convert object to array for easier iteration
@@ -41,9 +40,7 @@ export class TokenAnalysisHandler extends BaseHandler {
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /analyze <symbol>\n" +
-                "Example: /analyze JUP\n" +
-                "Note that: Symbol characters are case sensitive"
+               BOT_MESSAGES.TOKEN_ANALYSIS_USAGE,
             );
         }
 
@@ -85,17 +82,30 @@ export class TokenAnalysisHandler extends BaseHandler {
             }
 
             // For all other tokens, search through all mint addresses
-            const tokenData = await this.findTokenBySymbol(chatId, symbol);
+            let tokenData = await this.findTokenBySymbol(chatId, symbol);
+
+            let minttokenData = null;
+            if (!tokenData) {
+               minttokenData =  (await this.api.getTokenBalance(symbol)).data[0];
+            }
 
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
-            if (!tokenData) {
+            if (!minttokenData && !tokenData) {
                 return this.bot.sendMessage(chatId,
                     "⛔ No data found for the specified token.\n" +
                     "Note: Symbol characters are case-sensitive\n\n" +
-                    "Example: wSOL is correct, WSOL is incorrect\n" +
-                    "Example: SOL is correct, Sol is incorrect\n"
+                    
+                    "Example ✅: /analyze JUP" +
+                    "Example ❌: /analyze jup is incorrect\n" +
+                    "Example: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n"
                 );
+            }
+
+
+            if (minttokenData) { 
+                await this.displayTokenInfo(chatId, minttokenData, minttokenData.mintAddress);
+                return;
             }
 
             await this.displayTokenInfo(chatId, tokenData);
@@ -162,45 +172,73 @@ export class TokenAnalysisHandler extends BaseHandler {
      * Displays token information in a formatted message with chart button
      * @param chatId Chat ID to send the message to
      * @param tokenData Token data to display
+     * @param walletAddress Optional wallet address for additional context
      */
-    private async displayTokenInfo(chatId: number, tokenData: any) {
+    private async displayTokenInfo(chatId: number, tokenData: any, walletAddress?: string) {
         // Prepare message with token information
         let message = `📊 *Token Analysis*\n\n`;
         message += `*Token name:* ${tokenData.name}\n\n`;
         message += `*Symbol:* ${tokenData.symbol}\n`;
         message += `*mint Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
-        message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd.toLocaleString())}\n`;
+        message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd)}\n`;
         message += `*Price Change (24h):* ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange).toFixed(2)}%\n\n`;
         message += `*Category:* ${tokenData.category}\n`;
         message += `*Token Verification status:* ${tokenData.verified ? "Verified ✅" : "Not Verified ❓"}\n\n`;
         message += `[Logo url](${tokenData.logoUrl})`;
 
         // Create inline keyboard with View Price Chart button
-        const keyboard = {
-            inline_keyboard: [
-                [{
-                    text: `📈 View Price Chart for ${tokenData.symbol}`,
-                    callback_data: `price_chart_${tokenData.symbol}`
-                }]
-            ]
-        };
+        let keyboard = undefined;
 
-        // Send message with button
-        await this.bot.sendMessage(chatId, message, {
-            parse_mode: "Markdown",
-            reply_markup: keyboard,
-            disable_web_page_preview: false
-        });
+        if (!walletAddress) {
+            keyboard = {
+                inline_keyboard: [
+                    [{
+                        text: `📈 View Price Chart for ${tokenData.symbol}`,
+                        callback_data: `price_chart_${tokenData.symbol}`
+                    }]
+                ]
+            };
+        } else {
+            keyboard = {
+                inline_keyboard: [
+                    [{
+                        text: `📈 View Price Chart for ${tokenData.symbol}`,
+                        callback_data: `price_chart_${tokenData.mintAddress}`
+                    }]
+                ]
+            };
+        }
+
+        if (!walletAddress) {
+            // Send message with button
+            await this.bot.sendMessage(chatId, message, {
+                parse_mode: "Markdown",
+                reply_markup: keyboard,
+                disable_web_page_preview: false
+            });
+        } else {
+            // Send message with button
+            await this.bot.sendMessage(chatId, message, {
+                parse_mode: "Markdown",
+                reply_markup: keyboard,
+                disable_web_page_preview: false
+            });
+        }
+      
     }
 
     // Add new method to handle the chart button click
-    async handlePriceChartButton(query: TelegramBot.CallbackQuery) {
+    async handlePriceChartButton(query: TelegramBot.CallbackQuery, walletAddress?: string) {
         if (!query.data?.startsWith('price_chart_')) return;
 
         const chatId = query.message?.chat.id;
         if (!chatId) return;
 
         let symbol = query.data.replace('price_chart_', '');
+        console.log("Received symbol:", symbol);
+        // Handle special case for SOL
+        // If the symbol is SOL, we need to fetch the wrapped SOL (wSOL) data
+        // and display the chart for wSOL instead
         const originalSymbol = symbol;
         if (symbol === "SOL") symbol = "wSOL";
 
@@ -210,7 +248,11 @@ export class TokenAnalysisHandler extends BaseHandler {
             const loadingMsg = await this.bot.sendMessage(chatId, "📊 Generating price chart...");
 
             // Find token data by searching through all mint addresses
-            const tokenData = await this.findTokenBySymbol(chatId, symbol);
+            let tokenData = await this.findTokenBySymbol(chatId, symbol);
+
+            if (!tokenData) {
+                tokenData = (await this.api.getTokenBalance(symbol)).data[0];
+            }
 
             if (!tokenData) {
                 await this.bot.deleteMessage(chatId, loadingMsg.message_id);

@@ -204,19 +204,22 @@ As a user, I want to understand how token holder behavior changes over time and 
 * Token balance* %formattedValue%`,
 
         // Token Analysis Commands
-        TOKEN_ANALYSIS_USAGE: "Usage: /analyze <token_mint_address>\n\nExample: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+        TOKEN_ANALYSIS_USAGE: "Usage: /analyze token\\_symbol\\_or\\_token\\_mint\\_address>\n\n" +
+                "Example: /analyze JUP\n" +
+                "Example: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
         TOKEN_ANALYSIS_HELP: `📊 *Token Analysis Command (/analyze)*
 
 *DESCRIPTION*
 Analyzes a token's current state, including price, market cap, and portfolio metrics.
 
 *SYNOPSIS*
-/analyze <token_mint_address>
+/analyze <token\\_symbol\\_or\\_token\\_mint\\_address>
 
 *ARGUMENTS*
-<token\\_mint\\_address>   The Solana token mint address to analyze
+<token\\_symbol\\_or\\_token\\_mint\\_address>   The Solana token ssymbol or mint address to analyze
 
 *EXAMPLES*
+/analyze JUP
 /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 
 *USER STORY*:
