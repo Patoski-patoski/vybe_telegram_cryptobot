@@ -1,7 +1,5 @@
-// src/config/config.ts - Updated with webhook URL config
 import dotenv from 'dotenv';
 import path from 'path';
-
 
 dotenv.config();
 
@@ -29,6 +27,16 @@ const config = {
         port: parseInt(process.env.PORT || '3000', 10),
         host: process.env.HOST || '0.0.0.0',
         environment: process.env.NODE_ENV || 'development',
+    },
+
+    // Redis settings
+    redis: {
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
+        host: process.env.REDIS_HOST,
+        password: process.env.REDIS_PASSWORD || '',
+        tls: process.env.REDIS_TLS === 'true',
+        port: process.env.REDIS_PORT,
+        reconnectStrategy: parseInt(process.env.REDIS_RECONNECT_STRATEGY || '1000', 10), // Time in ms
     },
 
     // Logging settings
@@ -65,7 +73,6 @@ export function getConfig() {
     validateConfig();
     return config;
 }
-
 
 // Validate required environment variables
 const requiredEnvVars = ['TELEGRAM_BOT_TOKEN'];

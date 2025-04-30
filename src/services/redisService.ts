@@ -55,6 +55,7 @@ import {
     ProgramActiveUser
 } from '../interfaces/vybeApiInterface';
 import logger from '../config/logger';
+import config from '../config/config';
 
 export class RedisService {
     private client: RedisClientType;
@@ -67,12 +68,37 @@ export class RedisService {
     public ONE_DAY = 86400 // 1 day in seconds
 
     private constructor() {
+
+        const redisConfig = config.redis;
+        if (!redisConfig) {
+            throw new Error('Redis configuration is missing');
+        }
+
         this.client = createClient({
-            url: process.env.REDIS_URL || 'redis://localhost:6379'
+            url: `redis://default:${redisConfig.password}@${redisConfig.host}:${redisConfig.port}` || process.env.REDIS_URL,
+            socket: {
+                tls: redisConfig.tls,
+                reconnectStrategy: (retries) => {
+                    
+                     const delay = Math.min(
+                        redisConfig.reconnectStrategy * Math.pow(2, retries),
+                        30000 // Max 30 seconds
+                    );
+                    return delay
+                },
+            },
         });
 
         this.client.on('error', (err: any) => {
             logger.error('Redis Client Error:', err);
+        });
+
+        this.client.on('connect', () => {
+            logger.info('Redis Client Connected');
+        });
+
+        this.client.on('reconnecting', () => {
+            logger.info('Redis Client Reconnecting...');
         });
     }
 
@@ -87,7 +113,7 @@ export class RedisService {
     private async connect() {
         try {
             await this.client.connect();
-            logger.info('Connected to Redis');
+            logger.info(`Connected to Redis at ${config.redis.url}:${config.redis.port}`);
         } catch (error) {
             logger.error('Failed to connect to Redis:', error);
             throw error;

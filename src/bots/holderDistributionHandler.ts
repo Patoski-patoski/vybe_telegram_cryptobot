@@ -10,6 +10,20 @@ export class HolderDistributionHandler extends BaseHandler {
         super(bot, api);
     }
 
+    /**
+     * @function handleHolderDistribution
+     * 
+     * Handle the /holder_distribution command, which displays the distribution of a token's holders.
+     * 
+     * The command takes a single argument, which is the mint address of the token to analyze.
+     * 
+     * The handler will fetch the top holders data from the Vybe API and calculate the distribution metrics,
+     * including the total supply, top 10 holders' combined percentage, Gini coefficient, and concentration ratios.
+     * 
+     * The handler will then format the message and send it to the Telegram chat.
+     * 
+     * @param msg The Telegram message object
+     */
     async handleHolderDistribution(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
@@ -102,6 +116,22 @@ export class HolderDistributionHandler extends BaseHandler {
         }
     }
 
+
+    /**
+     * @function calculateGiniCoefficient
+     * 
+     * Calculates the Gini coefficient of a token's holder distribution.
+     *
+     * The Gini coefficient is a measure of the inequality of a distribution.
+     * It is defined as the ratio of the area between the Lorenz curve of the
+     * distribution and the line of perfect equality to the area under the
+     * line of perfect equality. The Gini coefficient ranges from 0 (perfect
+     * equality) to 1 (perfect inequality).
+
+     * @param holders An array of token holders with their balances and
+     *                percentage of total supply held.
+     * @return The Gini coefficient of the token's holder distribution.
+     */
     private calculateGiniCoefficient(holders: any[]): number {
         // Sort holders by percentage in ascending order
         const sortedHolders = [...holders].sort((a, b) =>

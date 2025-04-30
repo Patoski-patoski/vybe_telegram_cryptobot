@@ -321,21 +321,21 @@ As a user, I want to analyze the distribution of token holders across different 
 /analyze, /holders`,
 
         // Whale Watching Commands
-        WHALE_ALERT_USAGE: "Usage: /whalealert <token_mint_address> <threshold>\n\nExample: /whalealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 1000",
-        WHALE_ALERT_HELP: `🐋 *Whale Alert Command (/whalealert)*
+        WHALE_ALERT_USAGE: "Usage: /whalealert <token_mint_address> <threshold>\n\nExample: /whale_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 1000",
+        WHALE_ALERT_HELP: `🐋 *Whale Alert Command (/set_whale_alert)*
 
 *DESCRIPTION*
 Sets up alerts for large token transfers (whale movements).
 
 *SYNOPSIS*
-/whalealert <token_mint_address> <threshold>
+/whale\\_alert <token\\_mint_address> <threshold>
 
 *ARGUMENTS*
-<token_mint_address>    The Solana token mint address to monitor
-<threshold>             Minimum transfer amount to trigger alert
+<token\\_mint\\_address>    The Solana token mint address to monitor
+<threshold>        Minimum transfer amount to trigger alert
 
 *EXAMPLES*
-/whalealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 1000
+/whale\\_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 1000
 
 *USER STORY*:
 As a user, I want to set up alerts for large token transfers (whale movements).
@@ -347,21 +347,21 @@ As a user, I want to set up alerts for large token transfers (whale movements).
 *TROUBLESHOOTING*
 - Ensure valid token address
 - Set appropriate threshold
-- Check alert status with /listwhalealerts
+- Check alert status with /list\\_whale\\_alerts
 
 *SEE ALSO*
-/listwhalealerts, /removewhalealert, /checkwhales`,
+/list\\_whale\\_alerts, /remove\\_whale\\_alert, /check\\_whales`,
 
-        LIST_WHALE_ALERTS_HELP: `📋 *List Whale Alerts Command (/listwhalealerts)*
+        LIST_WHALE_ALERTS_HELP: `📋 *List Whale Alerts Command (/list\\_whale\\_alerts)*
 
 *DESCRIPTION*
 Lists all active whale alerts for your account.
 
 *SYNOPSIS*
-/listwhalealerts
+/list\\_whale\\_alerts
 
 *EXAMPLES*
-/listwhalealerts
+/list\\_whale\\_alerts
 
 *USER STORY*:
 As a user, I want to list all active whale alerts for my account.
@@ -378,24 +378,24 @@ As a user, I want to list all active whale alerts for my account.
 - Check the space between the commands
 
 *SEE ALSO*
-/whalealert, /removewhalealert, /checkwhales`,
+/set\\_whale\\_alert, /remove\\_whale\\_alert, /check\\_whales`,
 
-        REMOVE_WHALE_ALERT_HELP: `❌ *Remove Whale Alert Command (/removewhalealert)*
+        REMOVE_WHALE_ALERT_HELP: `❌ *Remove Whale Alert Command (/remove_whale_alert)*
 
 *DESCRIPTION*
 Removes a whale alert for a specific token.
 
 *SYNOPSIS*
-/removewhalealert <token_mint_address>
+/remove\\_whale\\_alert <token\\_mint\\_address>
 
 *ARGUMENTS*
-<token_mint_address>    The Solana token mint address to remove alert for
-
-*EXAMPLES*
-/removewhalealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
+<token\\_mint\\_address>    The Solana token mint address to remove alert for
 
 *USER STORY*:
 As a user, I want to remove a whale alert for a specific token.
+
+*EXAMPLES*
+/remove\\_whale\\_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 
 *OUTPUT*
 - Confirmation of alert removal
@@ -407,48 +407,56 @@ As a user, I want to remove a whale alert for a specific token.
 - Check the space between the commands
 
 *SEE ALSO*
-/whalealert, /listwhalealerts, /checkwhales`,
-        CHECK_WHALES_USAGE: "Usage: /checkwhales <mint_address> <min_amount> [<limit>]\n\nExample: /checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN \n\nExample: /checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10",
+/whale\\_alert, /list\\_whale\\_alerts, /check\\_whales`,
+        CHECK_WHALES_USAGE: "Usage: /check_whales <mint_address> <min_amount> [<limit>]\n\nExample: /check_whales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN \n\nExample: /check_whales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10",
 
-        CHECK_WHALES_HELP: `🔍 *Check Whales Command (/checkwhales)*
+        CHECK_WHALES_HELP: `🔍 *Check Whales Command (/check_whales)*
 
 *DESCRIPTION*
 Manually checks for recent whale movements across all monitored tokens.
 
 *SYNOPSIS*
-/checkwhales <mint_address> <min_amount>
+/check\\_whales <mint\\_address> <min\\_amount>
 
 *ARGUMENTS*
-<mint_address>    The Solana token mint address to check whales for
-<min_amount>      The minimum amount to trigger a whale alert
+<mint\\_address>    The Solana token mint address to check whales for
+<min\\_amount>      The minimum amount to trigger a whale alert
+
+*USER STORY*
+As a user, I want to manually check for recent whale movements across all monitored tokens.
+
+*EXAMPLES*
+/check\\_whales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000
 
 *OUTPUT*
 - Recent whale movements
 - Transfer details
 - Impact analysis
 
-*EXAMPLES*
-/checkwhales 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 10000
-
 *TROUBLESHOOTING*
 - No recent whale movements
 - Network connectivity issues
-- Check the space between the command and the token address
 
 *SEE ALSO*
-/whalealert, /listwhalealerts, /removewhalealert`,
+/whale\\_alert, /list\\_whale\\_alerts, /remove\\_whale\\_alert`,
 
-        TRACK_WALLET_HELP: `👛 *Track Wallet Command (/trackwallet)*
+        TRACK_WALLET_HELP: `👛 *Track Wallet Command (/track_wallet)*
 
 *DESCRIPTION*
 Monitors a wallet for balance changes and sends alerts when significant changes occur.
 
 *SYNOPSIS*
-/trackwallet <wallet_address> <min_value_usd>
+/track\\_wallet <wallet\\_address> <min\\_value\\_usd>
 
 *ARGUMENTS*
-<wallet_address>    The Solana wallet address to monitor
-<min_value_usd>     Minimum USD value to trigger alerts
+<wallet\\_address>    The Solana wallet address to monitor
+<min\\_value\\_usd>     Minimum USD value to trigger alerts
+
+*USER STORY*
+As a user, I want to track wallets for balance changes and receive alerts for significant changes.
+
+*EXAMPLES*
+/track\\_wallet 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 1000
 
 *OUTPUT*
 - Balance change alerts
@@ -456,69 +464,69 @@ Monitors a wallet for balance changes and sends alerts when significant changes 
 - Token removals
 - Value changes in USD
 
-*EXAMPLES*
-/trackwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 1000
 
 *TROUBLESHOOTING*
 - Invalid wallet address
 - Network connectivity issues
-- Check the space between the command and the wallet address
 
 *SEE ALSO*
-/listtrackedwallets, /removetrackedwallet, /walletstatus`,
+/list\\_tracked\\_wallets, /remove\\_tracked\\_wallet, /wallet\\_status`,
 
-        LIST_TRACKED_WALLETS_HELP: `📋 *List Tracked Wallets Command (/listtrackedwallets)*
+        LIST_TRACKED_WALLETS_HELP: `📋 *List Tracked Wallets Command (/list_tracked_wallets)*
 
 *DESCRIPTION*
 Lists all wallets you are currently tracking.
 
 *SYNOPSIS*
-/listtrackedwallets
+/list\\_tracked\\_wallets
+
+
+*USER STORY*
+As a user, I want to see all wallets I am currently tracking for balance changes.
+
+*EXAMPLES*
+/list\\_tracked\\_wallets
 
 *OUTPUT*
 - List of tracked wallets
 - Minimum value thresholds
 - Last check times
 
-*EXAMPLES*
-/listtrackedwallets
-
 *TROUBLESHOOTING*
 - No tracked wallets found
 - Check if you've set up any wallet tracking
 
 *SEE ALSO*
-/trackwallet, /removetrackedwallet, /walletstatus`,
+/track\\_wallet, /remove\\_tracked\\_wallet, /wallet\\_status`,
 
-        REMOVE_TRACKED_WALLET_HELP: `❌ *Remove Tracked Wallet Command (/removetrackedwallet)*
+        REMOVE_TRACKED_WALLET_HELP: `❌ *Remove Tracked Wallet Command (/remove\\_tracked\\_wallet)*
 
 *DESCRIPTION*
 Stops tracking a specific wallet.
 
 *SYNOPSIS*
-/removetrackedwallet <wallet_address>
+/remove\\_tracked\\_wallet <wallet_address>
 
 *ARGUMENTS*
-<wallet_address>    The wallet address to stop tracking
+<wallet\\_address>    The wallet address to stop tracking
 
 *EXAMPLES*
-/removetrackedwallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+/remove\\_tracked\\_wallet 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
 
 *TROUBLESHOOTING*
 - Wallet not found in tracking list
 - Invalid wallet address
-- Check the space between the command and the wallet address
 
 *SEE ALSO*
-/trackwallet, /listtrackedwallets, /walletstatus`,
+/track\\_wallet, /list\\_tracked\\_wallets, /wallet\\_status`,
 
-        WALLET_STATUS_HELP: `📊 *Wallet Status Command (/walletstatus)*
+        WALLET_STATUS_HELP: `📊 *Wallet Status Command (/wallet_status)*
 
 *DESCRIPTION*
 Shows detailed information about a wallet's current state.
 
 *SYNOPSIS*
-/walletstatus <wallet_address>
+/wallet\\_status <wallet_address>
 
 *ARGUMENTS*
 <wallet_address>    The wallet address to check
@@ -531,15 +539,14 @@ Shows detailed information about a wallet's current state.
 - Verification status
 
 *EXAMPLES*
-/walletstatus 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
+/wallet\\_status 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q
 
 *TROUBLESHOOTING*
 - Invalid wallet address
 - Network connectivity issues
-- Check the space between the command and the wallet address
 
 *SEE ALSO*
-/trackwallet, /listtrackedwallets, /removetrackedwallet`,
+/track\\_wallet, /list\\_tracked\\_wallets, /remove\\_tracked\\_wallet`,
 
         // Recent Transfers Command
         RECENT_TRANSFERS_USAGE: "Usage: /transfers wa_wallet_address [limit]\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 10",

@@ -52,9 +52,9 @@ export class WhaleWatcherHandler extends BaseHandler {
         // check every 10 minutes
         this.checkInterval = setInterval(async () => {
             await this.checkWhaleTransactions();
-        }, 10 * 60 * 1000);
+        }, 3 * 60 * 1000);
 
-        logger.info("Whale Watcher started. Monitoring whale transactions every 10 minutes.");
+        logger.info("Whale Watcher started. Monitoring whale transactions every 3 minutes.");
     }
 
     /**
@@ -170,17 +170,18 @@ export class WhaleWatcherHandler extends BaseHandler {
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
 
-        if (parts[1] === 'help') {
+        if ( parts[1] && parts[1].toLowerCase() === 'help') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.WHALE_ALERT_HELP,
                 { parse_mode: "Markdown" }
             );
         }
+
         if (parts.length !== 3) {
             return this.bot.sendMessage(chatId,
-                "Usage: /whalealert <token_mint_address> <min_amount>\n" +
-                "Example: /whalealert EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 1000\n" +
-                "(Alerts when transfers of USDC over 1000 tokens occur)"
+                "Usage: /set_whale_alert <token_mint_address> <min_amount>\n" +
+                "Example: /set_whale_alert EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 1000\n\n" +
+                "(Alerts when transfers of more than 1000 worth of tokens are made)",
             );
         }
 
@@ -237,6 +238,19 @@ export class WhaleWatcherHandler extends BaseHandler {
      */
     async handleListWhaleAlerts(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
+        const text = msg.text || "";
+        const parts = deleteDoubleSpace(text.split(" "));
+
+        if (parts.length >= 1 && parts[1] === 'help') { 
+
+            await this.bot.sendMessage(chatId,
+                BOT_MESSAGES.LIST_WHALE_ALERTS_HELP,
+                { parse_mode: "Markdown" }
+            );
+
+            return;
+        }
+
 
         // Get alerts from Redis if available
         if (this.redisService) {
@@ -299,8 +313,8 @@ export class WhaleWatcherHandler extends BaseHandler {
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /remove\\_whalealert <token\\_mint\\_address>\n" +
-                "To see your active alerts, use /list\\_whale\\_alerts"
+                "Usage: /remove_whalealert <token_mint_address>\n" +
+                "To see your active alerts, use /list_whale_alerts"
             );
         }
 
@@ -316,12 +330,12 @@ export class WhaleWatcherHandler extends BaseHandler {
             }
 
             await this.bot.sendMessage(chatId,
-                `✅ Successfully removed whale alert for token \`\`\`${mintAddress}\`\`\``,
+                `✅ Successfully removed whale alert for token\n\n \`\`\`${mintAddress}\`\`\``,
                 { parse_mode: "Markdown" }
             );
         } else {
             await this.bot.sendMessage(chatId,
-                `❌ No active whale alert found for token \`\`\`${mintAddress}\`\`\``,
+                `❌ No active whale alert found for token\n \`\`\`${mintAddress}\`\`\``,
                 { parse_mode: "Markdown" }
             );
         }
@@ -338,13 +352,12 @@ export class WhaleWatcherHandler extends BaseHandler {
         if (parts.length < 2 || parts.length >= 4) {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.CHECK_WHALES_USAGE,
-                { parse_mode: "Markdown" }
             );
         }
 
         mintAddress = parts[1];
 
-        if (mintAddress === 'help') {
+        if (mintAddress.toLowerCase() === 'help') {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.CHECK_WHALES_HELP,
                 { parse_mode: "Markdown" }
@@ -398,9 +411,9 @@ export class WhaleWatcherHandler extends BaseHandler {
 
             // Send each holder's details
             for (const holder of whaleHolders) {
-                const balance = parseFloat(holder.balance).toLocaleString(undefined, { maximumFractionDigits: 6 });
+                const balance = parseFloat(holder.balance).toLocaleString(undefined, { maximumFractionDigits: 3 });
                 const message =
-                    `👤 *Holder ${count + 1}:* \n\`\`\`${holder.ownerAddress}\`\`\`\n\n` +
+                    `👤 *Holder ${count + 1}:* \n\nWallet Address:\n\`\`\`${holder.ownerAddress}\`\`\`\n\n` +
                     `🆔 *Owner Name:* ${holder.ownerName || "N/A"}\n\n` +
                     `💰 *Balance:* ${balance} ${holder.tokenSymbol}\n\n` +
                     `💵 *Value in USD:* ${formatUsdValue(holder.valueUsd)}\n\n` +
@@ -416,6 +429,16 @@ export class WhaleWatcherHandler extends BaseHandler {
         }
     }
 
+    /**
+     * 
+     * @function saveAlerts
+     * Saves the whale alerts to Redis or a fallback JSON file.
+     *
+     * If Redis is not available, the alerts are saved to a JSON file at
+     * `data/whale-alerts.json` in the root directory of the repository.
+     *
+     * @private 
+     */
     private async saveAlerts() {
         try {
             if (!this.redisService) {
@@ -436,6 +459,17 @@ export class WhaleWatcherHandler extends BaseHandler {
         }
     }
 
+    /**
+     * 
+     * @function loadAlerts
+     * 
+     * Loads the whale alerts from Redis or a fallback JSON file.
+     *
+     * If Redis is not available, the alerts are loaded from a JSON file at
+     * `data/whale-alerts.json` in the root directory of the repository.
+     *
+     * @private
+     */
     private async loadAlerts() {
         try {
             if (!this.redisService) {
