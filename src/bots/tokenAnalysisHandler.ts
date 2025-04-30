@@ -20,6 +20,7 @@ const ADDRESSES = {
     SOLEND: "SLNDpmoWTVADgEdndyvWzroNL7zSi1dF9PC3xHGtPwp",
     ORCA: "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
     SERUM: "SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt",
+    EURO_COIN: "8zUYbdB8Q6mXyH6mZuHFjKw8t6X3EwXFwYt3qb6ZT9ph"
 };
 
 // Convert object to array for easier iteration
@@ -91,7 +92,7 @@ export class TokenAnalysisHandler extends BaseHandler {
             if (!tokenData) {
                 return this.bot.sendMessage(chatId,
                     "⛔ No data found for the specified token.\n" +
-                    "Note: Symbol characters are case-sensitive\n" +
+                    "Note: Symbol characters are case-sensitive\n\n" +
                     "Example: wSOL is correct, WSOL is incorrect\n" +
                     "Example: SOL is correct, Sol is incorrect\n"
                 );
@@ -165,13 +166,13 @@ export class TokenAnalysisHandler extends BaseHandler {
     private async displayTokenInfo(chatId: number, tokenData: any) {
         // Prepare message with token information
         let message = `📊 *Token Analysis*\n\n`;
-        message += `*Token name:* ${tokenData.name}\n`;
+        message += `*Token name:* ${tokenData.name}\n\n`;
         message += `*Symbol:* ${tokenData.symbol}\n`;
         message += `*mint Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
         message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd.toLocaleString())}\n`;
         message += `*Price Change (24h):* ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange).toFixed(2)}%\n\n`;
         message += `*Category:* ${tokenData.category}\n`;
-        message += `*Token Verification status:* ${tokenData.verified ? "Verified ✅" : "Not Verified ❓"}\n`;
+        message += `*Token Verification status:* ${tokenData.verified ? "Verified ✅" : "Not Verified ❓"}\n\n`;
         message += `[Logo url](${tokenData.logoUrl})`;
 
         // Create inline keyboard with View Price Chart button
@@ -232,7 +233,6 @@ export class TokenAnalysisHandler extends BaseHandler {
     }
 
     // Modified generatePriceChart method for TokenAnalysisHandler class
-
     private async generatePriceChart(tokenData: any): Promise<Buffer> {
         try {
             // Determine if this is a stablecoin (approximate check)
@@ -307,7 +307,7 @@ export class TokenAnalysisHandler extends BaseHandler {
                             type: 'bar',
                             label: 'Volume (USD)',
                             data: volumeData,
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            backgroundColor: 'rgba(39, 60, 75, 0.5)',
                             borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 1,
                             yAxisID: 'y1',

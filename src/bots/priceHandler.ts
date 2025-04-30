@@ -53,9 +53,8 @@ export class PriceHandler extends BaseHandler {
                 this.api.getTokenOHLCV(mintAddress),
                 this.api.getTopTokenHolder(mintAddress)]
             )
-            console.log("ohlcvData", ohlcvData);
 
-            const tokenName = holders.data[0].tokenSymbol
+            const tokenName = holders.data[0].tokenSymbol || 'N/A'
 
             if (!ohlcvData || !ohlcvData.data) {
                 await this.bot.sendMessage(chatId, 'No price data available for this token.');
