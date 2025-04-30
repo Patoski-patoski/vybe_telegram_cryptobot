@@ -2,7 +2,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { BotHandler } from "./bots/botHandler";
-import config from "../src/config/config";
+import config from "./config/config";
 
 
 dotenv.config();
@@ -31,7 +31,6 @@ class App {
     }
 
     private setupExpress() {
-        // Add body parser middleware for webhook
         this.app.use(express.json());
 
         // Health check endpoint
@@ -60,7 +59,6 @@ class App {
         });
 
         console.log('Vybe Telegram Bot is running...');
-        console.log(`Environment: ${config.server.environment}`);
 
         // Set webhook
         await this.setupWebhook();

@@ -11,9 +11,9 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     "types": ["node", "node-telegram-bot-api"],
@@ -23,4 +23,3 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
-

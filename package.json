@@ -27,9 +27,9 @@
   "author": "Patrick Okafor",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/patoski-patoski/vybe_teleram_bot/issues"
+    "url": "https://github.com/patoski-patoski/vybe_telegram_cryptobot/issues"
   },
-  "homepage": "https://github.com/patoski-patoski/vybe_teleram_bot#readme",
+  "homepage": "https://github.com/patoski-patoski/vybe_telegram_cryptobot#readme",
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.0",
