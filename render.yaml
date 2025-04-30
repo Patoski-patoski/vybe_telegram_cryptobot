@@ -3,7 +3,7 @@ services:
     name: vybe-telegram-bot
     env: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm run start
     startCommand: node dist/app.js
     healthCheckPath: /health
     envVars:
