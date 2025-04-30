@@ -74,12 +74,5 @@ export function getConfig() {
     return config;
 }
 
-// Validate required environment variables
-const requiredEnvVars = ['TELEGRAM_BOT_TOKEN'];
-for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-        throw new Error(`Missing required environment variable: ${envVar}`);
-    }
-}
 
 export default config;
