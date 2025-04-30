@@ -18,7 +18,6 @@ export class HolderDistributionHandler extends BaseHandler {
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
                 BOT_MESSAGES.HOLDER_DISTRIBUTION_USAGE,
-                { parse_mode: "Markdown" }
             );
         }
 

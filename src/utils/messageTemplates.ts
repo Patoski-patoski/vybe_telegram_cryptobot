@@ -250,20 +250,20 @@ As a user, I want to analyze a token's current state, including price, market ca
 Analyzes token holder and volume trends over time, including correlation analysis.
 
 *SYNOPSIS*
-/series <token_mint_address> [start_date] [end_date]
+/series <token\\_mint\\_address> [start_date] [end_date]
 
 *ARGUMENTS*
 <token_mint_address>    The Solana token mint address to analyze
 [start_date]            Optional start date in YYYY-MM-DD format
 [end_date]              Optional end date in YYYY-MM-DD format
 
+*USER STORY*:
+As a user, I want to analyze token holder and volume trends over time, including correlation analysis.
+
 *EXAMPLES*
 /series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
 /series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09
 /series 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 2025-04-09 2025-03-30
-
-*USER STORY*:
-As a user, I want to analyze token holder and volume trends over time, including correlation analysis.
 
 *OUTPUT*
 - Holder Analysis
@@ -292,13 +292,13 @@ As a user, I want to analyze token holder and volume trends over time, including
 /analyze, /holder\\_distribution`,
 
         HOLDER_DISTRIBUTION_USAGE: "Usage: /holder_distribution <token_mint_address>\n\nExample: /holder_distribution 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
-        HOLDER_DISTRIBUTION_HELP: `📊 *Holder Distribution Command (/holder\\_distribution)*
+        HOLDER_DISTRIBUTION_HELP: `📊 *Holder Distribution Command (/holder_distribution)*
 
 *DESCRIPTION*
 Analyzes the distribution of token holders across different balance ranges.
 
 *SYNOPSIS*:
-/holder\\_distribution <token_mint_address>
+/holder\\_distribution <token\\_mint\\_address>
 
 *EXAMPLES*:
 /holder\\_distribution 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN
