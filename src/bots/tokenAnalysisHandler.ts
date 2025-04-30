@@ -209,21 +209,12 @@ export class TokenAnalysisHandler extends BaseHandler {
             };
         }
 
-        if (!walletAddress) {
             // Send message with button
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
                 reply_markup: keyboard,
                 disable_web_page_preview: false
             });
-        } else {
-            // Send message with button
-            await this.bot.sendMessage(chatId, message, {
-                parse_mode: "Markdown",
-                reply_markup: keyboard,
-                disable_web_page_preview: false
-            });
-        }
       
     }
 
@@ -235,7 +226,6 @@ export class TokenAnalysisHandler extends BaseHandler {
         if (!chatId) return;
 
         let symbol = query.data.replace('price_chart_', '');
-        console.log("Received symbol:", symbol);
         // Handle special case for SOL
         // If the symbol is SOL, we need to fetch the wrapped SOL (wSOL) data
         // and display the chart for wSOL instead
@@ -253,6 +243,7 @@ export class TokenAnalysisHandler extends BaseHandler {
             if (!tokenData) {
                 tokenData = (await this.api.getTokenBalance(symbol)).data[0];
             }
+
 
             if (!tokenData) {
                 await this.bot.deleteMessage(chatId, loadingMsg.message_id);
@@ -274,7 +265,20 @@ export class TokenAnalysisHandler extends BaseHandler {
         }
     }
 
-    // Modified generatePriceChart method for TokenAnalysisHandler class
+
+    /**
+     * Generates a price chart for a given token, fetching OHLCV data from CoinGecko.
+     *
+     * The chart is a combination of a line chart for price and a bar chart for volume.
+     * The Y-axis is autoscaled based on the price range, with special handling for stablecoins (e.g., USDC, USDT).
+     * For stablecoins, the Y-axis is narrowed to show minor price deviations from $1.00.
+     * For low-value tokens, the Y-axis is also adjusted to show more detail.
+     * The X-axis shows the date, and the tooltip shows the price and volume values.
+     *
+     * @param tokenData Token data object from CoinGecko API
+     * @returns A buffer containing the generated chart image
+     */
+
     private async generatePriceChart(tokenData: any): Promise<Buffer> {
         try {
             // Determine if this is a stablecoin (approximate check)
@@ -292,7 +296,7 @@ export class TokenAnalysisHandler extends BaseHandler {
                 timeStart,
                 timeEnd,
                 7
-        );
+            );
 
             // Format dates
             const dates = ohlcvResponse.data.map(item => {
@@ -308,7 +312,7 @@ export class TokenAnalysisHandler extends BaseHandler {
             const minPrice = Math.min(...priceData);
             const maxPrice = Math.max(...priceData);
 
-            // For stablecoins, set fixed Y-axis range near $1.00
+            // Set appropriate Y-axis range based on token type
             let yAxisMin, yAxisMax;
             if (isStablecoin) {
                 // Narrow range for stablecoins (e.g., $0.995 to $1.005)
@@ -316,19 +320,38 @@ export class TokenAnalysisHandler extends BaseHandler {
                 yAxisMin = 1 - deviation;
                 yAxisMax = 1 + deviation;
             } else {
-                // For regular tokens, calculate padding (10% padding)
-                const padding = (maxPrice - minPrice) * 0.1;
-                yAxisMin = minPrice - padding;
-                yAxisMax = maxPrice + padding;
-                // Ensure we never go below zero for token prices
-                yAxisMin = Math.max(0, yAxisMin);
+                // For tokens with prices < $1, we need special handling
+                if (maxPrice < 1) {
+                    // For low-value tokens like JUP, use a more appropriate scale
+                    // First calculate the range and add padding
+                    const range = maxPrice - minPrice;
+                    const padding = range * 0.15; // 15% padding
+
+                    if (range < 0.1) {
+                        // Extend range to make it at least 10% of the token's value
+                        const minPadding = maxPrice * 0.1;
+                        yAxisMin = Math.max(0, minPrice - Math.max(padding, minPadding));
+                        yAxisMax = maxPrice + Math.max(padding, minPadding);
+                    } else {
+                        // Normal padding for other low-value tokens
+                        yAxisMin = Math.max(0, minPrice - padding);
+                        yAxisMax = maxPrice + padding;
+                    }
+                } else {
+                    // For regular tokens with price >= $1, calculate padding (10% padding)
+                    const padding = (maxPrice - minPrice) * 0.1;
+                    yAxisMin = minPrice - padding;
+                    yAxisMax = maxPrice + padding;
+                    // Ensure we never go below zero for token prices
+                    yAxisMin = Math.max(0, yAxisMin);
+                }
             }
 
             // Calculate volume bar height ranges
             const maxVolume = Math.max(...volumeData);
 
             // Create chart configuration with price and volume
-            const configuration: ChartConfiguration = {
+            const configuration: ChartConfiguration<'bar' | 'line'> = {
                 type: 'bar', // Use 'bar' as base type for combination chart
                 data: {
                     labels: dates,
@@ -349,7 +372,7 @@ export class TokenAnalysisHandler extends BaseHandler {
                             type: 'bar',
                             label: 'Volume (USD)',
                             data: volumeData,
-                            backgroundColor: 'rgba(39, 60, 75, 0.5)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
                             borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 1,
                             yAxisID: 'y1',
@@ -383,13 +406,12 @@ export class TokenAnalysisHandler extends BaseHandler {
                                         return `${label}: $${value.toFixed(isStablecoin ? 4 : 2)}`;
                                     } else if (label === 'Volume (USD)') {
                                         // Format volume with appropriate suffixes (K, M, B)
-                                        const numValue = Number(value);
-                                        if (numValue >= 1_000_000_000) {
-                                            return `${label}: $${(numValue / 1_000_000_000).toFixed(2)}B`;
-                                        } else if (numValue >= 1_000_000) {
-                                            return `${label}: $${(numValue / 1_000_000).toFixed(2)}M`;
-                                        } else if (numValue >= 1_000) {
-                                            return `${label}: $${(numValue / 1_000).toFixed(2)}K`;
+                                        if (value >= 1_000_000_000) {
+                                            return `${label}: $${(value / 1_000_000_000).toFixed(2)}B`;
+                                        } else if (value >= 1_000_000) {
+                                            return `${label}: $${(value / 1_000_000).toFixed(2)}M`;
+                                        } else if (value >= 1_000) {
+                                            return `${label}: $${(value / 1_000).toFixed(2)}K`;
                                         }
                                         return `${label}: $${value.toFixed(2)}`;
                                     }
@@ -416,8 +438,38 @@ export class TokenAnalysisHandler extends BaseHandler {
                             min: yAxisMin,
                             max: yAxisMax,
                             ticks: {
+                                // Set specific steps for Y-axis to avoid duplicate labels
+                                // Calculate appropriate step size based on price range
+                                stepSize: function () {
+                                    const range = yAxisMax - yAxisMin;
+                                    if (range <= 0.05) return 0.01;  // Very small range (e.g. stablecoins)
+                                    if (range <= 0.2) return 0.02;   // Small range (e.g. JUP)
+                                    if (range <= 1) return 0.1;      // Medium range
+                                    if (range <= 10) return 1;       // Larger range
+                                    if (range <= 100) return 10;     // Much larger range
+                                    return 100;                      // Very large range
+                                }(),
+                                // Calculate precision based on price value
                                 callback: function (value) {
-                                    return `$${Number(value).toFixed(isStablecoin ? 4 : 2)}`;
+                                    const numValue = Number(value);
+
+                                    // Dynamic precision based on value range
+                                    let precision;
+                                    if (isStablecoin) {
+                                        precision = 4;  // Always 4 decimals for stablecoins
+                                    } else if (numValue < 0.01) {
+                                        precision = 6;  // Very small value tokens
+                                    } else if (numValue < 0.1) {
+                                        precision = 4;  // Small value tokens like JUP
+                                    } else if (numValue < 1) {
+                                        precision = 3;  // Medium value tokens
+                                    } else if (numValue < 100) {
+                                        precision = 2;  // Higher value tokens
+                                    } else {
+                                        precision = 0;  // Very high value tokens
+                                    }
+
+                                    return `${numValue.toFixed(precision)}`;
                                 }
                             }
                         },
@@ -479,5 +531,6 @@ export class TokenAnalysisHandler extends BaseHandler {
             throw new Error(`Failed to generate price chart: ${error}`);
         }
     }
+
 
 }
