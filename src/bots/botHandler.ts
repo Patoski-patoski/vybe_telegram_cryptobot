@@ -137,21 +137,31 @@ export class BotHandler {
             { parse_mode: 'Markdown' }
         );
     }
+
     private async handleHelp(msg: TelegramBot.Message) {
-        const { chat: { id: chatId } } = msg;
+        const { chat: { id: chatId }, from } = msg;
+        const firstName = from?.username || from?.first_name || "User";
         await this.bot.sendMessage(
             chatId,
-            BOT_MESSAGES.HELP,
+            BOT_MESSAGES.HELP.replace("{name}", firstName),
             { parse_mode: 'Markdown' }
         );
     }
 
     private async handleStart(msg: TelegramBot.Message) {
-        const { chat: { id: chatId } } = msg;
+        const { chat: { id: chatId }, from } = msg;
+        const firstName = from?.username || from?.first_name || "User";
+
+        const keyboard = {
+            inline_keyboard: [[{ text: "💨Commands", callback_data: `command`}]]
+        };
         await this.bot.sendMessage(
             chatId,
-            BOT_MESSAGES.WELCOME,
-            { parse_mode: 'Markdown' }
+            BOT_MESSAGES.WELCOME.replace("{name}", firstName),
+            { 
+                parse_mode: 'Markdown',
+                reply_markup: keyboard
+            }
         );
     }
 

@@ -257,7 +257,8 @@ export class WhaleWatcherHandler extends BaseHandler {
             const whaleAlerts = await this.redisService.getWhaleAlerts(chatId);
             if (whaleAlerts.length === 0) {
                 return this.bot.sendMessage(chatId,
-                    "You don't have any active whale alerts."
+                    "You don't have any active whale alerts.\n\n" +
+                    "To set a whale alert, use the command: /set\\_whale\\_alert"
                 );
             }
 

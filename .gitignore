@@ -4,3 +4,5 @@ node_modules
 *.txt
 *.log
 /dist
+.npmrc
+/log

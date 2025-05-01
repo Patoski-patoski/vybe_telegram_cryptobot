@@ -40,7 +40,7 @@ class App {
         });
 
         this.app.get('/health', (req, res) => {
-            res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+            res.status(200).json({ status: 'HEALTH OK', timestamp: new Date().toISOString() });
         });
 
         // Set up the webhook endpoint

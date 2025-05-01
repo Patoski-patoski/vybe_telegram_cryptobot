@@ -1,6 +1,7 @@
 export const BOT_MESSAGES = {
-                WELCOME: `
-🚀 *Welcome to Vybe Analytics Bot!*
+        WELCOME: `
+                
+🚀 *Hello {name},\n\nWelcome to Vybe Analytics Bot!*
 
 Your comprehensive analytics companion for the Solana ecosystem. Here's what I can do:
 
@@ -9,42 +10,36 @@ Your comprehensive analytics companion for the Solana ecosystem. Here's what I c
 • Set custom whale alerts
 • Track whale movements
 • View whale holder analytics
-\`/whale\\_alert, /check\\_whales, /list\\_whale_alerts\`
 
 💰 *Token Analysis*
 • Real-time price tracking
 • Price alerts and monitoring
 • Holder distribution analysis
 • Token time series analysis
-\`/analyze, /series, /holder\\_distribution, /check\\_price\`
 
 📊 *Program Analytics*
 • View program information
 • Track active users
 • Monitor program activity
 • Analyze whale users
-\`/program\\_info, /top\\_users, /activity\\_change\`
 
 🖼️ *NFT Portfolio*
 • Track NFT collections
 • Monitor portfolio value
 • Register multiple wallets
 • View collection details
-\`/nft\\_portfolio, /register\\_nft\\_wallet\`
 
 👛 *Wallet Tracking*
 • Monitor wallet activity
 • Track transactions
 • Analyze holdings
 • View wallet insights
-\`/track\\_wallet, /analyze\\_wallet\`
 
 💹 *Price Tracking*
 • Set price alerts
 • Monitor price changes
 • View price charts
 • Track market data
-\`/price\\_alert, /check\\_price\`
 
 Type /help to see detailed command usage or click the commands to get started.
 
@@ -54,7 +49,7 @@ _Powered by Vybe Network_
         UNKNOWN_COMMAND: `
 ❌ *Unknown Command*
 
-Sorry, I don't recognize that command. Here are some things you can try:
+Sorry {name}, I don't recognize that command. Here are some things you can try:
 
 1️⃣ Use /help to see all available commands
 2️⃣ Check your command spelling
@@ -699,7 +694,7 @@ As a user, I want to get detailed information about a specific Solana program to
 *SEE ALSO*
 /explore, /top_users, /users_insights`,
 
-        CHECK_PRICE_USAGE: "Usage: /check_price <token_mint_address>\n\nExample: /price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
+        CHECK_PRICE_USAGE: "Usage: /check_price <token_mint_address>\n\nExample: /check_price 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN",
         CHECK_PRICE_HELP: `💰 *Price Command (/check_price)*
 
 *DESCRIPTION*
