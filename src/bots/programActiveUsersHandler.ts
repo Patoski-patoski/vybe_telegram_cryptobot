@@ -10,7 +10,7 @@ import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { RedisService } from "../services/redisService";
 
 export class ProgramActiveUsersHandler extends BaseHandler {
-    private minTransactionsForWhale = 150_000;
+    private minTransactionsForWhale = 120_000;
     private redisService!: RedisService;
 
     constructor(bot: TelegramBot, api: VybeApiService) {
@@ -31,7 +31,11 @@ export class ProgramActiveUsersHandler extends BaseHandler {
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
-            return this.bot.sendMessage(chatId, "Usage: /topusers <program_id_or_name>");
+            return this.bot.sendMessage(chatId,
+                "Usage: /top_users <program_id_or_name>\n" + 
+                "\nExample: /top_users 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8\n" +
+                "\nExample: /top_users Raydium Liquidity Pool V4\n"
+            );
         }
 
         const identifier = this.capitalizeTheFirstLetter(parts.slice(1).join(" ").trim());
@@ -125,7 +129,7 @@ export class ProgramActiveUsersHandler extends BaseHandler {
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
                 "Usage: /users_insights <program_id_or_name>\n" +
-                "Example: /users_insights Monaco Protocol"
+                "\nExample: /users_insights Monaco Protocol"
             );
         }
 

@@ -158,7 +158,7 @@ Ensure your tests cover:
 
 Use conventional commit messages:
 
-```
+```bash
 feat: add whale alert notification system
 fix: correct price calculation error
 docs: update installation instructions

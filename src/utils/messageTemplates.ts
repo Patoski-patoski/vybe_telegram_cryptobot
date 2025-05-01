@@ -76,11 +76,10 @@ Here are all available commands, organized by category:
 - /analyze\\_wallet <address> - Detailed wallet analysis
 
 💰 *Token Analysis:*
-- /analyze <symbol> - Analyze token (e.g., /analyze JUP)
+- /analyze <symbol> - Analyze token, including price (e.g., /analyze JUP)
 - /series <symbol> - Token time series analysis
 - /holder\\_distribution <symbol> - Token holder distribution
-- /price <symbol> - Get current token price
-- /price\\_alert <symbol> <threshold> <high/low> - Set price alerts
+- /set\\_price\\_alert <symbol> <threshold> <high/low> - Set price alerts
 - /price\\_change <symbol> - Get price changes
 
 🐋 *Whale Watching:*
@@ -149,7 +148,7 @@ As a user, I want to analyze the distribution of token holdings and identify maj
 - Check the space between command and arguments
 
 *SEE ALSO*
-/analyze, /holder_distribution, /series`,
+/analyze, /holder\\_distribution, /series`,
 
         TOKENHOLDERANALYSIS_HELP: `📊 *Token Holder Analysis Command (/holders)*
 
@@ -184,7 +183,7 @@ As a user, I want to understand how token holder behavior changes over time and 
 - Network connectivity issues
 
 *SEE ALSO*
-/analyze, /holder_distribution, /series`,
+/analyze, /holder\\_distribution, /series`,
 
         TOKEN_HOLDER: `📊 *Rank*: %index%
 
@@ -232,7 +231,6 @@ As a user, I want to analyze a token's current state, including price, market ca
 - Ensure the token mint address is valid
 - Check if the token exists on Solana
 - Verify network connectivity
-- Check the space between the command and the token address
 
 *SEE ALSO*
 /holders, /holder\\_distribution`,
