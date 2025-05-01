@@ -36,7 +36,7 @@ export class TokenAnalysisHandler extends BaseHandler {
     async handleTokenAnalysis(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const text = msg.text || "";
-        const parts = deleteDoubleSpace(text.split(" "));
+        const parts = text?.split(' ').slice(1).join(' ').trim();
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
@@ -44,7 +44,7 @@ export class TokenAnalysisHandler extends BaseHandler {
             );
         }
 
-        const symbol: string = parts[1];
+        const symbol: string = parts;
 
         if (symbol.toUpperCase() === 'HELP') {
             return this.bot.sendMessage(chatId,
@@ -85,10 +85,15 @@ export class TokenAnalysisHandler extends BaseHandler {
             let tokenData = await this.findTokenBySymbol(chatId, symbol);
 
             let minttokenData = null;
+            let mintAddress: string;
+
             if (!tokenData) {
-               minttokenData =  (await this.api.getTokenBalance(symbol)).data[0];
+                minttokenData = (await this.api.getTokenBalance(symbol)).data;
+                mintAddress = symbol;
+                minttokenData = minttokenData.find((token: any) => token.mintAddress === mintAddress)
             }
 
+            console.log("Second search here!! ", minttokenData);
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
             if (!minttokenData && !tokenData) {
@@ -96,8 +101,9 @@ export class TokenAnalysisHandler extends BaseHandler {
                     "⛔ No data found for the specified token.\n" +
                     "Note: Symbol characters are case-sensitive\n\n" +
                     
-                    "Example ✅: /analyze JUP" +
-                    "Example ❌: /analyze jup is incorrect\n" +
+                    "Example\n" +
+                    "✅ /analyze JUP\n" +
+                    "❌ /analyze jup \n\n" +
                     "Example: /analyze 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN\n"
                 );
             }
@@ -178,16 +184,16 @@ export class TokenAnalysisHandler extends BaseHandler {
         // Prepare message with token information
         let message = `📊 *Token Analysis*\n\n`;
         message += `*Token name:* ${tokenData.name}\n\n`;
-        message += `*Symbol:* ${tokenData.symbol}\n`;
-        message += `*mint Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
+        message += `*Symbol:* ${tokenData.symbol}\n\n`;
+        message += `*Mint Address:* \`\`\`${tokenData.mintAddress}\`\`\`\n\n`;
         message += `*Current Price:* ${formatUsdValue(tokenData.priceUsd)}\n`;
         message += `*Price Change (24h):* ${Number(tokenData.priceUsd1dChange) > 0 ? '+' : ''}${Number(tokenData.priceUsd1dChange).toFixed(2)}%\n\n`;
         message += `*Category:* ${tokenData.category}\n`;
-        message += `*Token Verification status:* ${tokenData.verified ? "Verified ✅" : "Not Verified ❓"}\n\n`;
+        message += `*Token Verification status:* ${tokenData.verified ? "Verified ✅" : "Not Verified ❌"}\n\n`;
         message += `[Logo url](${tokenData.logoUrl})`;
 
         // Create inline keyboard with View Price Chart button
-        let keyboard = undefined;
+        let keyboard: TelegramBot.InlineKeyboardMarkup | undefined;
 
         if (!walletAddress) {
             keyboard = {

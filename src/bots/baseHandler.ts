@@ -16,6 +16,11 @@ export class BaseHandler {
     }
 
 
+    /**
+     * Set up bot commands with Telegram
+     * @throws if Telegram API returns an error
+     * @returns {Promise<void>}
+     */
     protected async setupBotCommands() {
         try {
             const commands = [
@@ -44,7 +49,7 @@ export class BaseHandler {
                 { command: 'check_program_whale_users', description: 'Check whale users for a program' },
                 // Price commands
                 { command: 'check_price', description: 'Get current price information for a token' },
-                { command: 'price_alert', description: 'Set price alerts for a token' },
+                { command: 'set_price_alert', description: 'Set price alerts for a token' },
                 { command: 'remove_price_alert', description: 'Remove price alerts for a token' },
                 { command: 'list_price_alert', description: 'A List of all set price alerts' },
                 // NFT commands

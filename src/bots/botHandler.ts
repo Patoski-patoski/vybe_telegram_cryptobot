@@ -14,10 +14,12 @@ import { ProgramInfoHandler } from "./programInfoHandler";
 import { ProgramActiveUsersHandler } from "./programActiveUsersHandler";
 import { NFTPortfolioHandler } from "./nftPortfolioHandler";
 import { PriceHandler } from "./priceHandler";
+import { RedisService } from "../services/redisService";
 
 export class BotHandler {
     private readonly bot: TelegramBot;
     private readonly api: VybeApiService;
+    private readonly redisService: RedisService;
 
     // Handler instances
     private tokenHolderHandler: TopTokenHandler;
@@ -32,9 +34,12 @@ export class BotHandler {
     private nftPortfolioHandler: NFTPortfolioHandler;
     private priceHandler: PriceHandler;
 
-    constructor() {
+
+    constructor(redisService: any) { // Replace 'any' with your actual RedisService type
         const config = getConfig();
         this.bot = new TelegramBot(config.bot.botToken, {});
+        this.api = new VybeApiService();
+        this.redisService = redisService;
         this.api = new VybeApiService();
 
         // Handler instances
@@ -115,7 +120,7 @@ export class BotHandler {
 
             // Price commands
             { cmd: /\/check_price/, handler: this.priceHandler.handlePriceCommand.bind(this.priceHandler) },
-            { cmd: /\/price_alert/, handler: this.priceHandler.handlePriceAlertCommand.bind(this.priceHandler) },
+            { cmd: /\/set_price_alert/, handler: this.priceHandler.handlePriceAlertCommand.bind(this.priceHandler) },
             { cmd: /\/list_price_alert/, handler: this.priceHandler.handleListPriceAlertsCommand.bind(this.priceHandler) },
             { cmd: /\/remove_price_alert/, handler: this.priceHandler.handleRemovePriceAlertCommand.bind(this.priceHandler) },
         ];
@@ -153,14 +158,13 @@ export class BotHandler {
         );
     }
 
-/**
- * Handles the /help command to provide a help message to the user.
- * @param msg - The Telegram message object containing chat and user information.
- */
+    /**
+     * Handles the /help command to provide a help message to the user.
+     * @param msg - The Telegram message object containing chat and user information.
+     */
 
     private async handleHelp(msg: TelegramBot.Message) {
         const { chat: { id: chatId }, from } = msg;
-        const firstName = from?.username || from?.first_name || "User";
         await this.bot.sendMessage(
             chatId,
             BOT_MESSAGES.HELP,
@@ -168,21 +172,21 @@ export class BotHandler {
         );
     }
 
-/**
- * Handles the /start command to welcome a new or returning user.
- * @param msg - The Telegram message object containing chat and user information.
- */
+    /**
+     * Handles the /start command to welcome a new or returning user.
+     * @param msg - The Telegram message object containing chat and user information.
+     */
     private async handleStart(msg: TelegramBot.Message) {
         const { chat: { id: chatId }, from } = msg;
         const firstName = from?.username || from?.first_name || "User";
 
         const keyboard = {
-            inline_keyboard: [[{ text: "💨Commands", callback_data: `command`}]]
+            inline_keyboard: [[{ text: "💨Commands", callback_data: `command` }]]
         };
         await this.bot.sendMessage(
             chatId,
             BOT_MESSAGES.WELCOME.replace("{name}", firstName),
-            { 
+            {
                 parse_mode: 'Markdown',
                 reply_markup: keyboard
             }
@@ -203,7 +207,8 @@ export class BotHandler {
      * @remarks
      * The `callback_query` event is emitted when a user presses an inline keyboard button.
      * The `answerCallbackQuery` method is used to respond to the callback query.
-     */
+     */// In setupCallbackHandlers method in botHandler.ts
+
     private setupCallbackHandlers() {
         // Single callback handler to route all callbacks to appropriate handlers
         this.bot.on('callback_query', async (callbackQuery) => {
@@ -211,6 +216,7 @@ export class BotHandler {
 
             const chatId = callbackQuery.message.chat.id;
             const data = callbackQuery.data;
+            const userId = callbackQuery.from.id;
 
             try {
                 // Handle wallet-related callbacks
@@ -226,12 +232,38 @@ export class BotHandler {
                     }
                 }
                 // Handle NFT-related callbacks
-                if (data.startsWith("nft_collection_")) {
+                else if (data.startsWith("nft_collection_")) {
                     await this.nftPortfolioHandler.handleCollectionCallback(callbackQuery);
                 }
-
-                if (data.startsWith('price_chart_')) {
+                // Handle price chart callbacks
+                else if (data.startsWith('price_chart_')) {
                     await this.tokenAnalysisHandler.handlePriceChartButton(callbackQuery);
+                }
+                // Handle remove alert callbacks
+                else if (data.startsWith('remove_alert_')) {
+                    const tokenMint = data.replace("remove_alert_", "");
+
+                    try {
+                        await this.redisService.removePriceAlert(userId, tokenMint);
+
+                        // Update the message to indicate the alert has been removed
+                        await this.bot.editMessageText(
+                            `Alert for token ${tokenMint} has been removed.`,
+                            {
+                                chat_id: chatId,
+                                message_id: callbackQuery.message.message_id
+                            }
+                        );
+
+                        await this.bot.answerCallbackQuery(callbackQuery.id, {
+                            text: "Price alert removed successfully."
+                        });
+                    } catch (error) {
+                        console.error('Error removing price alert:', error);
+                        await this.bot.answerCallbackQuery(callbackQuery.id, {
+                            text: "Failed to remove price alert. Please try again."
+                        });
+                    }
                 }
 
                 if (data.startsWith("view_top_users_")) {

@@ -111,7 +111,7 @@ export class PriceHandler extends BaseHandler {
 *Total amount of ${tokenName} traded:* ${tokenVolume}
 *Total Value of ${tokenName} traded(USD):* ${formatUsdValue(latest.volumeUsd)}
 
-*Change:* ${changeEmoji} ${change.toFixed(2)}%`;
+*24h Change:* ${changeEmoji} ${change.toFixed(2)}%`;
 
             await this.bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
         } catch (error) {
@@ -122,12 +122,32 @@ export class PriceHandler extends BaseHandler {
         }
     }
 
+/**
+ * Handles the /price_alert command to set up a price alert for a specified token.
+ * 
+ * @param msg - Telegram message object containing the command and arguments.
+ * 
+ * Process:
+ * - Validates the command input for correct number of arguments.
+ * - Extracts token mint address, threshold, and alert type (high/low) from the message.
+ * - Stores the price alert configuration in Redis for the user.
+ * 
+ * Outputs:
+ * - Sends confirmation message to the user on successful setup.
+ * - Deletes the confirmation message after a short delay.
+ * - Sends error messages if input validation fails or an error occurs during setup.
+ * 
+ * Edge Cases:
+ * - Handles cases where the user ID is not available in the message.
+ * - Catches and logs any errors occurring during the alert setup process.
+ */
+
     async handlePriceAlertCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const userId = msg.from?.id;
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
-        
+
 
         if (parts.length < 4) {
             await this.bot.sendMessage(chatId, BOT_MESSAGES.PRICE_ALERT_USAGE);
@@ -151,11 +171,13 @@ export class PriceHandler extends BaseHandler {
                 isHigh: type.toLowerCase() === 'high',
                 userId
             };
-            console.log("alert\n\n\n", alert)
 
             // Store alert in Redis
             await this.redisService.setPriceAlert(userId, alert);
-            const setPriceAlert = await this.bot.sendMessage(chatId, `✅ Price alert set for ${mintAddress} at $${threshold} (${type})`);
+            const setPriceAlert = await this.bot.sendMessage(chatId,
+                `✅ Price alert set for ${mintAddress} at $${threshold} (${type})\n` +
+                `You will be notified when the price reaches this threshold.`,
+            );
 
             setTimeout(async () => {
                 await this.bot.deleteMessage(chatId, msg.message_id, setPriceAlert);
@@ -170,7 +192,6 @@ export class PriceHandler extends BaseHandler {
     async handleListPriceAlertsCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const userId = msg.from?.id;
-        console.log("handleListPriceAlertsCommand", msg);
 
         if (!userId) {
             await this.bot.sendMessage(chatId, 'Error: Could not identify user.');
@@ -216,7 +237,7 @@ export class PriceHandler extends BaseHandler {
         }
 
         if (parts.length < 2) {
-            const errorMsg = 'Usage: /removealert [mint_address]';
+            const errorMsg = 'Usage: /remove_alert [mint_address]';
             sendAndDeleteMessage(this.bot, msg, errorMsg, 30);
             return;
         }
@@ -234,6 +255,11 @@ export class PriceHandler extends BaseHandler {
         }
     }
 
+        /**
+         * Checks all price alerts for all users and sends Telegram messages if any
+         * alert has been triggered.
+         */
+    // In checkPriceAlerts method, modify the keyboard to include the token mint:
     async checkPriceAlerts() {
         try {
             // Get all user IDs
@@ -252,20 +278,40 @@ export class PriceHandler extends BaseHandler {
                         const latest = ohlcvData.data[ohlcvData.data.length - 1];
                         const currentPrice = parseFloat(latest.close);
 
+                        // Create keyboard with the specific token mint for this alert
+                        const keyboard = {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: "⛔ Remove this alert",
+                                        callback_data: `remove_alert_${alert.tokenMint}`
+                                    },
+                                    {
+                                        text: "🔙 Back to Commands",
+                                        callback_data: `command`
+                                    },
+                                ]
+                            ]
+                        };
+
                         if (alert.isHigh && currentPrice >= alert.threshold) {
                             await this.bot.sendMessage(
                                 userId,
-                                `⚠️ Alert: ${alert.tokenMint} has reached $${currentPrice.toFixed(2)} (threshold: $${alert.threshold})`
+                                `⚠️ Alert: You set a price alert for ${alert.tokenMint} if it increases to at least $${alert.threshold}.\n\n` +
+                                `Current price has reached $${currentPrice.toFixed(2)}`,
+                                { reply_markup: keyboard }
                             );
-                            // remove the alert after it's triggered
-                            await this.redisService.removePriceAlert(userId, alert.tokenMint);
+                            // Optional remove the alert after it's triggered
+                            // await this.redisService.removePriceAlert(userId, alert.tokenMint);
                         } else if (!alert.isHigh && currentPrice <= alert.threshold) {
                             await this.bot.sendMessage(
                                 userId,
-                                `⚠️ Alert: ${alert.tokenMint} has dropped to $${currentPrice.toFixed(2)} (threshold: $${alert.threshold})`
+                                `⚠️ Alert: You set a price alert for ${alert.tokenMint} if it decreases to at least $${alert.threshold}.\n\n` +
+                                `Current price has reached $${currentPrice.toFixed(2)}`,
+                                { reply_markup: keyboard }
                             );
-                            // remove the alert after it's triggered
-                            await this.redisService.removePriceAlert(userId, alert.tokenMint);
+                            // Optional remove the alert after it's triggered
+                            // await this.redisService.removePriceAlert(userId, alert.tokenMint);
                         }
 
                     } catch (error) {

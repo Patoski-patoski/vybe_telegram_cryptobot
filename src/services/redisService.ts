@@ -1,50 +1,4 @@
-
-/**
- * @file redisService.ts
- * @description This file contains the RedisService class, which provides methods to interact with a Redis database.
- * It includes methods for managing NFT wallets, price alerts, whale alerts, NFT portfolio data, wallet tracking, historical values, program info cache, API response cache, and top users cache.
- * 
- * 
- * @module redisService
- * 
- * 
- * @requires redis
- * @requires ../interfaces/vybeApiInterface
- * @requires ../config/logger
- * 
- * 
- * @method getNFTWallets
- * @method saveNFTWallets
- * @method addNFTWallet
- * @method removeNFTWallet
- * @method setPriceAlert
- * @method getPriceAlerts
- * @method removePriceAlert
- * @method setWhaleAlert
- * @method getWhaleAlerts
- * @method removeWhaleAlert
- * @method updateWhaleAlert
- * @method setNFTPortfolio
- * @method getNFTPortfolio
- * @method setTrackedWallet
- * @method getTrackedWallets
- * @method removeTrackedWallet
- * @method getAllUserIds
- * @method setHistoricalValues
- * @method getHistoricalValues
- * @method setProgramInfo
- * @method getProgramInfo
- * @method setCachedResponse
- * @method getCachedResponse
- * @method setPreviousDayData
- * @method getPreviousDayData
- * @method setTopUsersCache
- * @method getTopUsersCache
- * @method cleanup
- * 
- * @class RedisService
- */
-
+// File: src/services/redisService.ts
 
 import { createClient, RedisClientType } from 'redis';
 import {
@@ -236,7 +190,7 @@ export class RedisService {
             for (const [tokenMint, alertStr] of Object.entries(alertsData)) {
                 try {
                     const parsedAlert = JSON.parse(alertStr);
-                    console.log("parsedAlert\n\n", parsedAlert);
+                    console.log("parsedAlert\n", parsedAlert);
 
                     // Ensure we have all required properties
                     if (parsedAlert.threshold === undefined) {
@@ -249,13 +203,10 @@ export class RedisService {
                         isHigh: parsedAlert.isHigh,
                         userId: parsedAlert.userId || userId // Fall back to userId if missing
                     });
-                    console.log("parsedAlert\n\n", parsedAlert);
-
                 } catch (e) {
                     logger.error(`Failed to parse price alert data for token ${tokenMint}:`, e);
                 }
             }
-            console.log("alert\n\n", alert);
 
             return alerts;
         } catch (error) {
@@ -263,7 +214,6 @@ export class RedisService {
             return [];
         }
     }
-
     async removePriceAlert(userId: number, tokenMint: string): Promise<void> {
         try {
             await this.client.hDel(`price_alerts:${userId}`, tokenMint);

@@ -727,25 +727,25 @@ As a user, I want to get detailed information about a specific Solana token, inc
 - Invalid token address
 - Network connectivity issues`,
 
-        PRICE_ALERT_USAGE: "Usage: /price_alert <token_mint_address> <threshold> <high/low>\n\n" +
-                "Example: /price_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high\n\n This will alert when USDC price goes above $7.50",
-        PRICE_ALERT_HELP: `⚠️ *Price Alert Command (/price\\_alert)*
+        PRICE_ALERT_USAGE: "Usage: /set_price_alert <token_mint_address> <threshold> <high/low>\n\n" +
+                "Example: /set_price_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high\n\n This will alert when USDC price goes above $7.50",
+        PRICE_ALERT_HELP: `⚠️ *Price Alert Command (/set_price_alert)*
 
 *DESCRIPTION*
 Sets up price alerts for a token. You'll be notified when the price crosses your specified threshold.
 
 *SYNOPSIS*
-/pricealert <token_mint_address> <threshold> <high/low>
+/set\\_price\\_alert <token_mint_address> <threshold> <high/low>
 
 *ARGUMENTS*
-<token_mint_address>    The Solana token mint address to monitor
+<token\\_mint\\_address>    The Solana token mint address to monitor
 <threshold>             Price threshold to trigger alert
 <high/low>             Whether to alert on price going above (high) or below (low) threshold
 
 *EXAMPLES*
 
-/pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high
-/pricealert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.0 low
+/set\\_price\\_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.5 high
+/set\\_price\\_alert 6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN 7.0 low
 
 
 *USER STORY*
@@ -758,7 +758,11 @@ As a user, I want to set an alert, similar to a stop-loss, that alerts me when a
 *TROUBLESHOOTING*
 - Invalid token address
 - Invalid threshold value
-- Invalid high/low parameter`,
+- Invalid high/low parameter
+
+*SEE ALSO*
+/remove\\_price\\_alert, list\\_price\\_alert, /check\\_price`,
+
 
         LIST_PRICE_ALERT_USAGE: "Usage: /list_price_alert\n\nExample: /list_price_alert",
         LIST_PRICE_ALERT_HELP: `📋 *List Price Alerts Command (/list_price_alert)*
