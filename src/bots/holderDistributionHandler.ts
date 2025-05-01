@@ -1,3 +1,5 @@
+// src/bots/holderDistributionHandler.ts
+
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
 import { deleteDoubleSpace, formatUsdValue } from "../utils/utils";
@@ -11,7 +13,6 @@ export class HolderDistributionHandler extends BaseHandler {
     }
 
     /**
-     * @function handleHolderDistribution
      * 
      * Handle the /holder_distribution command, which displays the distribution of a token's holders.
      * 

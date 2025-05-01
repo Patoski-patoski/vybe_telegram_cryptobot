@@ -15,6 +15,7 @@ export class BaseHandler {
         this.setupBotCommands(); // Initialize bot commands
     }
 
+
     protected async setupBotCommands() {
         try {
             const commands = [

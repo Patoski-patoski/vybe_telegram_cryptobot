@@ -1,30 +1,5 @@
 // src/bots/recentTransfersHandler.ts
 
-/**
- * @file recentTransfersHandler.ts
- * 
- * @description This file contains the RecentTransferHandler class, 
- * which handles the /transfers command in the Telegram bot.  It fetches recent
- * transfers from the Vybe API and formats them for display in Telegram. It
- * includes methods for parsing the command input, fetching transfer data,
- * and formatting the output message. It extends the BaseHandler class,
- * which provides common functionality for handling bot commands.
- *
- * @module recentTransfersHandler @extends BaseHandler
- * 
- * @requires node-telegram-bot-api
- * @requires ../bots/baseHandler
- * @requires ../utils/utils
- * @requires ../interfaces/vybeApiInterface
- * @requires ../utils/messageTemplates
- * 
- * @method handleTransfers
- * @method sendTransferMessage
- * 
- * @exports RecentTransferHandler
- */
-
-
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
 import {

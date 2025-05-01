@@ -1,3 +1,5 @@
+// src/bots/priceHandler.ts
+
 import TelegramBot from "node-telegram-bot-api";
 import { VybeApiService } from "../services/vybeAPI";
 import { BOT_MESSAGES } from "../utils/messageTemplates";

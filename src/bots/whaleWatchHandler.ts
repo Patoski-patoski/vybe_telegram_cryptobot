@@ -40,8 +40,6 @@ export class WhaleWatcherHandler extends BaseHandler {
     }
 
     /**
-     * @function startWatchingWhales
-     * 
      * Starts monitoring whale transactions
      * 
      * Checks every 10 minutes for transfers over the threshold
@@ -58,8 +56,6 @@ export class WhaleWatcherHandler extends BaseHandler {
     }
 
     /**
-     * @function checkWhaleTransactions
-     * 
      * Checks for whale transactions that have occurred since the last check
      * 
      * Iterates over all tokens we are monitoring and checks for transfers

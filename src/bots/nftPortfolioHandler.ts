@@ -1,3 +1,5 @@
+// src/bots/nftPortfolioHandler.ts
+
 import TelegramBot from "node-telegram-bot-api";
 import { VybeApiService } from "../services/vybeAPI";
 import logger from "../config/logger";
@@ -111,7 +113,7 @@ export class NFTPortfolioHandler extends BaseHandler {
 
         await this.bot.sendMessage(
             chatId,
-            `✅ Wallet registered successfully! Use /nft_portfolio to view your NFT portfolio.`
+            `✅ Wallet registered successfully!\n\n Use /nft_portfolio to view your NFT portfolio.`
         );
     }
 

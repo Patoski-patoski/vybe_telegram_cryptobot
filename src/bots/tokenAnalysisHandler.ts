@@ -1,4 +1,4 @@
-// src/services/tokenAnalyzer.ts
+// src/services/tokenAnalysisHandler.ts
 
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";

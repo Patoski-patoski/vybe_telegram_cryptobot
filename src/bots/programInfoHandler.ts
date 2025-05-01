@@ -1,3 +1,5 @@
+// src/bots/programInfoHandler.ts
+
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
 import logger from "../config/logger";

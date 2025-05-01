@@ -1,29 +1,5 @@
 // src/bots/topHolderHandler.ts
 
-/**
- * @file topHolderHandler.ts
- * 
- * @description This file contains the TopTokenHandler class, which handles the
- * /holder command in a Telegram bot. It fetches and displays the top 10 
- * token holders for a given mint address using the Vybe API.
- * It formats the token balance and value to USD and sends the information
- * to the Telegram chat. The class extends the BaseHandler class, which
- * provides common functionality for handling bot commands.
- * 
- * @module topHolderHandler
- * 
- * @requires node-telegram-bot-api
- * @requires ../bots/baseHandler
- * @requires ../interfaces/vybeApiInterface
- * @requires ../utils/utils
- * @requires ../utils/messageTemplates
- * @requires
- * 
- * @method handleTopToken
- * 
- * @exports TopTokenHandler
- */
-
 import TelegramBot from "node-telegram-bot-api";
 import { BaseHandler } from "./baseHandler";
 

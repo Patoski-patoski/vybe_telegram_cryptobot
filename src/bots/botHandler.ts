@@ -60,10 +60,18 @@ export class BotHandler {
         }, 120_000); // Check every 2 minutes
     }
 
+    /**
+     * Returns the TelegramBot instance used by this BotHandler.
+     * @returns {TelegramBot} The TelegramBot instance.
+     */
     getBot(): TelegramBot {
         return this.bot;
     }
 
+    /**
+     * Sets up the bot commands and their respective handlers.
+     * @private
+     */
     private setUpCommands() {
         const cmds = [
             { cmd: /\/(start)/, handler: this.handleStart.bind(this) },
@@ -129,25 +137,41 @@ export class BotHandler {
         });
     }
 
+    /**
+     * Handles unknown commands sent to the bot.
+     *
+     * @param msg Message object from Telegram
+     */
     private async handleUnknownCommand(msg: TelegramBot.Message) {
-        const { chat: { id: chatId } } = msg;
+        const { chat: { id: chatId }, from } = msg;
+        const firstName = from?.username || from?.first_name || "User";
+
         await this.bot.sendMessage(
             chatId,
-            BOT_MESSAGES.UNKNOWN_COMMAND,
+            BOT_MESSAGES.UNKNOWN_COMMAND.replace("{name}", firstName),
             { parse_mode: 'Markdown' }
         );
     }
+
+/**
+ * Handles the /help command to provide a help message to the user.
+ * @param msg - The Telegram message object containing chat and user information.
+ */
 
     private async handleHelp(msg: TelegramBot.Message) {
         const { chat: { id: chatId }, from } = msg;
         const firstName = from?.username || from?.first_name || "User";
         await this.bot.sendMessage(
             chatId,
-            BOT_MESSAGES.HELP.replace("{name}", firstName),
+            BOT_MESSAGES.HELP,
             { parse_mode: 'Markdown' }
         );
     }
 
+/**
+ * Handles the /start command to welcome a new or returning user.
+ * @param msg - The Telegram message object containing chat and user information.
+ */
     private async handleStart(msg: TelegramBot.Message) {
         const { chat: { id: chatId }, from } = msg;
         const firstName = from?.username || from?.first_name || "User";
@@ -165,6 +189,21 @@ export class BotHandler {
         );
     }
 
+    /**
+     * Sets up a single callback handler to route all callbacks to appropriate handlers.
+     * This function is called in the constructor of the BotHandler class.
+     * Callbacks are handled by extracting the relevant data from the callback query and using a switch
+     * statement to determine which handler to call.
+     * Wallet-related callbacks are handled by the walletTrackerHandler.
+     * NFT-related callbacks are handled by the nftPortfolioHandler.
+     * Price chart callbacks are handled by the tokenAnalysisHandler.
+     * Program active users callbacks are handled by the programActiveUsersHandler.
+     * The help callback is handled by the handleHelp method of this class.
+     * If any error occurs while handling a callback, the callback query is answered with an error message.
+     * @remarks
+     * The `callback_query` event is emitted when a user presses an inline keyboard button.
+     * The `answerCallbackQuery` method is used to respond to the callback query.
+     */
     private setupCallbackHandlers() {
         // Single callback handler to route all callbacks to appropriate handlers
         this.bot.on('callback_query', async (callbackQuery) => {
@@ -226,9 +265,9 @@ export class BotHandler {
                 if (data === "help" || data === 'command') {
                     const msg = {
                         chat: { id: callbackQuery.message?.chat.id },
-                        text: "/start"
+                        text: "/help"
                     } as TelegramBot.Message;
-                    await this.handleStart(msg)
+                    await this.handleHelp(msg)
                 }
 
                 // Always answer the callback query

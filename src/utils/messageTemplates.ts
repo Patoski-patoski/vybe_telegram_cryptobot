@@ -84,7 +84,7 @@ Here are all available commands, organized by category:
 - /price\\_change <symbol> - Get price changes
 
 🐋 *Whale Watching:*
-- /whale\\_alert <token> <amount> - Set whale alert
+- /set\\_whale\\_alert <token> <amount> - Set whale alert
 - /list\\_whale\\_alerts - List whale alerts
 - /remove\\_whale\\_alert <token> - Remove whale alert
 - /check\\_whales <token> <amount> - Check recent whale movements
@@ -94,10 +94,9 @@ Here are all available commands, organized by category:
 - /register\\_nft\\_wallet <address> - Register wallet for NFT tracking
 - /list\\_nft\\_wallets - List registered NFT wallets
 - /remove\\_nft\\_wallet <address> - Remove NFT wallet
-- /nft\\_collection <address>, <name> - View collection details
 
 🔍 *Program Analysis:*
-- /program\\_info <program_id_or_name> - Get program information
+- /program\\_info <program\\_id\\_or\\_name> - Get program information
 - /explore <label> - Explore and list Solana programs by category
 - /top\\_users <id> - View top program users
 - /users\\_insights <id> - Get user insights
@@ -112,7 +111,7 @@ To see detailed help for any command, use:
 <command> help
 Example: /analyze help
 
-For support or questions, please contact our team.
+For support or questions, please contact us at [Telegram Support](https://t.me/VybeNetwork_Official).
 `,
 
 
@@ -848,7 +847,7 @@ Shows the NFT portfolio for a wallet, including total value, collections, and in
 - No NFTs found
 - Network connectivity issues`,
 
-        NFT_REGISTER_USAGE: "Usage: /register_nft_wallet <wallet_address>\n\nExample: /registernftwallet 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+        NFT_REGISTER_USAGE: "Usage: /register_nft_wallet <wallet_address>\n\nExample: /register\\_nft\\_wallet 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
         NFT_REGISTER_HELP: `📝 *Register NFT Wallet Command (/register_nft_wallet)*
 
 *DESCRIPTION*
