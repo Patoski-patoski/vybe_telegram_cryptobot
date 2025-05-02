@@ -167,7 +167,6 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             throw error; // Rethrow to be caught by the caller
         }
     }
-
     private async checkForNewTransfers(walletAddress: string, settings: WalletAlertSettings): Promise<void> {
         try {
             // Fetch both sent and received transfers in parallel
@@ -221,11 +220,27 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     }
 
 
-    private async sendTransferMessage(chatId: number, tx: RecentTransfer) {
+   private async sendTransferMessage(chatId: number, tx: RecentTransfer) {
+    try {
+        // Fetch token symbol for this specific transfer
+        let tokenSymbol = "Unknown";
+        
+        if (tx.mintAddress) {
+            try {
+                const topHolderResponse = await this.api.getTopTokenHolder(tx.mintAddress, 1);
+                if (topHolderResponse?.data?.[0]?.tokenSymbol) {
+                    tokenSymbol = topHolderResponse.data[0].tokenSymbol;
+                }
+            } catch (error) {
+                logger.warn(`Could not fetch token symbol for mint ${tx.mintAddress}:`, error);
+                // Continue with "Unknown" token symbol
+            }
+        }
+        
         const sender = tx.senderAddress || "Unknown";
         const receiver = tx.receiverAddress || "Unknown";
-        const amount = parseFloat(tx.calculatedAmount).toLocaleString(
-            undefined, { maximumFractionDigits: 6 });
+        const amount = `${parseFloat(tx.calculatedAmount).toLocaleString(
+            undefined, { maximumFractionDigits: 6 })} ${tokenSymbol}`;
         const url = `https://solscan.io/tx/${tx.signature}`;
         const time = timeAgo(tx.blockTime);
 
@@ -233,17 +248,25 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             `💰 *Transfer Summary*\n\n` +
             `👤 *From:* \`${sender}\`\n\n` +
             `📥 *To:* \`${receiver}\`\n\n` +
-            `💸 *Transfer Amount:* \`${amount} \`\n\n` +
+            `💸 *Transfer Amount:* \`${amount}\`\n\n` +
             `🕒 *Block Time:* _${time}_\n\n` +
             `🔗 [🔍 View on Solscan](${url})`;
-
 
         await this.bot.sendMessage(chatId, message, {
             parse_mode: "Markdown",
             disable_web_page_preview: true
         });
+        
+    } catch (error) {
+        logger.error(`Error sending transfer message:`, error);
+        // Send a simplified message if we encounter an error
+        await this.bot.sendMessage(
+            chatId, 
+            `💰 New transfer detected. View on Solscan: https://solscan.io/tx/${tx.signature}`,
+            { disable_web_page_preview: true }
+        );
     }
-
+}
     private async processTokenListChanges(
         walletAddress: string,
         settings: WalletAlertSettings,
@@ -477,6 +500,9 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 3 }),
                 this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 3 })
             ]);
+
+            const mintAddress = sentTransfers.transfers[0].mintAddress;
+            const tokenSymbol = (await this.api.getTopTokenHolder(mintAddress, 1)).data[0].tokenSymbol;
 
             const allTransfers = [
                 ...(sentTransfers?.transfers || []),
@@ -785,8 +811,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 this.walletAnalysis.calculatePnL(walletAddress),
                 this.walletAnalysis.analyzeWalletCategory(walletAddress),
                 this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 5 }),
-                this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 5 })
+                this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 5 }),
             ]);
+
+            const mintAddress = sentTransfers.transfers[0].mintAddress;
+            const tokenSymbol = (await this.api.getTopTokenHolder(mintAddress, 1)).data[0].tokenSymbol;
 
             // Delete loading message
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);

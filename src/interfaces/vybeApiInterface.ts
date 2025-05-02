@@ -36,6 +36,10 @@ export interface RecentTransfer {
 
 }
 
+export interface GetRecentTransferResponse {
+    transfers: RecentTransfer[];    // An array of recent transfers
+}
+
 interface CallingMetadata {
     callingInstructions: number[];
     ixName: string;
@@ -43,9 +47,7 @@ interface CallingMetadata {
     programName: string;
 }
 
-export interface GetRecentTransferResponse {
-    transfers: RecentTransfer[];    // An array of recent transfers
-}
+
 
 export interface WhaleWatchParams {
     mintAddress: string;

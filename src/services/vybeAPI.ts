@@ -143,7 +143,7 @@ export class VybeApiService {
 
         if (options.senderAddress && !isValidWalletAddress(options.senderAddress)
             || options.receiverAddress && !isValidWalletAddress(options.receiverAddress)) {
-            const msg = `Invalid wallet address: ${options.senderAddress} or ${options.receiverAddress} is not a valid base58 encoded Solana Pubkey`;
+            const msg = `Invalid wallet address: Address is not a valid base58 encoded Solana Pubkey`;
             logger.error(msg);
             throw new Error(msg);
         }

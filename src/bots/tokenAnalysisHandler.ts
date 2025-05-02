@@ -93,7 +93,6 @@ export class TokenAnalysisHandler extends BaseHandler {
                 minttokenData = minttokenData.find((token: any) => token.mintAddress === mintAddress)
             }
 
-            console.log("Second search here!! ", minttokenData);
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
 
             if (!minttokenData && !tokenData) {
@@ -119,7 +118,7 @@ export class TokenAnalysisHandler extends BaseHandler {
         } catch (error: any) {
             logger.error("Error in token analysis:", error);
             await this.bot.sendMessage(chatId,
-                `❌ Error: ${error.message}`
+                `❌ Error: Could not find token data`
             );
         }
     }
