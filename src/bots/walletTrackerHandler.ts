@@ -819,6 +819,12 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         const chatId = msg.chat.id;
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
+        const keyboard = {
+            inline_keyboard:
+                [[{ text: "💨 View Commands", callback_data: `help` }]]
+        };
+    
+
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId, "Usage: /removetrackedwallet <wallet_address>");
         }
@@ -833,19 +839,39 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 await this.redisService.removeTrackedWallet(chatId, walletAddress);
             }
             await this.saveAlerts();
-            await this.bot.sendMessage(chatId, `✅ Removed tracking for wallet \`${walletAddress}\``,
-                { parse_mode: "Markdown" });
+            await this.bot.sendMessage(chatId,
+                `✅ Removed tracking for wallet \`${walletAddress}\`` +
+                `You no longer track and will not receive notification from this address` +
+                `\n\n Use /track\\_wallet [wallet\\_address] to start tracking again.`,
+                { 
+                    parse_mode: "Markdown",
+                    reply_markup: keyboard
+                }
+            );
         } else {
-            await this.bot.sendMessage(chatId, `❌ No active tracking found for wallet ${walletAddress} or you don't have permission to remove it.`);
+            await this.bot.sendMessage(chatId,
+                `❌ No active tracking found for wallet ${walletAddress}\n` +
+                `Or you don't have permission to remove it.`
+            );
         }
     }
 
+    /**
+     * Analyze a given wallet address and send a report of token holdings,
+     * portfolio value, and recent transfers.
+     * @param msg - The Telegram message containing the command and wallet address
+     */
     async handleWalletAnalysis(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
+        const keyboard = {
+            inline_keyboard:
+                [[{ text: "💨 View Commands", callback_data: `help` }]]
+        };
+    
         if (parts.length < 2) {
-            return this.bot.sendMessage(chatId, "Usage: /analyzeWallet <wallet_address>");
+            return this.bot.sendMessage(chatId, "Usage: /analyze_Wallet <wallet_address>");
         }
 
         const walletAddress = parts[1];
@@ -865,8 +891,8 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 5 }),
             ]);
 
-            const mintAddress = sentTransfers.transfers[0].mintAddress;
-            const tokenSymbol = (await this.api.getTopTokenHolder(mintAddress, 1)).data[0].tokenSymbol;
+            // const mintAddress = sentTransfers.transfers[0].mintAddress;
+            // const tokenSymbol = (await this.api.getTopTokenHolder(mintAddress, 1)).data[0].tokenSymbol;
 
             // Delete loading message
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);

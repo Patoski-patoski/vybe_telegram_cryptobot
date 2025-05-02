@@ -180,7 +180,6 @@ export class RedisService {
     async getPriceAlerts(userId: number): Promise<PriceAlert[]> {
         try {
             const alertsData = await this.client.hGetAll(`price_alerts:${userId}`);
-            console.log("getPriceAlerts", alertsData);
             if (!alertsData || Object.keys(alertsData).length === 0) {
                 return [];
             }
@@ -190,7 +189,6 @@ export class RedisService {
             for (const [tokenMint, alertStr] of Object.entries(alertsData)) {
                 try {
                     const parsedAlert = JSON.parse(alertStr);
-                    console.log("parsedAlert\n", parsedAlert);
 
                     // Ensure we have all required properties
                     if (parsedAlert.threshold === undefined) {

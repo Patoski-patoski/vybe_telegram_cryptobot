@@ -34,11 +34,11 @@ export class BaseHandler {
                 { command: 'check_whales', description: 'Check whale transfers' },
                 { command: 'holder_distribution', description: 'View a token holder distribution' },
                 { command: 'series', description: 'View a token time series' },
-                { command: 'analyze', description: 'Comprehensive token analysis' },
+                { command: 'analyze_token', description: 'Comprehensive token analysis' },
                 { command: 'track_wallet', description: 'Track a wallet activity' },
                 { command: 'list_tracked_wallets', description: 'List tracked wallets' },
                 { command: 'remove_tracked_wallet', description: 'Remove a tracked wallet' },
-                { command: 'wallet_status', description: 'View a wallet status' },
+                { command: 'analyze_wallet', description: 'Analyze a wallet address and its holdings' },
               
                 // Program active users commands
                 { command: 'top_users', description: 'View top active users for a program' },
