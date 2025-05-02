@@ -35,12 +35,11 @@ export class BotHandler {
     private priceHandler: PriceHandler;
 
 
-    constructor(redisService: any) { // Replace 'any' with your actual RedisService type
+    constructor(redisService: RedisService) { 
         const config = getConfig();
         this.bot = new TelegramBot(config.bot.botToken, {});
         this.api = new VybeApiService();
         this.redisService = redisService;
-        this.api = new VybeApiService();
 
         // Handler instances
         this.tokenHolderHandler = new TopTokenHandler(this.bot, this.api);
@@ -242,26 +241,35 @@ export class BotHandler {
                 // Handle remove alert callbacks
                 else if (data.startsWith('remove_alert_')) {
                     const tokenMint = data.replace("remove_alert_", "");
+                    console.log("Removing alert for token:", tokenMint);
+
+                    const msg = {
+                        chat: { id: callbackQuery.message?.chat.id },
+                        from: { id: callbackQuery.from.id },  // Add this
+                        text: `/remove_price_alert ${tokenMint}`
+                    } as TelegramBot.Message;
 
                     try {
-                        await this.redisService.removePriceAlert(userId, tokenMint);
+                        await this.priceHandler.handleRemovePriceAlertCommand(msg);
 
-                        // Update the message to indicate the alert has been removed
+                        // Update the original message
                         await this.bot.editMessageText(
-                            `Alert for token ${tokenMint} has been removed.`,
+                            `✅ Price alert for ${tokenMint} has been removed!`,
                             {
-                                chat_id: chatId,
-                                message_id: callbackQuery.message.message_id
+                                chat_id: callbackQuery.message?.chat.id,
+                                message_id: callbackQuery.message?.message_id,
+                                parse_mode: 'Markdown'
                             }
                         );
 
                         await this.bot.answerCallbackQuery(callbackQuery.id, {
-                            text: "Price alert removed successfully."
+                            text: "Alert removed successfully!"
                         });
                     } catch (error) {
                         console.error('Error removing price alert:', error);
                         await this.bot.answerCallbackQuery(callbackQuery.id, {
-                            text: "Failed to remove price alert. Please try again."
+                            text: "❌ Failed to remove alert",
+                            show_alert: true
                         });
                     }
                 }
@@ -270,7 +278,7 @@ export class BotHandler {
                     const programName = data.replace("view_top_users_", "");
                     const msg = {
                         chat: { id: callbackQuery.message?.chat.id },
-                        text: `/topusers ${programName}`
+                        text: `/top_users ${programName}`
                     } as TelegramBot.Message;
 
                     await this.programActiveUsersHandler.handleTopUsers(msg);

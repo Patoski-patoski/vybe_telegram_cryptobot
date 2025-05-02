@@ -60,7 +60,7 @@ Sorry {name}, I don't recognize that command. Here are some things you can try:
 • /check\\_price - Get token price
 • /whale\\_alert - Set whale alerts
 • /nft\\_portfolio - View NFT holdings
-• /analyze - Analyze tokens
+• /analyze\\_token - Analyze tokens
 
 Need help? Use /help for a complete command list.
 `,
@@ -70,13 +70,13 @@ Need help? Use /help for a complete command list.
 Here are all available commands, organized by category:
 
 💳 *Wallet Management:*
-- /track\\_wallet <address> <min_value> - Track wallet activity
+- /track\\_wallet <address> <min\\_value> - Track wallet activity
 - /list\\_tracked\\_wallets - List tracked wallets
 - /remove\\_tracked\\_wallet <address> - Remove tracked wallet
 - /analyze\\_wallet <address> - Detailed wallet analysis
 
 💰 *Token Analysis:*
-- /analyze <symbol> - Analyze token, including price (e.g., /analyze JUP)
+- /analyze_token <symbol_or_mintAddress> - Analyze token
 - /series <symbol> - Token time series analysis
 - /holder\\_distribution <symbol> - Token holder distribution
 - /set\\_price\\_alert <symbol> <threshold> <high/low> - Set price alerts

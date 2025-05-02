@@ -175,7 +175,7 @@ export class PriceHandler extends BaseHandler {
             // Store alert in Redis
             await this.redisService.setPriceAlert(userId, alert);
             const setPriceAlert = await this.bot.sendMessage(chatId,
-                `✅ Price alert set for ${mintAddress} at $${threshold} (${type})\n` +
+                `✅ Price alert set for ${mintAddress} at $${threshold} (${type})\n\n` +
                 `You will be notified when the price reaches this threshold.`,
             );
 
@@ -225,7 +225,6 @@ export class PriceHandler extends BaseHandler {
     }
 
     async handleRemovePriceAlertCommand(msg: TelegramBot.Message) {
-        const chatId = msg.chat.id;
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
         const userId = msg.from?.id;
@@ -236,8 +235,8 @@ export class PriceHandler extends BaseHandler {
             return;
         }
 
-        if (parts.length < 2) {
-            const errorMsg = 'Usage: /remove_alert [mint_address]';
+        if (parts.length !== 2) {
+            const errorMsg = 'Usage: /remove_price_alert [mint_address]';
             sendAndDeleteMessage(this.bot, msg, errorMsg, 30);
             return;
         }
@@ -277,6 +276,7 @@ export class PriceHandler extends BaseHandler {
 
                         const latest = ohlcvData.data[ohlcvData.data.length - 1];
                         const currentPrice = parseFloat(latest.close);
+                        console.log(`\n\nCurrent price for ${alert.tokenMint}: $${currentPrice}\n\n`);
 
                         // Create keyboard with the specific token mint for this alert
                         const keyboard = {
@@ -297,18 +297,28 @@ export class PriceHandler extends BaseHandler {
                         if (alert.isHigh && currentPrice >= alert.threshold) {
                             await this.bot.sendMessage(
                                 userId,
-                                `⚠️ Alert: You set a price alert for ${alert.tokenMint} if it increases to at least $${alert.threshold}.\n\n` +
+                                `*🔔 New Alert!* \n\n` +
+                                `'📈' ${(currentPrice - alert.threshold).toFixed(2)} → ${currentPrice.toFixed(2)}\n\n` +
+                                `You set a price alert for ${alert.tokenMint} if it increases to at least $${alert.threshold}.\n\n` +
                                 `Current price has reached $${currentPrice.toFixed(2)}`,
-                                { reply_markup: keyboard }
+                                {
+                                    reply_markup: keyboard,
+                                    parse_mode: "Markdown"
+                                }
                             );
                             // Optional remove the alert after it's triggered
                             // await this.redisService.removePriceAlert(userId, alert.tokenMint);
                         } else if (!alert.isHigh && currentPrice <= alert.threshold) {
                             await this.bot.sendMessage(
                                 userId,
-                                `⚠️ Alert: You set a price alert for ${alert.tokenMint} if it decreases to at least $${alert.threshold}.\n\n` +
+                                `*🔔 New Alert!* \n\n` +
+                                `'📈' ${(currentPrice + alert.threshold).toFixed(2)} → ${currentPrice.toFixed(2)}\n\n` +
+                                `You set a price alert for ${alert.tokenMint} if it decreases to at least $${alert.threshold}.\n\n` +
                                 `Current price has reached $${currentPrice.toFixed(2)}`,
-                                { reply_markup: keyboard }
+                                {
+                                    reply_markup: keyboard,
+                                    parse_mode: "Markdown"
+                                }
                             );
                             // Optional remove the alert after it's triggered
                             // await this.redisService.removePriceAlert(userId, alert.tokenMint);
