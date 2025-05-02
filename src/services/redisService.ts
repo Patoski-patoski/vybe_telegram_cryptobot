@@ -33,8 +33,8 @@ export class RedisService {
             socket: {
                 tls: redisConfig.tls,
                 reconnectStrategy: (retries) => {
-                    
-                     const delay = Math.min(
+
+                    const delay = Math.min(
                         redisConfig.reconnectStrategy * Math.pow(2, retries),
                         30000 // Max 30 seconds
                     );
@@ -348,6 +348,38 @@ export class RedisService {
             logger.error('Failed to remove tracked wallet:', error);
             throw error;
         }
+    }
+
+    // In RedisService class
+
+    // Store historical value with date
+    async setHistoricalValueWithDate(walletAddress: string, dateKey: string, value: string) {
+        const key = `wallet_history:${walletAddress}:${dateKey}`;
+        await this.client.set(key, value);
+        // Set expiry to 90 days
+        await this.client.expire(key, 90 * 24 * 60 * 60);
+    }
+
+    // Get historical value by date
+    async getHistoricalValueByDate(walletAddress: string, dateKey: string): Promise<string | null> {
+        const key = `wallet_history:${walletAddress}:${dateKey}`;
+        return this.client.get(key);
+    }
+
+    // Get all historical values for a wallet
+    async getHistoricalValuesByWallet(walletAddress: string): Promise<Map<string, string>> {
+        const keys = await this.client.keys(`wallet_history:${walletAddress}:*`);
+        const result = new Map<string, string>();
+
+        for (const key of keys) {
+            const dateKey = key.split(':')[2]; // Extract date part from key
+            const value = await this.client.get(key);
+            if (value) {
+                result.set(dateKey, value);
+            }
+        }
+
+        return result;
     }
 
     async getAllUserIds(): Promise<string[]> {

@@ -37,6 +37,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         super(bot, api);
         this.walletAnalysis = new WalletAnalysisService(api);
         this.initRedis(checkIntervalMs);  // Initialize Redis first
+        this.setupDailySnapshot()
     }
 
     private async initRedis(checkIntervalMs: number) {
@@ -55,7 +56,29 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             this.startWatchingWallets(DEFAULT_CHECK_INTERVAL_MS);
         }
     }
+    private setupDailySnapshot() {
+        // Calculate time until 1:00 AM GMT+1
+        const now = new Date();
+        const target = new Date();
+        target.setUTCHours(0, 0, 0, 0); // GMT
+        target.setHours(target.getHours() + 1); // GMT+1
 
+        if (target <= now) {
+            target.setDate(target.getDate() + 1);
+        }
+
+        const timeUntilTarget = target.getTime() - now.getTime();
+
+        // Schedule first run
+        setTimeout(() => {
+            this.takeDailySnapshot();
+
+            // Then schedule daily runs
+            setInterval(() => this.takeDailySnapshot(), 24 * 60 * 60 * 1000);
+        }, timeUntilTarget);
+
+        logger.info(`Daily snapshot scheduled for ${target.toISOString()} (in ${timeUntilTarget / 1000 / 60} minutes)`);
+    }
     private startWatchingWallets(checkIntervalMs: number) {
         if (this.checkInterval) {
             clearInterval(this.checkInterval);
@@ -220,53 +243,53 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     }
 
 
-   private async sendTransferMessage(chatId: number, tx: RecentTransfer) {
-    try {
-        // Fetch token symbol for this specific transfer
-        let tokenSymbol = "Unknown";
-        
-        if (tx.mintAddress) {
-            try {
-                const topHolderResponse = await this.api.getTopTokenHolder(tx.mintAddress, 1);
-                if (topHolderResponse?.data?.[0]?.tokenSymbol) {
-                    tokenSymbol = topHolderResponse.data[0].tokenSymbol;
+    private async sendTransferMessage(chatId: number, tx: RecentTransfer) {
+        try {
+            // Fetch token symbol for this specific transfer
+            let tokenSymbol = "Unknown";
+
+            if (tx.mintAddress) {
+                try {
+                    const topHolderResponse = await this.api.getTopTokenHolder(tx.mintAddress, 1);
+                    if (topHolderResponse?.data?.[0]?.tokenSymbol) {
+                        tokenSymbol = topHolderResponse.data[0].tokenSymbol;
+                    }
+                } catch (error) {
+                    logger.warn(`Could not fetch token symbol for mint ${tx.mintAddress}:`, error);
+                    // Continue with "Unknown" token symbol
                 }
-            } catch (error) {
-                logger.warn(`Could not fetch token symbol for mint ${tx.mintAddress}:`, error);
-                // Continue with "Unknown" token symbol
             }
+
+            const sender = tx.senderAddress || "Unknown";
+            const receiver = tx.receiverAddress || "Unknown";
+            const amount = `${parseFloat(tx.calculatedAmount).toLocaleString(
+                undefined, { maximumFractionDigits: 6 })} ${tokenSymbol}`;
+            const url = `https://solscan.io/tx/${tx.signature}`;
+            const time = timeAgo(tx.blockTime);
+
+            const message =
+                `💰 *Transfer Summary*\n\n` +
+                `👤 *From:* \`${sender}\`\n\n` +
+                `📥 *To:* \`${receiver}\`\n\n` +
+                `💸 *Transfer Amount:* \`${amount}\`\n\n` +
+                `🕒 *Block Time:* _${time}_\n\n` +
+                `🔗 [🔍 View on Solscan](${url})`;
+
+            await this.bot.sendMessage(chatId, message, {
+                parse_mode: "Markdown",
+                disable_web_page_preview: true
+            });
+
+        } catch (error) {
+            logger.error(`Error sending transfer message:`, error);
+            // Send a simplified message if we encounter an error
+            await this.bot.sendMessage(
+                chatId,
+                `💰 New transfer detected. View on Solscan: https://solscan.io/tx/${tx.signature}`,
+                { disable_web_page_preview: true }
+            );
         }
-        
-        const sender = tx.senderAddress || "Unknown";
-        const receiver = tx.receiverAddress || "Unknown";
-        const amount = `${parseFloat(tx.calculatedAmount).toLocaleString(
-            undefined, { maximumFractionDigits: 6 })} ${tokenSymbol}`;
-        const url = `https://solscan.io/tx/${tx.signature}`;
-        const time = timeAgo(tx.blockTime);
-
-        const message =
-            `💰 *Transfer Summary*\n\n` +
-            `👤 *From:* \`${sender}\`\n\n` +
-            `📥 *To:* \`${receiver}\`\n\n` +
-            `💸 *Transfer Amount:* \`${amount}\`\n\n` +
-            `🕒 *Block Time:* _${time}_\n\n` +
-            `🔗 [🔍 View on Solscan](${url})`;
-
-        await this.bot.sendMessage(chatId, message, {
-            parse_mode: "Markdown",
-            disable_web_page_preview: true
-        });
-        
-    } catch (error) {
-        logger.error(`Error sending transfer message:`, error);
-        // Send a simplified message if we encounter an error
-        await this.bot.sendMessage(
-            chatId, 
-            `💰 New transfer detected. View on Solscan: https://solscan.io/tx/${tx.signature}`,
-            { disable_web_page_preview: true }
-        );
     }
-}
     private async processTokenListChanges(
         walletAddress: string,
         settings: WalletAlertSettings,
@@ -419,21 +442,44 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     private async sendWalletAlert(settings: WalletAlertSettings, balance: TokenBalanceResponse) {
         const chatId = settings.chatId;
         const currentValue = parseFloat(balance.totalTokenValueUsd);
-        const historicalValue = this.historicalValues.get(settings.walletAddress);
 
         let message = `📊 *Wallet Tracking Update*\n\n` +
             `*Wallet Address:* \`${settings.walletAddress}\`\n`;
 
-        if (historicalValue) {
-            const historicalValueNum = parseFloat(historicalValue.value);
+
+        // Get yesterday's date in YYYY-MM-DD format
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayKey = yesterday.toISOString().split('T')[0];
+
+        // Try to get historical value from Redis with date first
+        let historicalValueStr = null;
+        if (this.redisService) {
+            historicalValueStr = await this.redisService.getHistoricalValueByDate(
+                settings.walletAddress,
+                yesterdayKey
+            );
+        }
+
+        // Fallback to in-memory if Redis data not available
+        if (!historicalValueStr) {
+            const historicalValue = this.historicalValues.get(settings.walletAddress);
+            if (historicalValue) {
+                historicalValueStr = historicalValue.value;
+            }
+        }
+
+        if (historicalValueStr) {
+            const historicalValueNum = parseFloat(historicalValueStr);
             const changePercent = ((currentValue - historicalValueNum) / historicalValueNum) * 100;
             const changeEmoji = changePercent > 0 ? '📈 +' : (changePercent < 0 ? '📉 -' : '➡️');
 
-            message += `*Wallet Value 24h ago:* ${formatUsdValue(historicalValue.value)}\n` +
+            message += `*Wallet Value 24h ago:* ${formatUsdValue(historicalValueStr)}\n` +
                 `*Current Wallet Value:* ${formatUsdValue(currentValue.toString())}\n` +
                 `*24h Change:* ${changeEmoji} ${Math.abs(changePercent).toFixed(2)}%\n\n`;
         } else {
-            message += `*Current Wallet Value:* ${formatUsdValue(currentValue.toString())}\n\n`;
+            message += `*Current Wallet Value:* ${formatUsdValue(currentValue.toString())}\n\n` +
+                `*24h Change:* _Data will be available tomorrow_\n\n`;
         }
 
         // Generate and send the pie chart
@@ -466,7 +512,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             this.storeWalletData(settings.walletAddress, {
                 balance,
                 settings,
-                historicalValue
+                historicalValueStr
             });
 
         } catch (error) {
@@ -487,6 +533,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     }
 
 
+    /**
+     * Handles the /view_transactions command, which displays the recent transfers of a given wallet.
+     * @param chatId The Telegram chat ID to send the message to.
+     * @param walletAddress The address of the wallet to analyze.
+     */
     async handleViewTransactions(chatId: number, walletAddress: string) {
 
         await this.bot.sendMessage(chatId,
@@ -546,7 +597,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 message += `${i + 1}. *${token.symbol}*: ${formatUsdValue(token.valueUsd)}`;
 
                 if (parseFloat(token.priceUsd1dChange) !== 0) {
-                    const changeChar = parseFloat(token.priceUsd1dChange) > 0 ? '📈 +' : '📉 -';
+                    const changeChar = parseFloat(token.priceUsd1dChange) > 0 ? '📈 +' : '📉 ';
                     message += ` (${changeChar} ${parseFloat(token.priceUsd1dChange).toFixed(2)}%)\n\n`;
                 } else {
                     message += '\n';
@@ -894,7 +945,40 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             await this.bot.sendMessage(chatId, "❌ Error analyzing wallet. The address may be invalid or our service might be experiencing issues.");
         }
     }
-    private async saveAlerts() {
+
+    // Add this method to your class
+    async takeDailySnapshot() {
+        logger.info('Taking daily wallet value snapshot');
+        const timestamp = Math.floor(Date.now() / 1000);
+        const dateKey = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+        for (const [walletAddress, userAlerts] of this.alerts) {
+            try {
+                // Only fetch balance once per wallet regardless of how many users track it
+                const balance = await this.api.getTokenBalance(walletAddress);
+                if (balance?.totalTokenValueUsd) {
+                    // Update in-memory store
+                    this.historicalValues.set(walletAddress, {
+                        value: balance.totalTokenValueUsd,
+                        timestamp: timestamp
+                    });
+
+                    // Store in Redis with date key for better historical tracking
+                    if (this.redisService) {
+                        await this.redisService.setHistoricalValueWithDate(
+                            walletAddress,
+                            dateKey,
+                            balance.totalTokenValueUsd
+                        );
+                    }
+                }
+            } catch (error) {
+                logger.error(`Error taking snapshot for wallet ${walletAddress}:`, error);
+            }
+        }
+
+        logger.info('Daily wallet snapshot completed');
+    } private async saveAlerts() {
         try {
             if (!this.redisService) {
                 // Fallback to file system if Redis is not available
@@ -956,6 +1040,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             logger.error('Failed to save wallet alerts:', error);
         }
     }
+    /**
+     * Loads wallet alerts from Redis or a fallback JSON file
+     * @return {Promise<void>}
+     * @private
+     */
     private async loadAlerts() {
         try {
             if (!this.redisService) {
@@ -1058,6 +1147,33 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                                 timestamp: parseInt(historicalValues.get('timestamp') || '0')
                             });
                         }
+
+                        // Additionally, try to load historical values with dates
+                        if (this.redisService) {
+                            for (const walletAddress of this.alerts.keys()) {
+                                try {
+                                    // Get yesterday's date for immediate comparison
+                                    const yesterday = new Date();
+                                    yesterday.setDate(yesterday.getDate() - 1);
+                                    const yesterdayKey = yesterday.toISOString().split('T')[0];
+
+                                    const value = await this.redisService.getHistoricalValueByDate(
+                                        walletAddress,
+                                        yesterdayKey
+                                    );
+
+                                    if (value) {
+                                        this.historicalValues.set(walletAddress, {
+                                            value: value,
+                                            timestamp: Math.floor(yesterday.getTime() / 1000)
+                                        });
+                                    }
+                                } catch (error) {
+                                    logger.warn(`Error loading historical data for wallet ${walletAddress}:`, error);
+                                }
+                            }
+                        }
+
                     } catch (walletError) {
                         logger.error(`Error processing wallet ${walletAddress}:`, walletError);
                         continue;
@@ -1114,6 +1230,4 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         const chartJSNodeCanvas = new ChartJSNodeCanvas({ width: 800, height: 400 });
         return await chartJSNodeCanvas.renderToBuffer(configuration);
     }
-
-
 }
