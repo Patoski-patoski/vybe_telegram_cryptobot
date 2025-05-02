@@ -271,7 +271,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 `💰 *Transfer Summary*\n\n` +
                 `👤 *From:* \`${sender}\`\n\n` +
                 `📥 *To:* \`${receiver}\`\n\n` +
-                `💸 *Transfer Amount:* \`${amount}\`\n\n` +
+                `💸 *Transfer Amount:* \`${amount}\`\n\n` +pric
                 `🕒 *Block Time:* _${time}_\n\n` +
                 `🔗 [🔍 View on Solscan](${url})`;
 

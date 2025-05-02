@@ -175,19 +175,38 @@ export class PriceHandler extends BaseHandler {
             // Store alert in Redis
             await this.redisService.setPriceAlert(userId, alert);
             const setPriceAlert = await this.bot.sendMessage(chatId,
-                `✅ Price alert set for ${mintAddress} at $${threshold} (${type})\n\n` +
+                `✅ Price alert set\n For\n \`${mintAddress}\` \nAt $${threshold} (${type})\n\n` +
                 `You will be notified when the price reaches this threshold.`,
+                {
+                    parse_mode: "Markdown"
+                }
             );
 
-            setTimeout(async () => {
-                await this.bot.deleteMessage(chatId, msg.message_id, setPriceAlert);
-            }, 5000);
         } catch (error) {
             console.error('Error setting price alert:', error);
             const errorMsg = 'Error setting price alert. Please try again later.';
             sendAndDeleteMessage(this.bot, msg, errorMsg);
         }
     }
+
+/**
+ * Lists all active price alerts for the user.
+ *
+ * @param msg - The Telegram message object containing the command.
+ *
+ * Process:
+ * - Validates the presence of the user ID.
+ * - Fetches all price alerts associated with the user from Redis.
+ * - Formats and sends a list of active price alerts to the user.
+ *
+ * Outputs:
+ * - Sends a message with the list of active alerts if available.
+ * - Sends an error message if no alerts are found or if an error occurs.
+ *
+ * Edge Cases:
+ * - Handles scenarios where the user ID is unavailable.
+ * - Catches and logs errors during the retrieval of alerts.
+ */
 
     async handleListPriceAlertsCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
@@ -245,7 +264,7 @@ export class PriceHandler extends BaseHandler {
 
         try {
             await this.redisService.removePriceAlert(userId, mintAddress);
-            sendAndDeleteMessage(this.bot, msg, `✅ Price alert for ${mintAddress} removed.`, 10);
+            sendAndDeleteMessage(this.bot, msg, `✅ Price alert for \`{mintAddress}\` removed.`, 10);
 
         } catch (error) {
             console.error('Error removing price alert:', error);
@@ -276,7 +295,6 @@ export class PriceHandler extends BaseHandler {
 
                         const latest = ohlcvData.data[ohlcvData.data.length - 1];
                         const currentPrice = parseFloat(latest.close);
-                        console.log(`\n\nCurrent price for ${alert.tokenMint}: $${currentPrice}\n\n`);
 
                         // Create keyboard with the specific token mint for this alert
                         const keyboard = {
@@ -294,13 +312,16 @@ export class PriceHandler extends BaseHandler {
                             ]
                         };
 
+                        const tokenName = await this.api.getTopTokenHolder(alert.tokenMint, 1);
+                        const tokenSymbol = tokenName.data[0]?.tokenSymbol || 'N/A';
+
                         if (alert.isHigh && currentPrice >= alert.threshold) {
                             await this.bot.sendMessage(
                                 userId,
-                                `*🔔 New Alert!* \n\n` +
-                                `'📈' ${(currentPrice - alert.threshold).toFixed(2)} → ${currentPrice.toFixed(2)}\n\n` +
-                                `You set a price alert for ${alert.tokenMint} if it increases to at least $${alert.threshold}.\n\n` +
-                                `Current price has reached $${currentPrice.toFixed(2)}`,
+                                `*🔔 New Price Alert! for ${tokenSymbol}* \n\n` +
+                                `📈 $${(currentPrice - alert.threshold).toFixed(2)} → $${currentPrice.toFixed(2)}\n\n` +
+                                `You set a price alert for \`${alert.tokenMint}\` for every $${alert.threshold} increase.\n\n` +
+                                `Current price has reached $${currentPrice.toFixed(2)} (${tokenSymbol})`,
                                 {
                                     reply_markup: keyboard,
                                     parse_mode: "Markdown"
@@ -311,10 +332,10 @@ export class PriceHandler extends BaseHandler {
                         } else if (!alert.isHigh && currentPrice <= alert.threshold) {
                             await this.bot.sendMessage(
                                 userId,
-                                `*🔔 New Alert!* \n\n` +
-                                `'📈' ${(currentPrice + alert.threshold).toFixed(2)} → ${currentPrice.toFixed(2)}\n\n` +
-                                `You set a price alert for ${alert.tokenMint} if it decreases to at least $${alert.threshold}.\n\n` +
-                                `Current price has reached $${currentPrice.toFixed(2)}`,
+                                `*🔔 New Price Alert! for ${tokenSymbol}* \n\n` +
+                                `📉 $${(currentPrice + alert.threshold).toFixed(2)} → $${currentPrice.toFixed(2)}\n\n` +
+                                `You set a price alert for \`${alert.tokenMint}\` if it decreases to at least $${alert.threshold}.\n\n` +
+                                `Current price has reached $${currentPrice.toFixed(2)} (${tokenSymbol})`,
                                 {
                                     reply_markup: keyboard,
                                     parse_mode: "Markdown"
