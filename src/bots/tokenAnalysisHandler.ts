@@ -59,7 +59,7 @@ export class TokenAnalysisHandler extends BaseHandler {
             );
 
             // Special handling for SOL
-            if (symbol === 'SOL') {
+            if (symbol === 'SOL' || symbol === '11111111111111111111111111111111') {
                 const tokenData = await this.findTokenBySymbol(chatId, 'wSOL');
 
                 if (tokenData) {
@@ -90,6 +90,8 @@ export class TokenAnalysisHandler extends BaseHandler {
             if (!tokenData) {
                 minttokenData = (await this.api.getTokenBalance(symbol)).data;
                 mintAddress = symbol;
+                console.log("Mintaddress", mintAddress);
+                console.log("minttokenData", minttokenData);
                 minttokenData = minttokenData.find((token: any) => token.mintAddress === mintAddress)
             }
 

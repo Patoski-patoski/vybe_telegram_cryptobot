@@ -10,7 +10,7 @@ The Vybe Telegram Bot leverages the Vybe Network API to retrieve real-time data 
 
 All API requests require an API key in the header:
 
-```
+```bash
 X-API-KEY: your_api_key
 ```
 
@@ -18,7 +18,7 @@ To obtain an API key for the hackathon, please contact Eric BD @ Vybe via Telegr
 
 ## 🌐 Base URL
 
-```
+```bash
 https://api.vybenetwork.xyz
 ```
 
@@ -28,7 +28,7 @@ https://api.vybenetwork.xyz
 
 Retrieve token balances for a specific wallet address.
 
-```
+```bash
 GET /token/balance/{ownerAddress}
 ```
 
@@ -63,7 +63,7 @@ curl -X GET "https://api.vybenetwork.xyz/token/balance/7v91N7iZ9mNicL8WfG6cgSCKy
 
 Track large token transfers across the Solana blockchain.
 
-```
+```bash
 GET /token/whale-transfers
 ```
 
@@ -105,7 +105,7 @@ curl -X GET "https://api.vybenetwork.xyz/token/whale-transfers?mintAddress=EPjFW
 
 Get recent token transfers for analysis.
 
-```
+```bash
 GET /token/recent-transfers
 ```
 
@@ -146,7 +146,7 @@ curl -X GET "https://api.vybenetwork.xyz/token/recent-transfers?mintAddress=EPjF
 
 Get comprehensive profit and loss analysis for a wallet.
 
-```
+```bash
 GET /account/pnl/{ownerAddress}
 ```
 
@@ -209,7 +209,7 @@ curl -X GET "https://api.vybenetwork.xyz/account/pnl/7v91N7iZ9mNicL8WfG6cgSCKyRX
 
 Get OHLCV (Open, High, Low, Close, Volume) data for a token.
 
-```
+```bash
 GET /price/{mintAddress}/token-ohlcv
 ```
 
@@ -247,7 +247,7 @@ curl -X GET "https://api.vybenetwork.xyz/price/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wE
 
 Get NFT portfolio data for a wallet.
 
-```
+```bash
 GET /account/nft-balance/{ownerAddress}
 ```
 
@@ -288,7 +288,7 @@ curl -X GET "https://api.vybenetwork.xyz/account/nft-balance/7v91N7iZ9mNicL8WfG6
 
 Get detailed token information including price, metadata, and category.
 
-```
+```bash
 GET /token/analysis/{symbol}
 ```
 
@@ -423,5 +423,6 @@ Real-time notifications are available through webhooks. Contact the Vybe team de
 ## 📞 Support
 
 For API support, contact:
+
 - Eric BD @ Vybe via Telegram: [@ericvybes](http://t.me/ericvybes)
 - Vybe Network Community: [Telegram Group](https://t.me/VybeNetwork_Official)
