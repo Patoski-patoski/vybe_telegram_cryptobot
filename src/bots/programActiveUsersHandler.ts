@@ -96,11 +96,11 @@ export class ProgramActiveUsersHandler extends BaseHandler {
                     [
                         {
                             text: "🐋 View Program's Whale Users",
-                            callback_data: `check_whale_users_${programId}`
+                            callback_data: `check_whale_users_${identifier}`
                         },
                         {
                             text: "👀 Get Programs Users insight",
-                            callback_data: `get_users_insights${programId}`
+                            callback_data: `get_users_insights${identifier}`
                         }
                     ],
                     

@@ -288,9 +288,9 @@ export class NFTPortfolioHandler extends BaseHandler {
         const topCollections = sortedCollections.slice(0, 5);
 
         let message = `*NFT Portfolio Summary*\n\n`;
-        message += `*Total Value:* \`${formatUsdValue(portfolio.totalUsd)}\` \n`;
+        message += `*Total Value in USD:* \`${formatUsdValue(portfolio.totalUsd)}\` \n`;
         message += `*Value in SOL:* ${parseFloat(portfolio.totalSol).toFixed(3)} SOL\n\n`;
-        message += `*Collections:* ${portfolio.totalNftCollectionCount}\n`;
+        message += `*Collections:* ${portfolio.totalNftCollectionCount}\n\n`;
         message += `*Total NFTs:* ${portfolio.data.reduce((sum, c) => sum + c.totalItems, 0)}\n`;
 
         message += `*🔝 Top Collections by Value:*\n\n`;
@@ -373,7 +373,7 @@ export class NFTPortfolioHandler extends BaseHandler {
         if (!portfolioData) {
             await this.bot.sendMessage(
                 chatId,
-                "Portfolio data not found. Please try viewing your portfolio again with /nftportfolio."
+                "Portfolio data not found. Please try viewing your portfolio again with /nft_portfolio."
             );
             await this.bot.answerCallbackQuery(callbackQuery.id);
             return;

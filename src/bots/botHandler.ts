@@ -285,6 +285,8 @@ export class BotHandler {
 
                 } else if (data.startsWith("check_whale_users_")) {
                     const programName = data.replace("check_whale_users_", "");
+                    console.log("check_whale_users_\n\n", programName);
+                    
                     const msg = {
                         chat: { id: callbackQuery.message?.chat.id },
                         text: `/check_program_whale_users ${programName}`

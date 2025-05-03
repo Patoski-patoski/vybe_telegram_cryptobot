@@ -50,15 +50,34 @@ export class ProgramInfoHandler extends BaseHandler {
         }
     }
 
+/**
+ * Handles the /programinfo command to fetch and display information
+ * about a specific program based on its ID or name.
+ *
+ * @param msg - The Telegram message object containing chat and text details.
+ *
+ * This function performs the following steps:
+ * 1. Parses the message to extract the program identifier.
+ * 2. Checks for a valid identifier and sends usage instructions if missing.
+ * 3. Checks if the identifier is 'help' and sends help message if true.
+ * 4. Attempts to retrieve program information from Redis cache.
+ * 5. Falls back to in-memory cache if Redis lookup fails.
+ * 6. Fetches program information from API if not found in cache.
+ * 7. Updates both Redis and in-memory cache with fetched program data.
+ * 8. Constructs and sends a detailed message with program information and
+ *    interactive buttons for further actions.
+ * 9. Handles errors by logging and sending an error message to the user.
+ */
+
     async handleProgramInfo(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId,
-                "Usage: /programinfo <program_id_or_name>\n" +
-                "Example: /programinfo 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8\n" +
-                "Example: /programinfo Raydium Liquidity Pool V4");
+                "Usage: /program_info <program_id_or_name>\n" +
+                "Example: /program_info 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8\n" +
+                "Example: /program_info Raydium Liquidity Pool V4");
         }
         const ID = parts.slice(1).join(" ").trim();
         if (ID === 'help') {
