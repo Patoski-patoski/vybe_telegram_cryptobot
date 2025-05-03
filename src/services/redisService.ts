@@ -21,7 +21,7 @@ export class RedisService {
     public FIVE_HOUR = 18000
     public ONE_DAY = 86400 // 1 day in seconds
 
-    private constructor() {
+    public constructor() {
 
         const redisConfig = config.redis;
         if (!redisConfig) {

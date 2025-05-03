@@ -190,6 +190,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             throw error; // Rethrow to be caught by the caller
         }
     }
+        /**
+         * Checks for new transfers in the given wallet and sends a Telegram notification to the user if a new transfer is detected.
+         * @param walletAddress The address of the wallet to check for new transfers.
+         * @param settings The tracking settings for the given wallet.
+         */
     private async checkForNewTransfers(walletAddress: string, settings: WalletAlertSettings): Promise<void> {
         try {
             // Fetch both sent and received transfers in parallel
@@ -243,6 +248,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     }
 
 
+        /**
+         * Sends a formatted message to a Telegram chat about a recent transfer
+         * @param chatId The Telegram chat ID to send the message to
+         * @param tx The RecentTransfer object to format into a message
+         */
     private async sendTransferMessage(chatId: number, tx: RecentTransfer) {
         try {
             // Fetch token symbol for this specific transfer
@@ -271,9 +281,9 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 `💰 *Transfer Summary*\n\n` +
                 `👤 *From:* \`${sender}\`\n\n` +
                 `📥 *To:* \`${receiver}\`\n\n` +
-                `💸 *Transfer Amount:* \`${amount}\`\n\n` +pric
+                `💸 *Transfer Amount:* \`${amount}\`\n\n` +
                 `🕒 *Block Time:* _${time}_\n\n` +
-                `🔗 [🔍 View on Solscan](${url})`;
+                `🔗 [🔍 View more on Solscan](${url})`;
 
             await this.bot.sendMessage(chatId, message, {
                 parse_mode: "Markdown",
@@ -472,7 +482,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         if (historicalValueStr) {
             const historicalValueNum = parseFloat(historicalValueStr);
             const changePercent = ((currentValue - historicalValueNum) / historicalValueNum) * 100;
-            const changeEmoji = changePercent > 0 ? '📈 +' : (changePercent < 0 ? '📉 -' : '➡️');
+            const changeEmoji = changePercent > 0 ? '📈 +' : (changePercent < 0 ? '📉' : '➡️');
 
             message += `*Wallet Value 24h ago:* ${formatUsdValue(historicalValueStr)}\n` +
                 `*Current Wallet Value:* ${formatUsdValue(currentValue.toString())}\n` +
@@ -520,6 +530,12 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
         }
     }
+
+/**
+ * Stores wallet data in the local cache and optionally in Redis with a 5-minute expiration.
+ * @param walletAddress The address of the wallet whose data is being stored.
+ * @param data The data related to the wallet to be cached.
+ */
 
     private storeWalletData(walletAddress: string, data: any) {
         // Store data for 5 minutes
@@ -578,6 +594,12 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         });
     }
 
+    /**
+     * Handles the /view_holdings command, which displays the top 7 tokens held
+     * by a given wallet along with their current value and 1-day price change.
+     * @param chatId The Telegram chat ID to send the message to.
+     * @param walletAddress The address of the wallet to analyze.
+     */
     async handleViewHoldings(chatId: number, walletAddress: string) {
         try {
             // Fetch fresh wallet data
@@ -622,6 +644,12 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
     }
 
+    /**
+     * Handles the /trackwallet command, which sets up a wallet to be periodically
+     * checked for significant activity and sends a notification to the user if
+     * a change is detected.
+     * @param msg The Telegram message containing the command and wallet address.
+     */
     async handleTrackWallet(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
@@ -810,10 +838,15 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             message += `*Last Check:* ${timeAgo(settings.lastCheckedTime)}\n\n`;
         }
 
-        message += "Use `/removetrackedwallet <wallet_address>` to stop tracking.";
+        message += "Use `/remove_tracked_wallet <wallet_address>` to stop tracking.";
 
         await this.bot.sendMessage(chatId, message, { parse_mode: "Markdown", disable_web_page_preview: true });
     }
+
+    /**
+     * Handle listing all wallets tracked by a user.
+     * @param msg Telegram message object
+     */
 
     async handleRemoveTrackedWallet(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
@@ -826,7 +859,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     
 
         if (parts.length < 2) {
-            return this.bot.sendMessage(chatId, "Usage: /removetrackedwallet <wallet_address>");
+            return this.bot.sendMessage(chatId, "Usage: /remove_tracked_wallet <wallet_address>");
         }
 
         const walletAddress = parts[1];
@@ -890,9 +923,6 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 this.api.getWalletRecentTransfers({ senderAddress: walletAddress, limit: 5 }),
                 this.api.getWalletRecentTransfers({ receiverAddress: walletAddress, limit: 5 }),
             ]);
-
-            // const mintAddress = sentTransfers.transfers[0].mintAddress;
-            // const tokenSymbol = (await this.api.getTopTokenHolder(mintAddress, 1)).data[0].tokenSymbol;
 
             // Delete loading message
             await this.bot.deleteMessage(chatId, loadingMsg.message_id);
@@ -1004,6 +1034,23 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
 
         logger.info('Daily wallet snapshot completed');
+
+/**
+ * Saves the current state of wallet alerts and historical values.
+ * 
+ * If a Redis service is available, data is saved to Redis. Each wallet's alerts
+ * and historical values are stored with the appropriate chat IDs and wallet addresses.
+ * 
+ * If Redis is not available, the data is serialized and written to the local file system
+ * in JSON format under the `data/wallet-alerts.json` path. This includes alerts and
+ * historical values for all tracked wallets.
+ * 
+ * The function ensures that any necessary directories are created if they don't exist,
+ * and logs the success or failure of the save operation.
+ * 
+ * Catches and logs any errors during the save process.
+ */
+
     } private async saveAlerts() {
         try {
             if (!this.redisService) {

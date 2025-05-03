@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { BotHandler } from "./bots/botHandler";
 import config from "./config/config";
+import { RedisService } from "./services/redisService";
 
 dotenv.config();
 
@@ -24,7 +25,8 @@ class App {
     private readonly port: number;
 
     constructor() {
-        this.bot = new BotHandler();
+        const redisService = new RedisService();
+        this.bot = new BotHandler(redisService);
         this.app = express();
         // Render sets PORT environment variable, use that
         this.port = parseInt(process.env.PORT || '3000', 10);

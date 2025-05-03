@@ -32,6 +32,21 @@ export class PriceHandler extends BaseHandler {
         }
     }
 
+/**
+ * Handles the /price command to fetch and display the price chart and summary
+ * of a given token based on its mint address.
+ *
+ * @param msg - The Telegram message containing the command and token mint address.
+ *
+ * The function performs the following:
+ * 1. Parses the command to extract the mint address.
+ * 2. Sends usage or help message if the command is incomplete or requests help.
+ * 3. Fetches the OHLCV data and top token holder information for the mint address.
+ * 4. Generates and sends a price chart image to the user.
+ * 5. Computes and formats a summary of the token's price data and sends it to the user.
+ * 6. Handles and logs errors that occur during the process.
+ */
+
     async handlePriceCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
         const parts = deleteDoubleSpace(msg.text?.split(" ") ?? []);
@@ -243,6 +258,11 @@ export class PriceHandler extends BaseHandler {
         }
     }
 
+    /**
+     * Handles the /remove_price_alert command to remove a price alert.
+     *
+     * @param msg - The Telegram message containing the command and mint address.
+     */
     async handleRemovePriceAlertCommand(msg: TelegramBot.Message) {
         const text = msg.text || "";
         const parts = deleteDoubleSpace(text.split(" "));
@@ -282,11 +302,16 @@ export class PriceHandler extends BaseHandler {
         try {
             // Get all user IDs
             const userIds = await this.redisService.getAllUserIds();
+            console.log("all usersID", userIds);
+
 
             for (const userIdStr of userIds) {
                 const userId = parseInt(userIdStr);
+                console.log("userid", userId);
+
                 // Get alerts for this user
                 const alerts = await this.redisService.getPriceAlerts(userId);
+                console.log("alerrts for all users", alerts);
 
                 for (const alert of alerts) {
                     try {
@@ -318,10 +343,10 @@ export class PriceHandler extends BaseHandler {
                         if (alert.isHigh && currentPrice >= alert.threshold) {
                             await this.bot.sendMessage(
                                 userId,
-                                `*🔔 New Price Alert! for ${tokenSymbol}* \n\n` +
+                                `*🔔 New Price Alert for ${tokenSymbol}!!* \n\n` +
                                 `📈 $${(currentPrice - alert.threshold).toFixed(2)} → $${currentPrice.toFixed(2)}\n\n` +
-                                `You set a price alert for \`${alert.tokenMint}\` for every $${alert.threshold} increase.\n\n` +
-                                `Current price has reached $${currentPrice.toFixed(2)} (${tokenSymbol})`,
+                                `You set a price alert for \`${alert.tokenMint}\`  (${tokenSymbol}) for every $${alert.threshold} increase.\n\n` +
+                                `Current price has reached $${currentPrice.toFixed(2)}`,
                                 {
                                     reply_markup: keyboard,
                                     parse_mode: "Markdown"
