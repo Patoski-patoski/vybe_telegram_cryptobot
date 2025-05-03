@@ -32,20 +32,20 @@ export class PriceHandler extends BaseHandler {
         }
     }
 
-/**
- * Handles the /price command to fetch and display the price chart and summary
- * of a given token based on its mint address.
- *
- * @param msg - The Telegram message containing the command and token mint address.
- *
- * The function performs the following:
- * 1. Parses the command to extract the mint address.
- * 2. Sends usage or help message if the command is incomplete or requests help.
- * 3. Fetches the OHLCV data and top token holder information for the mint address.
- * 4. Generates and sends a price chart image to the user.
- * 5. Computes and formats a summary of the token's price data and sends it to the user.
- * 6. Handles and logs errors that occur during the process.
- */
+    /**
+     * Handles the /price command to fetch and display the price chart and summary
+     * of a given token based on its mint address.
+     *
+     * @param msg - The Telegram message containing the command and token mint address.
+     *
+     * The function performs the following:
+     * 1. Parses the command to extract the mint address.
+     * 2. Sends usage or help message if the command is incomplete or requests help.
+     * 3. Fetches the OHLCV data and top token holder information for the mint address.
+     * 4. Generates and sends a price chart image to the user.
+     * 5. Computes and formats a summary of the token's price data and sends it to the user.
+     * 6. Handles and logs errors that occur during the process.
+     */
 
     async handlePriceCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
@@ -137,25 +137,25 @@ export class PriceHandler extends BaseHandler {
         }
     }
 
-/**
- * Handles the /price_alert command to set up a price alert for a specified token.
- * 
- * @param msg - Telegram message object containing the command and arguments.
- * 
- * Process:
- * - Validates the command input for correct number of arguments.
- * - Extracts token mint address, threshold, and alert type (high/low) from the message.
- * - Stores the price alert configuration in Redis for the user.
- * 
- * Outputs:
- * - Sends confirmation message to the user on successful setup.
- * - Deletes the confirmation message after a short delay.
- * - Sends error messages if input validation fails or an error occurs during setup.
- * 
- * Edge Cases:
- * - Handles cases where the user ID is not available in the message.
- * - Catches and logs any errors occurring during the alert setup process.
- */
+    /**
+     * Handles the /price_alert command to set up a price alert for a specified token.
+     * 
+     * @param msg - Telegram message object containing the command and arguments.
+     * 
+     * Process:
+     * - Validates the command input for correct number of arguments.
+     * - Extracts token mint address, threshold, and alert type (high/low) from the message.
+     * - Stores the price alert configuration in Redis for the user.
+     * 
+     * Outputs:
+     * - Sends confirmation message to the user on successful setup.
+     * - Deletes the confirmation message after a short delay.
+     * - Sends error messages if input validation fails or an error occurs during setup.
+     * 
+     * Edge Cases:
+     * - Handles cases where the user ID is not available in the message.
+     * - Catches and logs any errors occurring during the alert setup process.
+     */
 
     async handlePriceAlertCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
@@ -187,9 +187,18 @@ export class PriceHandler extends BaseHandler {
                 userId
             };
 
+            const ohlcvData = await this.api.getTokenOHLCV(mintAddress);
+            if (!ohlcvData || ohlcvData.data.length == 0) {
+                await this.bot.sendMessage(chatId,
+                    `No data found for \`${mintAddress}\` \n\nUnable to set Price Alerts`,
+                    { parse_mode: "Markdown"}
+                );
+                return;
+            }
+
             // Store alert in Redis
             await this.redisService.setPriceAlert(userId, alert);
-            const setPriceAlert = await this.bot.sendMessage(chatId,
+            await this.bot.sendMessage(chatId,
                 `✅ Price alert set\n For\n \`${mintAddress}\` \nAt $${threshold} (${type})\n\n` +
                 `You will be notified when the price reaches this threshold.`,
                 {
@@ -204,24 +213,24 @@ export class PriceHandler extends BaseHandler {
         }
     }
 
-/**
- * Lists all active price alerts for the user.
- *
- * @param msg - The Telegram message object containing the command.
- *
- * Process:
- * - Validates the presence of the user ID.
- * - Fetches all price alerts associated with the user from Redis.
- * - Formats and sends a list of active price alerts to the user.
- *
- * Outputs:
- * - Sends a message with the list of active alerts if available.
- * - Sends an error message if no alerts are found or if an error occurs.
- *
- * Edge Cases:
- * - Handles scenarios where the user ID is unavailable.
- * - Catches and logs errors during the retrieval of alerts.
- */
+    /**
+     * Lists all active price alerts for the user.
+     *
+     * @param msg - The Telegram message object containing the command.
+     *
+     * Process:
+     * - Validates the presence of the user ID.
+     * - Fetches all price alerts associated with the user from Redis.
+     * - Formats and sends a list of active price alerts to the user.
+     *
+     * Outputs:
+     * - Sends a message with the list of active alerts if available.
+     * - Sends an error message if no alerts are found or if an error occurs.
+     *
+     * Edge Cases:
+     * - Handles scenarios where the user ID is unavailable.
+     * - Catches and logs errors during the retrieval of alerts.
+     */
 
     async handleListPriceAlertsCommand(msg: TelegramBot.Message) {
         const chatId = msg.chat.id;
@@ -284,7 +293,7 @@ export class PriceHandler extends BaseHandler {
 
         try {
             await this.redisService.removePriceAlert(userId, mintAddress);
-            sendAndDeleteMessage(this.bot, msg, `✅ Price alert for \`{mintAddress}\` removed.`, 10);
+            sendAndDeleteMessage(this.bot, msg, `✅ Price alert for \`${mintAddress}\` removed.`, 10);
 
         } catch (error) {
             console.error('Error removing price alert:', error);
@@ -293,10 +302,10 @@ export class PriceHandler extends BaseHandler {
         }
     }
 
-        /**
-         * Checks all price alerts for all users and sends Telegram messages if any
-         * alert has been triggered.
-         */
+    /**
+     * Checks all price alerts for all users and sends Telegram messages if any
+     * alert has been triggered.
+     */
     // In checkPriceAlerts method, modify the keyboard to include the token mint:
     async checkPriceAlerts() {
         try {
