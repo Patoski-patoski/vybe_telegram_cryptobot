@@ -516,7 +516,6 @@ GET /price/{mintAddress}/token-ohlcv
 |-----------|------|-------------|
 | `mintAddress` | `string` |  The public key of the token of interest |
 
-
 **Query Params:**
 
 | Parameter | Type | Description |
