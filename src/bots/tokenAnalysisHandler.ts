@@ -7,6 +7,7 @@ import logger from "../config/logger";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { ChartConfiguration, Scale, Tick } from 'chart.js';
+import { VybeApiService } from "../services/vybeAPI";
 
 // Store top Solana addresses to search through
 const ADDRESSES = {
@@ -28,7 +29,7 @@ const MINT_ADDRESSES = Object.values(ADDRESSES);
 export class TokenAnalysisHandler extends BaseHandler {
     private chart: ChartJSNodeCanvas | null;
 
-    constructor(bot: TelegramBot, api: any) {
+    constructor(bot: TelegramBot, api: VybeApiService) {
         super(bot, api);
         this.chart = new ChartJSNodeCanvas({ width: 800, height: 400 });
     }

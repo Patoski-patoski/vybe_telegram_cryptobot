@@ -294,8 +294,8 @@ export class VybeApiService {
             logger.error(msg);
             throw new Error(msg);
         }
-
-        try {
+// Numero1
+        try { 
             const response = await this.api.get(`/account/token-balance/${ownerAddress}`);
             return response.data as TokenBalanceResponse;
         } catch (error: any) {
@@ -476,42 +476,6 @@ export class VybeApiService {
                 throw new Error(`API error (${error.response.status}): ${error.response.data.message || 'Unknown error'}`);
             }
             throw new Error(`Failed to fetch NFT balance: ${error.message}`);
-        }
-    }
-
-
-    /**
- * Fetch OHLCV data for a token
- */
-    private async fetchTokenOHLCVData(mintAddress: string): Promise<OHLCVData[]> {
-        try {
-            // Get current date and 7 days ago date
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(startDate.getDate() - 7);
-
-            // Convert to Unix timestamps
-            const fromTime = Math.floor(startDate.getTime() / 1000);
-            const toTime = Math.floor(endDate.getTime() / 1000);
-
-            // Fetch the OHLCV data
-            const response = await this.api.get(`/token/ohlcv/${mintAddress}`, {
-                params: {
-                    from_time: fromTime,
-                    to_time: toTime,
-                    resolution: '1d' // Daily resolution
-                }
-            });
-
-            // Check if data exists and return
-            if (response?.data?.data && Array.isArray(response.data.data)) {
-                return response.data.data;
-            }
-
-            return [];
-        } catch (error) {
-            logger.error(`Failed to fetch OHLCV data for ${mintAddress}`, error);
-            return [];
         }
     }
 

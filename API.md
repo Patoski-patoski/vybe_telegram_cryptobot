@@ -26,10 +26,11 @@ https://api.vybenetwork.xyz
 
 ### Token Balance
 
-Retrieve token balances for a specific wallet address.
+1. Retrieve token balances for a specific wallet address.
+2. Get recent token transfers for analysis.
 
 ```bash
-GET /token/balance/{ownerAddress}
+GET /account/token-balance/{ownerAddress}
 ```
 
 **Parameters:**
@@ -41,21 +42,127 @@ GET /token/balance/{ownerAddress}
 **Response:**
 
 ```typescript
-interface TokenBalanceResponse {
-  totalTokenValueUsd: string;
-  data: Array<{
-    mintAddress: string;
-    symbol: string;
-    amount: string;
-    valueUsd: string;
-  }>;
+export interface TokenBalanceResponse {
+    date: number;
+    ownerAddress: string;
+    stakedSolBalanceUsd: string;
+    stakedSolBalance: string;
+    activeStakedSolBalanceUsd: string;
+    activeStakedSolBalance: string;
+    totalTokenValueUsd: string;
+    totalTokenValueUsd1dChange: string;
+    totalTokenCount: number;
+    data: TokenBalance[];
 }
 ```
 
 **Example Request:**
 
 ```bash
-curl -X GET "https://api.vybenetwork.xyz/token/balance/7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q" \
+curl -X GET "https://api.vybenetwork.xyz/account/token-balance/7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q" \
+  -H "X-API-KEY: your_api_key"
+```
+
+### Top Holder
+
+Fetches top token holders from Vybe API.
+
+```bash
+GET /token/${mintAddress}/top-holders
+```
+
+**Parameter:**
+
+**Path Params:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mintAddress` | `string` | The address of the token holder (optional) |
+
+**Query Params:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | `int32 or null >= 0` |Page selection, 0-indexed. |
+| `limit` | `int32 or null >= 0` | Limit of the number of transfers to return per page. |
+| `sortByDesc` | `string or null` | The name of the token holder (optional) |
+| `sortByAsc` | `string or null` | URL of the holder's logo (optional) |
+
+**Response:**
+
+```typescript
+
+export interface TopHolder {
+    rank: number;                // The rank of the holder
+    ownerAddress: string;        // The address of the token holder
+    ownerName: string;           // The name of the token holder
+    ownerLogoUrl: string;        // URL of the holder's logo
+    tokenMint: string;           // The mint address of the token
+    tokenSymbol: string;         // The symbol of the token
+    tokenLogoUrl: string;        // URL of the token's logo
+    balance: string;             // The Percentae of total supply/balance held by the holder
+    valueUsd: string;            // The value of the balance in USD
+    percentageOfSupplyHeld: number; // Percentage of total supply held by the holder
+}
+
+export interface GetTopHoldersResponse {
+    data: TopHolder[];    // An array of top holders
+}
+
+```
+
+### Recent Transfers
+
+Fetches recent wallets transfers from Vybe API.
+
+```bash
+GET /token/transfers{params}
+```
+
+**Parameters:**
+
+**Query Params:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `senderAddress` | `string or null` | Sender’s public key (optional) |
+| `receiverAddress` | `string or null` |Receiver’s public key (optional)|
+| `timeStart` | `int32 or null` | Start timestamp (optional) |
+| `limit` | `int32 or null` | Limit of the number of transfers to return per page (optional) default 10|
+
+**Response:**
+
+```typescript
+export interface RecentTransfer {
+    signature: string;
+    callingMetadata: CallingMetadata[];
+    senderTokenAccount: string | null;
+    senderAddress: string;
+    receiverTokenAccount: string | null;
+    receiverAddress: string;
+    mintAddress: string;
+    feePayer: string;
+    decimal: number;
+    amount: number;
+    slot: number;
+    blockTime: number;
+    price: string;
+    calculatedAmount: string;
+    valueUsd: string;
+    tokenSymbol?: string;
+    walletAddress?: string;
+
+}
+
+export interface GetRecentTransferResponse {
+    transfers: RecentTransfer[];    // An array of recent transfers
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.vybenetwork.xyz/token/transfers?mintAddress=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&limit=10" \
   -H "X-API-KEY: your_api_key"
 ```
 
@@ -64,7 +171,7 @@ curl -X GET "https://api.vybenetwork.xyz/token/balance/7v91N7iZ9mNicL8WfG6cgSCKy
 Track large token transfers across the Solana blockchain.
 
 ```bash
-GET /token/whale-transfers
+GET /token/transfers/{params}
 ```
 
 **Parameters:**
@@ -72,6 +179,7 @@ GET /token/whale-transfers
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `mintAddress` | `string` | Token mint address |
+| `maxAmount` | `number` | Maximum transfer amount |
 | `minAmount` | `number` | Minimum transfer amount |
 | `timeStart` | `number` | Start timestamp (optional) |
 | `timeEnd` | `number` | End timestamp (optional) |
@@ -81,80 +189,162 @@ GET /token/whale-transfers
 **Response:**
 
 ```typescript
-interface WhaleTransferResponse {
-  transfers: Array<{
+
+export interface RecentTransfer {
     signature: string;
-    blockTime: number;
+    callingMetadata: CallingMetadata[];
+    senderTokenAccount: string | null;
     senderAddress: string;
+    receiverTokenAccount: string | null;
     receiverAddress: string;
     mintAddress: string;
-    amount: string;
+    feePayer: string;
+    decimal: number;
+    amount: number;
+    slot: number;
+    blockTime: number;
+    price: string;
+    calculatedAmount: string;
     valueUsd: string;
-  }>;
+    tokenSymbol?: string;
+    walletAddress?: string;
+
+}
+
+export interface GetRecentTransferResponse {
+    transfers: RecentTransfer[];    // An array of recent transfers
 }
 ```
 
 **Example Request:**
 
 ```bash
-curl -X GET "https://api.vybenetwork.xyz/token/whale-transfers?mintAddress=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&minAmount=1000" \
+curl -X GET "https://api.vybenetwork.xyz/token/transfers?mintAddress=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&minAmount=1000" \
   -H "X-API-KEY: your_api_key"
 ```
 
-### Recent Transfers
+### Top Token Holder time series
 
-Get recent token transfers for analysis.
+Fetches token holder time series data from Vybe API.
 
 ```bash
-GET /token/recent-transfers
+GET /token/{mintAddress}/holder-ts
 ```
 
 **Parameters:**
 
+**Path params:**
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `mintAddress` | `string` | Token mint address (optional) |
-| `senderAddress` | `string` | Sender wallet address (optional) |
-| `receiverAddress` | `string` | Receiver wallet address (optional) |
-| `tx_signature` | `string` | Transaction signature (optional) |
-| `limit` | `number` | Result limit (optional) |
+| `mintAddress` | `string` | The public key of the token of interest|
+
+**Query params:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `startTime` | `int32 or null >= 0` |Start time of period of interest |
+| `endTime` | `int32 or null >= 0` |StaEndrt time of period of interest |
+| `limit` | `number` | Result limit. Default to 5 (optional) |
 
 **Response:**
 
 ```typescript
-interface RecentTransferResponse {
-  transfers: Array<{
-    signature: string;
-    blockTime: number;
-    senderAddress: string;
-    receiverAddress: string;
-    mintAddress: string;
-    amount: string;
-    valueUsd: string;
-  }>;
+export interface TokenHolderTimeSeries {
+    holdersTimestamp: number;
+    nHolders: number;
+    totalSupply: string;
+    topHolders: {
+        address: string;
+        balance: string;
+        percentage: number;
+    }[];
 }
+
+export interface GetTokenHolderTimeSeriesResponse {
+    data: TokenHolderTimeSeries[];
+}
+
 ```
 
 **Example Request:**
 
 ```bash
-curl -X GET "https://api.vybenetwork.xyz/token/recent-transfers?mintAddress=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&limit=10" \
+curl -X GET "https://api.vybenetwork.xyz/token/{mintAddress}/holder-ts" \
+  -H "X-API-KEY: your_api_key"
+```
+
+### Volume tine series data
+
+Fetches token volume time series data from Vybe API.
+
+```bash
+GET /token/{mintAddress}/transfer-volume
+```
+
+**Parameters:**
+
+**Path params:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mintAddress` | `string` | The public key of the token of interest|
+
+**Path params:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `startTime` | `int32 or null >= 0` |Start time of period of interest |
+| `endTime` | `int32 or null >= 0` |StaEndrt time of period of interest |
+| `limit` | `number` | Result limit. Default to 5 (optional) |
+
+**Response:**
+
+```typescript
+export interface GetTokenVolumeTimeSeriesResponse {
+    data: {
+        timeBucketStart: number;
+        timeBucketEnd: number;
+        volume: string;
+        amount: string;
+    }[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+    };
+}
+
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.vybenetwork.xyz/token/{mintAddress}/holder-ts" \
   -H "X-API-KEY: your_api_key"
 ```
 
 ### Wallet PnL
 
+Fetches wallet PnL data from Vybe API.
 Get comprehensive profit and loss analysis for a wallet.
 
 ```bash
-GET /account/pnl/{ownerAddress}
+GET /account/pnl/{ownerAddress}?{params}
 ```
 
 **Parameters:**
 
+**Query Params:**
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ownerAddress` | `string` | Wallet address |
+| `ownerAddress` | `string` | The public key (pubKey) associated with the Solana account |
+
+**Path Params:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
 | `resolution` | `string` | Time resolution (1d, 7d, 30d) (optional) |
 | `tokenAddress` | `string` | Token address filter (optional) |
 | `sortByAsc` | `string` | Sort ascending by field (optional) |
@@ -165,8 +355,7 @@ GET /account/pnl/{ownerAddress}
 **Response:**
 
 ```typescript
-interface WalletPnLResponse {
-  summary: {
+export interface WalletPnLSummary {
     winRate: number;
     realizedPnlUsd: number;
     unrealizedPnlUsd: number;
@@ -178,30 +367,136 @@ interface WalletPnLResponse {
     tradesVolumeUsd: number;
     bestPerformingToken: TokenPerformance | null;
     worstPerformingToken: TokenPerformance | null;
-    pnlTrendSevenDays: Array<{
-      date: string;
-      pnl: number;
-    }>;
-  };
-  tokenMetrics: Array<{
-    tokenAddress: string;
-    tokenSymbol: string;
-    buysTransactionCount: number;
-    buysTokenAmount: number;
-    buysVolumeUsd: number;
-    sellsTransactionCount: number;
-    sellsTokenAmount: number;
-    sellsVolumeUsd: number;
-    realizedPnlUsd: number;
-    unrealizedPnlUsd: number;
-  }>;
+    pnlTrendSevenDays: PnLTrend[];
+    roi: number;
+}
+
+export interface WalletPnLResponse {
+    summary: WalletPnLSummary;
+    tokenMetrics: TokenMetrics[];
 }
 ```
 
 **Example Request:**
 
 ```bash
-curl -X GET "https://api.vybenetwork.xyz/account/pnl/7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q?resolution=7d" \
+curl -X GET "https://api.vybenetwork.xyz/account/pnl/{walletaddress}?{params}" \
+  -H "X-API-KEY: your_api_key"
+```
+
+### Get Program info
+
+Fetches program info by ID or name from Vybe API.
+
+```bash
+GET /program/known-program-accounts/{params}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `identifier` | `string` | Unique public key or Known program name for a Solana program |
+
+**Response:**
+
+```typescript
+export interface Program {
+    programId: string;
+    name: string;
+    logoUrl: string | null;
+    labels: string[];
+    idlUrl: string | null;
+    siteUrl: string | null;
+    defiLlamaId: string | null;
+    entityName: string;
+    entityId: string | null;
+    twitterUrl: string | null;
+    dateAdded: string;
+    programDescription: string;
+    programDetail: string | null;
+    message: string;
+}
+
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.vybenetwork.xyz//program/known-program-accounts?{params}" \
+  -H "X-API-KEY: your_api_key"
+```
+
+### Explore Program
+
+Explores a program by label from Vybe API.
+
+```bash
+GET /program/known-program-accounts?{params}`
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `label` | `string` | Token mint address |
+
+**Response:**
+
+```typescript
+export interface Program {
+    programId: string;
+    name: string;
+    logoUrl: string | null;
+    labels: string[];
+    idlUrl: string | null;
+    siteUrl: string | null;
+    defiLlamaId: string | null;
+    entityName: string;
+    entityId: string | null;
+    twitterUrl: string | null;
+    dateAdded: string;
+    programDescription: string;
+    programDetail: string | null;
+    message: string;
+}
+```
+
+```bash
+curl -X GET "https://api.vybenetwork.xyz/price/DEX" \
+  -H "X-API-KEY: your_api_key"
+```
+
+### Get Program active user
+
+Fetches active users for a specified program.
+
+```bash
+GET /program/${programId}/active-users?{params}`
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `programId` | `string` |  The program ID to fetch active users for. |
+| `limit` | `int32 or null >= 0` | limit of number of records to return. (Optional) Default is 10. |
+
+**Response:**
+
+```typescript
+export interface ProgramActiveUser {
+    programId: string;
+    wallet: string;
+    transactions: number;
+    instructions: number;
+}
+```
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.vybenetwork.xyz/program/${programId}/active-users/" \
   -H "X-API-KEY: your_api_key"
 ```
 
@@ -215,9 +510,21 @@ GET /price/{mintAddress}/token-ohlcv
 
 **Parameters:**
 
+**Path Params:**
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `mintAddress` | `string` | Token mint address |
+| `mintAddress` | `string` |  The public key of the token of interest |
+
+
+**Query Params:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `resolution` | `string or null` |  Resolution of the data. |
+| `timeStart` | `int32 or string or null >= 0` | Start time of the data to return . |
+| `timeEnd` | `int32 or string or null >= 0` | End time of the data to return . |
+| `limit` | `int32 or null >= 0` | Start time of the data to return  |
 
 **Response:**
 
@@ -260,65 +567,33 @@ GET /account/nft-balance/{ownerAddress}
 **Response:**
 
 ```typescript
-interface NFTPortfolioResponse {
-  totalUsd: string;
-  totalSol: string;
-  totalNftCollectionCount: number;
-  data: Array<{
+export interface NftCollection {
     name: string;
     collectionAddress: string;
     totalItems: number;
-    valueUsd: string;
     valueSol: string;
-    priceUsd: string;
     priceSol: string;
-    logoUrl?: string;
-  }>;
+    valueUsd: string;
+    priceUsd: string;
+    logoUrl: string;
+    slot: number;
 }
+
+export interface NftBalanceResponse {
+    date: number;
+    ownerAddress: string;
+    totalSol: string;
+    totalUsd: string;
+    totalNftCollectionCount: number;
+    data: NftCollection[];
+}
+
 ```
 
 **Example Request:**
 
 ```bash
 curl -X GET "https://api.vybenetwork.xyz/account/nft-balance/7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q" \
-  -H "X-API-KEY: your_api_key"
-```
-
-### Token Analysis
-
-Get detailed token information including price, metadata, and category.
-
-```bash
-GET /token/analysis/{symbol}
-```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `symbol` | `string` | Token symbol (e.g., "SOL", "JUP") |
-
-**Response:**
-
-```typescript
-interface TokenAnalysisResponse {
-  symbol: string;
-  name: string;
-  mintAddress: string;
-  amount: string;
-  priceUsd: string;
-  valueUsd: string;
-  priceUsd1dChange: string;
-  priceUsd7dTrend: string[];
-  category: string;
-  logoUrl: string;
-}
-```
-
-**Example Request:**
-
-```bash
-curl -X GET "https://api.vybenetwork.xyz/token/analysis/JUP" \
   -H "X-API-KEY: your_api_key"
 ```
 
@@ -330,7 +605,7 @@ Below is an example of how to implement the Vybe API service in TypeScript:
 
 ```typescript
 import axios from 'axios';
-import { TokenBalanceResponse, WhaleTransferResponse, NFTPortfolioResponse } from '../interfaces/vybeApiInterface';
+import { GetRecentTransferResponse, WhaleWatchParams, NFTPortfolioResponse } from '../interfaces/vybeApiInterface';
 
 export class VybeApiService {
   private readonly baseUrl: string;
@@ -354,23 +629,15 @@ export class VybeApiService {
     }
   }
 
-  async getTokenBalance(walletAddress: string): Promise<TokenBalanceResponse> {
-    return this.makeRequest<TokenBalanceResponse>(`/token/balance/${walletAddress}`);
+  async getWhaleTransfers(walletAddress: string): Promise<GetRecentTransferResponse> {
+    return this.makeRequest<TokenBalanceResponse>(`/token/transfer/${WhaleWatchParams}`);
   }
 
-  async getWhaleTransfers(params: { 
-    mintAddress: string, 
-    minAmount: number,
-    limit?: number
-  }): Promise<WhaleTransferResponse> {
-    return this.makeRequest<WhaleTransferResponse>('/token/whale-transfers', params);
-  }
 
   async getNftPortfolio(walletAddress: string): Promise<NFTPortfolioResponse> {
     return this.makeRequest<NFTPortfolioResponse>(`/account/nft-balance/${walletAddress}`);
   }
 
-  // Additional methods for other endpoints...
 }
 ```
 
