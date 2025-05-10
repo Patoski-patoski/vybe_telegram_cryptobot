@@ -20,9 +20,8 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 1. **Fork and clone the repository**
 
-```bash
-git clone https://github.com/patoski-patoski/vybe-telegram-cryptobot.git
-cd vybe-telegram-bot
+```bash git clone https://github.com/patoski-patoski/vybe-telegram-cryptobot.git
+  cd vybe-telegram-bot
 ```
 
 2. **Install dependencies**
@@ -53,7 +52,7 @@ npm run dev
 
 ## 📂 Project Structure
 
-```
+```bash
 src/
 ├── bots/                 # Bot handlers
 │   ├── baseHandler.ts    # Base handler class
@@ -72,7 +71,7 @@ src/
 │   ├── messageTemplates.ts
 │   ├── solana.ts
 │   └── time.ts
-├── data/               # Data storage
+├── data/               # Backup Data storage
 │   ├── whale-alerts.json
 │   └── wallet-alerts.json
 └── index.ts            # Entry point
@@ -93,6 +92,7 @@ git checkout -b feature/your-feature-name
 ```
 
 Use descriptive branch names like:
+
 - `feature/nft-analytics`
 - `bugfix/price-alert-issue`
 - `docs/improve-readme`
@@ -149,6 +149,7 @@ npm run test:coverage
 ```
 
 Ensure your tests cover:
+
 - Success cases
 - Error handling
 - Edge cases
@@ -169,13 +170,14 @@ refactor: optimize API request handling
 ### 7. Submit a Pull Request
 
 1. Push your branch to your fork
+
 ```bash
 git push origin feature/your-feature-name
 ```
 
-2. Create a pull request from your fork to the main repository
-3. Fill in the PR template with details about your changes
-4. Link the PR to any relevant issues
+1. Create a pull request from your fork to the main repository
+2. Fill in the PR template with details about your changes
+3. Link the PR to any relevant issues
 
 ## 🧩 Adding New Features
 
@@ -198,7 +200,7 @@ export class NewFeatureHandler extends BaseHandler {
 
 ### 2. Add Command Registration
 
-Update `src/index.ts` to register new commands:
+Update `src/bot/botHandler` to register new commands:
 
 ```typescript
 const newFeatureHandler = new NewFeatureHandler(bot, api);
