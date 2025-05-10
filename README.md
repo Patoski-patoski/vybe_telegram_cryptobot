@@ -51,57 +51,75 @@ Powered by Vybe Network APIs, this bot provides institutional-grade analytics in
 ## 📘 Command Reference
 
 ### Getting Started
-```
+
+```bash
 /start - Initialize the bot and see available commands
 /help - Display help information and command details
 ```
 
-### Whale Watch Commands
+### Token Commands
+
+```bash
+/token_holder <token_mint_address> - View a token top holders
+/holder_distribution <token_mint_address> - View a token holder distribution 
+/series <token_mint_address> - View a token time series
+/analyze_token <token_mint_address> - Comprehensive Token analysis
 ```
-/whale_alert <token_mint_address> <min_amount> - Set up alerts for large transfers
-/listwhalealerts - View your active whale alerts
-/removewhalealert <token_mint_address> - Remove a whale alert
-/checkwhales <token_mint_address> <min_amount> [limit] - Check recent whale transfers
+
+### Whale Watch Commands
+
+```bash
+/set_whale_alert <token_mint_address> <min_amount> - Set up alerts for large transfers
+/list_whale_alerts - View your active whale alerts
+/remove_whale_alert <token_mint_address> - Remove a whale alert
+/check_whales <token_mint_address> <min_amount> [limit] - Check recent whale transfers
 ```
 
 ### Wallet Tracking Commands
-```
+
+```bash
 /track_wallet <wallet_address> <min_value_usd> - Start tracking a wallet
-/listtrackedwallets - List all tracked wallets
-/removetrackedwallet <wallet_address> - Stop tracking a wallet
-/walletstatus <wallet_address> - Get current wallet status
+/list_tracked_wallets - List all tracked wallets
+/remove_tracked_wallet <wallet_address> - Stop tracking a wallet
+/analyze_wallet <wallet_address> - Analyze a wallet address and its holdings
 ```
 
 ### Price Commands
-```
-/price <token_mint_address> - Get current price information
-/pricealert <token_mint_address> <threshold> <high/low> - Set price alerts
-/pricechange <token_mint_address> - Get hourly price changes
+
+```bash
+/check_price <token_mint_address> - Get current price information
+/set_price_alert <token_mint_address> <threshold> <high/low> - Set price alerts
+/remove_price_alert <token_mint_address> - Remove price alerts for a token
+/list_price_alert <token_mint_address> - A List of all set price
 ```
 
 ### NFT Commands
-```
-/nftportfolio [wallet_address] - View NFT portfolio
-/registernftwallet <wallet_address> - Register wallet for NFT tracking
-/listnftwallets - List registered NFT wallets
-/removenftwallet <wallet_address> - Remove wallet from tracking
-/nftcollection <wallet_address>, <collection_name> - View collection details
+
+```bash
+/nft_portfolio [wallet_address] - View NFT portfolio
+/register_nft_wallet <wallet_address> - Register wallet for NFT tracking
+/list_nft_wallets - List registered NFT wallets
+/remove_nft_wallet <wallet_address> - Remove wallet from nft tracking
+/nft_collection <wallet_address>, <collection_name> - View collection details
 ```
 
-### Token Analysis
-```
-/analyze <symbol> - Get detailed token information
-Example: /analyze JUP
+### Program commands
 
-Features:
-- View token details and current price
-- See token logo and category
-- Access 7-day price chart with one click
+```bash
+/top_users <program_id_or_name> - View top active users for a program
+/program_info <program_id_or_name> - View a program info,
+/explore  <label> - Explore a program
+/users_insights <program_id_or_name> - Get insights about program users,
+/activity_change <program_id_or_name> - Track changes in program activity ,
+/check_program_whale_users <program_id_or_name> - Check whale users for a program,
+
 ```
+
 
 ## 🛠️ Technical Architecture
 
 ### Core Components
+
 - `BaseHandler` - Base class for all bot handlers
 - `WhaleWatcherHandler` - Handles whale transaction monitoring
 - `WalletTrackerHandler` - Manages wallet tracking functionality
@@ -109,12 +127,14 @@ Features:
 - `VybeApiService` - Interfaces with Vybe Network API
 
 ### Data Storage
+
 - Redis server for primary storage and caching
 - JSON-based backup storage for alerts and settings
 - Persistent tracking across bot restarts
 - Efficient Map-based data structures for in-memory processing
 
 ### API Integration
+
 - Real-time data from Vybe Network
 - Token balance tracking
 - Transaction monitoring
@@ -123,6 +143,7 @@ Features:
 ## 🏗️ Installation and Setup
 
 ### Prerequisites
+
 - Node.js (v14 or higher)
 - npm or yarn
 - Redis server (optional but recommended)
@@ -165,10 +186,10 @@ For development:
 npm run dev
 ```
 
-### Docker Deployment
+<!-- ### Docker Deployment
 
 ```bash
-docker-compose up -d
+docker-compose up -d -->
 ```
 
 ## 📊 Project Structure
