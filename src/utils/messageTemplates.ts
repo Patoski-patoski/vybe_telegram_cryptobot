@@ -541,7 +541,7 @@ Shows detailed information about a wallet's current state.
 /track\\_wallet, /list\\_tracked\\_wallets, /remove\\_tracked\\_wallet`,
 
         // Recent Transfers Command
-        RECENT_TRANSFERS_USAGE: "Usage: /transfers wa_wallet_address [limit]\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 10",
+        RECENT_TRANSFERS_USAGE: "Usage: /transfers wallet_address [limit]\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q\n\nExample: /transfers 7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q 10",
         RECENT_TRANSFERS_HELP: `🔄 *Recent Transfers Command (/transfers)*
 
 *DESCRIPTION*

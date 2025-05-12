@@ -115,7 +115,6 @@ Powered by Vybe Network APIs, this bot provides institutional-grade analytics in
 
 ```
 
-
 ## 🛠️ Technical Architecture
 
 ### Core Components
@@ -184,12 +183,6 @@ For development:
 
 ```bash
 npm run dev
-```
-
-<!-- ### Docker Deployment
-
-```bash
-docker-compose up -d -->
 ```
 
 ## 📊 Project Structure

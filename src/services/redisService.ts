@@ -42,6 +42,7 @@ export class RedisService {
                 },
             },
         });
+        
 
         this.client.on('error', (err: any) => {
             logger.error('Redis Client Error:', err);
@@ -67,7 +68,7 @@ export class RedisService {
     private async connect() {
         try {
             await this.client.connect();
-            logger.info(`Connected to Redis at ${config.redis.url}:${config.redis.port}`);
+            logger.info(`Connected to Redis at ${config.redis.port}`);
         } catch (error) {
             logger.error('Failed to connect to Redis:', error);
             throw error;

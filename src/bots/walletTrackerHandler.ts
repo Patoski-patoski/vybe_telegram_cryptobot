@@ -190,11 +190,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             throw error; // Rethrow to be caught by the caller
         }
     }
-        /**
-         * Checks for new transfers in the given wallet and sends a Telegram notification to the user if a new transfer is detected.
-         * @param walletAddress The address of the wallet to check for new transfers.
-         * @param settings The tracking settings for the given wallet.
-         */
+    /**
+     * Checks for new transfers in the given wallet and sends a Telegram notification to the user if a new transfer is detected.
+     * @param walletAddress The address of the wallet to check for new transfers.
+     * @param settings The tracking settings for the given wallet.
+     */
     private async checkForNewTransfers(walletAddress: string, settings: WalletAlertSettings): Promise<void> {
         try {
             // Fetch both sent and received transfers in parallel
@@ -248,11 +248,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
     }
 
 
-        /**
-         * Sends a formatted message to a Telegram chat about a recent transfer
-         * @param chatId The Telegram chat ID to send the message to
-         * @param tx The RecentTransfer object to format into a message
-         */
+    /**
+     * Sends a formatted message to a Telegram chat about a recent transfer
+     * @param chatId The Telegram chat ID to send the message to
+     * @param tx The RecentTransfer object to format into a message
+     */
     private async sendTransferMessage(chatId: number, tx: RecentTransfer) {
         try {
             // Fetch token symbol for this specific transfer
@@ -531,11 +531,11 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
     }
 
-/**
- * Stores wallet data in the local cache and optionally in Redis with a 5-minute expiration.
- * @param walletAddress The address of the wallet whose data is being stored.
- * @param data The data related to the wallet to be cached.
- */
+    /**
+     * Stores wallet data in the local cache and optionally in Redis with a 5-minute expiration.
+     * @param walletAddress The address of the wallet whose data is being stored.
+     * @param data The data related to the wallet to be cached.
+     */
 
     private storeWalletData(walletAddress: string, data: any) {
         // Store data for 5 minutes
@@ -856,7 +856,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             inline_keyboard:
                 [[{ text: "💨 View Commands", callback_data: `help` }]]
         };
-    
+
 
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId, "Usage: /remove_tracked_wallet <wallet_address>");
@@ -876,7 +876,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                 `✅ Removed tracking for wallet \`${walletAddress}\`` +
                 `You no longer track and will not receive notification from this address` +
                 `\n\n Use /track\\_wallet [wallet\\_address] to start tracking again.`,
-                { 
+                {
                     parse_mode: "Markdown",
                     reply_markup: keyboard
                 }
@@ -902,7 +902,7 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
             inline_keyboard:
                 [[{ text: "💨 View Commands", callback_data: `help` }]]
         };
-    
+
         if (parts.length < 2) {
             return this.bot.sendMessage(chatId, "Usage: /analyze_Wallet <wallet_address>");
         }
@@ -1035,21 +1035,21 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
         logger.info('Daily wallet snapshot completed');
 
-/**
- * Saves the current state of wallet alerts and historical values.
- * 
- * If a Redis service is available, data is saved to Redis. Each wallet's alerts
- * and historical values are stored with the appropriate chat IDs and wallet addresses.
- * 
- * If Redis is not available, the data is serialized and written to the local file system
- * in JSON format under the `data/wallet-alerts.json` path. This includes alerts and
- * historical values for all tracked wallets.
- * 
- * The function ensures that any necessary directories are created if they don't exist,
- * and logs the success or failure of the save operation.
- * 
- * Catches and logs any errors during the save process.
- */
+        /**
+         * Saves the current state of wallet alerts and historical values.
+         * 
+         * If a Redis service is available, data is saved to Redis. Each wallet's alerts
+         * and historical values are stored with the appropriate chat IDs and wallet addresses.
+         * 
+         * If Redis is not available, the data is serialized and written to the local file system
+         * in JSON format under the `data/wallet-alerts.json` path. This includes alerts and
+         * historical values for all tracked wallets.
+         * 
+         * The function ensures that any necessary directories are created if they don't exist,
+         * and logs the success or failure of the save operation.
+         * 
+         * Catches and logs any errors during the save process.
+         */
 
     } private async saveAlerts() {
         try {

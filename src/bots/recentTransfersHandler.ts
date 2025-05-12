@@ -14,6 +14,7 @@ import {
 } from "../interfaces/vybeApiInterface";
 
 import { BOT_MESSAGES } from "../utils/messageTemplates";
+import logger from "../config/logger";
 
 export class RecentTransferHandler extends BaseHandler {
 
@@ -65,7 +66,7 @@ export class RecentTransferHandler extends BaseHandler {
                 return this.bot.sendMessage(chatId,
                     "⛔ No transfers found matching your criteria." +
                     "Check if you match the correct format for the filter.\n" +
-                    "Example: /transfers <walletaddress>\n"
+                    "Example: /transfers <wallet_address>\n"
                 );
             }
 
@@ -75,7 +76,7 @@ export class RecentTransferHandler extends BaseHandler {
 
             // Send summary message
             await this.bot.sendMessage(chatId,
-                `Showing ${Math.min(response.transfers.length, limit) * 2} results:`,
+                `Showing ${Math.min(response.transfers.length, limit) * 2} results:\n\n(Received and snt Transfers)`,
                 { parse_mode: "Markdown" }
             );
 
@@ -91,27 +92,56 @@ export class RecentTransferHandler extends BaseHandler {
         }
     }
 
-    // Helper method to format and send a transfer message
+    /**
+     * Sends a formatted message to a Telegram chat about a recent transfer
+     * @param chatId The Telegram chat ID to send the message to
+     * @param tx The RecentTransfer object to format into a message
+     */
     private async sendTransferMessage(chatId: number, tx: RecentTransfer) {
-        const sender = tx.senderAddress || "Unknown";
-        const receiver = tx.receiverAddress || "Unknown";
-        const amount = parseFloat(tx.calculatedAmount).toLocaleString(
-            undefined, { maximumFractionDigits: 6 });
-        const url = `https://solscan.io/tx/${tx.signature}`;
-        const time = timeAgo(tx.blockTime);
+        try {
+            // Fetch token symbol for this specific transfer
+            let tokenSymbol = "Unknown";
 
-        const message =
-            `💰 *Transfer Summary*\n\n` +
-            `👤 *From:* \`${sender}\`\n\n` +
-            `📥 *To:* \`${receiver}\`\n\n` +
-            `💸 *Transfer Amount(SOL):* \`${amount} SOL\`\n\n` +
-            `🕒 *Block Time:* _${time}_\n\n` +
-            `🔗 [🔍 View on Solscan](${url})`;
+            if (tx.mintAddress) {
+                try {
+                    const topHolderResponse = await this.api.getTopTokenHolder(tx.mintAddress, 1);
+                    if (topHolderResponse?.data?.[0]?.tokenSymbol) {
+                        tokenSymbol = topHolderResponse.data[0].tokenSymbol;
+                    }
+                } catch (error) {
+                    logger.warn(`Could not fetch token symbol for mint ${tx.mintAddress}:`, error);
+                    // Continue with "Unknown" token symbol
+                }
+            }
 
+            const sender = tx.senderAddress || "Unknown";
+            const receiver = tx.receiverAddress || "Unknown";
+            const amount = `${parseFloat(tx.calculatedAmount).toLocaleString(
+                undefined, { maximumFractionDigits: 6 })} ${tokenSymbol}`;
+            const url = `https://solscan.io/tx/${tx.signature}`;
+            const time = timeAgo(tx.blockTime);
 
-        await this.bot.sendMessage(chatId, message, {
-            parse_mode: "Markdown",
-            disable_web_page_preview: true
-        });
+            const message =
+                `💰 *Transfer Summary*\n\n` +
+                `👤 *From:* \`${sender}\`\n\n` +
+                `📥 *To:* \`${receiver}\`\n\n` +
+                `💸 *Transfer Amount:* \`${amount}\`\n\n` +
+                `🕒 *Block Time:* _${time}_\n\n` +
+                `🔗 [🔍 View more on Solscan](${url})`;
+
+            await this.bot.sendMessage(chatId, message, {
+                parse_mode: "Markdown",
+                disable_web_page_preview: true
+            });
+
+        } catch (error) {
+            logger.error(`Error sending transfer message:`, error);
+            // Send a simplified message if we encounter an error
+            await this.bot.sendMessage(
+                chatId,
+                `💰 New transfer detected. View on Solscan: https://solscan.io/tx/${tx.signature}`,
+                { disable_web_page_preview: true }
+            );
+        }
     }
 } 
