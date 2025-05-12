@@ -978,11 +978,13 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
 
             // 3. Send recent transfers if available
             const allTransfers = [
-                ...(sentTransfers?.transfers || []),
-                ...(receivedTransfers?.transfers || [])
-            ].sort((a, b) => b.blockTime - a.blockTime);
+                ...(sentTransfers.transfers),
+                ...(receivedTransfers.transfers)
+            ]
+            .sort((a, b) => b.blockTime - a.blockTime);
+            
 
-            if (allTransfers.length > 0) {
+            if (allTransfers.length < 0) {
                 await this.bot.sendMessage(chatId, "💰 *Recent Transfers:*", {
                     parse_mode: "Markdown"
                 });
@@ -994,6 +996,20 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
                     }
                 }, 3000);
 
+            }
+
+            const displayResult = allTransfers.length;
+
+            // Send summary message
+            await this.bot.sendMessage(chatId,
+                `Showing ${displayResult} results:\n` +
+                `(${displayResult / 2} Received and ${displayResult / 2} sent transfer results)`,
+                { parse_mode: "Markdown" }
+            );
+
+            // Send each transfer
+            for (const tx of allTransfers.slice(0, displayResult)) {
+                await this.sendTransferMessage(chatId, tx);
             }
 
         } catch (error) {

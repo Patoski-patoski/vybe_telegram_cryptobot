@@ -73,8 +73,9 @@ export class RecentTransferHandler extends BaseHandler {
             response = {
                 transfers: [
                     ...senderResponse.transfers,
-                    ...receiverResponse.transfers]
-                    .sort((a, b) => b.blockTime - a.blockTime)
+                    ...receiverResponse.transfers
+                ]
+                .sort((a, b) => b.blockTime - a.blockTime)
             };
 
             const displayResult = (Math.min(response.transfers.length, limit) * 2);
