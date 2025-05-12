@@ -1002,7 +1002,6 @@ export class EnhancedWalletTrackerHandler extends BaseHandler {
         }
     }
 
-    // Add this method to your class
     async takeDailySnapshot() {
         logger.info('Taking daily wallet value snapshot');
         const timestamp = Math.floor(Date.now() / 1000);

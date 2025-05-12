@@ -71,12 +71,18 @@ export class RecentTransferHandler extends BaseHandler {
             }
 
             response = {
-                transfers: [...senderResponse.transfers, ...receiverResponse.transfers]
+                transfers: [
+                    ...senderResponse.transfers,
+                    ...receiverResponse.transfers]
+                    .sort((a, b) => b.blockTime - a.blockTime)
             };
+
+            const displayResult = (Math.min(response.transfers.length, limit) * 2);
 
             // Send summary message
             await this.bot.sendMessage(chatId,
-                `Showing ${Math.min(response.transfers.length, limit) * 2} results:\n\n(Received and sent Transfers)`,
+                `Showing ${displayResult} results:\n` +
+                `(${ displayResult / 2} Received and ${ displayResult / 2 } sent transfer results)`,
                 { parse_mode: "Markdown" }
             );
 
