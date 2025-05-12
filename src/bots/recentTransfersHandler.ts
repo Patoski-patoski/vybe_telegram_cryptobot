@@ -76,7 +76,7 @@ export class RecentTransferHandler extends BaseHandler {
 
             // Send summary message
             await this.bot.sendMessage(chatId,
-                `Showing ${Math.min(response.transfers.length, limit) * 2} results:\n\n(Received and snt Transfers)`,
+                `Showing ${Math.min(response.transfers.length, limit) * 2} results:\n\n(Received and sent Transfers)`,
                 { parse_mode: "Markdown" }
             );
 
