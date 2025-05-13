@@ -11,9 +11,9 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "baseUrl": ".",
+    "baseUrl": "./", //  Crucial:  Base URL relative to the tsconfig.json
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"] //  Corrected:  Map "@/*" to "src/*"
     },
     "typeRoots": ["./node_modules/@types"],
     "allowJs": true,
