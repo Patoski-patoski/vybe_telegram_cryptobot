@@ -1,0 +1,18 @@
+services:
+  bot:
+    build: . # tells Compose where to find the Dockerfile
+    image: telegram-bot 
+    ports:
+      - "3000:3000"
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_TLS=${REDIS_TLS}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_RECONNECT_STRATEGY=${REDIS_RECONNECT_STRATEGY}
+      - VYBE_API_KEY=${VYBE_API_KEY}
+      - VYBE_BASE_URL=${VYBE_BASE_URL}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+    restart: always
+    
