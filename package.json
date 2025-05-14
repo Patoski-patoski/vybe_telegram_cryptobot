@@ -4,7 +4,7 @@
   "description": "a Telegram bot using Vybe APIs for actionable, real-time crypto insights, linking users to AlphaVybe for deeper analytics.",
   "main": "app.ts",
   "scripts": {
-    "test": "jest --bail=1",
+    "test": "jest --bail=1 --detectOpenHandles",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prebuild": "npx rimraf ./dist",

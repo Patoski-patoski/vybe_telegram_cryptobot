@@ -310,7 +310,11 @@ export class RedisService {
     }
 
     // Wallet Tracking
-    async setTrackedWallet(chatId: number, walletAddress: string, settings: WalletAlertSettings): Promise<void> {
+    async setTrackedWallet(
+        chatId: number,
+        walletAddress: string,
+        settings: WalletAlertSettings): Promise<void> {
+        
         try {
             await this.client.hSet(`tracked_wallets:${chatId}`, {
                 [walletAddress]: JSON.stringify(settings)
@@ -428,7 +432,11 @@ export class RedisService {
     // Program Info Cache
     async setProgramInfo(programId: string, programInfo: any): Promise<void> {
         try {
-            await this.client.set(`program_info:${programId}`, JSON.stringify(programInfo), { EX: this.ONE_DAY }); // Expire after 24 hours
+            await this.client.set(
+                `program_info:${programId}`,
+                JSON.stringify(programInfo),
+                { EX: this.ONE_DAY }
+            ); // Expire after 24 hours
         } catch (error) {
             logger.error('Failed to set program info:', error);
             throw error;

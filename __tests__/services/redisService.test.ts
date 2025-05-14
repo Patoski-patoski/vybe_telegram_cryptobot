@@ -1,6 +1,6 @@
 
-import { RedisService } from '../../services/redisService';
-import { WalletAlertSettings } from '../../interfaces/vybeApiInterface';
+import { RedisService } from '../../src/services/redisService';
+import { WalletAlertSettings } from '../../src/interfaces/vybeApiInterface';
 
 const mockRedisClient = {
     connect: jest.fn().mockResolvedValue(undefined),
@@ -40,17 +40,14 @@ describe('RedisService', () => {
 
             mockRedisClient.get.mockResolvedValueOnce('[]');
             mockRedisClient.set.mockResolvedValueOnce('OK');
-            console.log(mockRedisClient.set.mock.calls);
 
             const result = await redisService.addNFTWallet(chatId, walletAddress);
-
             expect(result).toBe(true);
             expect(mockRedisClient.get).toHaveBeenCalledWith(`nft_wallets:${chatId}`);
             expect(mockRedisClient.set).toHaveBeenCalledWith(
                 `nft_wallets:${chatId}`,
                 JSON.stringify([walletAddress])
             );
-            console.log(mockRedisClient.set.mock.calls);
 
         });
 
