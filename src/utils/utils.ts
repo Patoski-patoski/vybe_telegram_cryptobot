@@ -1,6 +1,9 @@
+// src/utils/utils.ts
+
 import { PublicKey } from "@solana/web3.js";
 import TelegramBot from "node-telegram-bot-api";
 import { WalletPnL } from "../interfaces/vybeApiInterface";
+
 /**
  * Validates if a given string is a valid Solana mint address.
  * @param mintAddress - the mint address to validate
@@ -42,7 +45,7 @@ export function isValidWalletAddress(address: string): boolean {
 export function formatUsdValue(raw: string | number): string {
     const num = typeof raw === "string" ? parseFloat(raw) : raw;
 
-    if (isNaN(num)) return "$0";
+    if (isNaN(num)) return "$0.00";
 
     if (num >= 1_000_000_000) {
         return `$${(num / 1_000_000_000).toFixed(2)}B`;
@@ -56,6 +59,12 @@ export function formatUsdValue(raw: string | number): string {
 }
 
 
+/**
+ * Converts a Unix timestamp into a human-readable string of time elapsed since the timestamp.
+ * e.g. "1 year ago", "5 months ago", "3 days ago", "1 hour ago", "30 minutes ago", "1 minute ago", "just now"
+ * @param timestamp The Unix timestamp to convert
+ * @returns A string of time elapsed since the timestamp
+ */
 export function timeAgo(timestamp: number): string {
     const now = Date.now() / 1000; // Current time in seconds
     const seconds = Math.floor(now - timestamp);
@@ -80,6 +89,11 @@ export function timeAgo(timestamp: number): string {
 }
 
 
+/**
+ * Formats a {@link WalletPnL} object into a human-readable string for display as a Discord alert.
+ * @param pnlData The {@link WalletPnL} object to format
+ * @returns A string representing the formatted PnL data
+ */
 export function formatPnLAlert(pnlData: WalletPnL): string {
     return `📊 *Wallet PnL Analysis*\n\n` +
         `💰 *Total PnL: * ${formatUsdValue(pnlData.totalPnL)}\n` +
@@ -94,23 +108,44 @@ export function formatPnLAlert(pnlData: WalletPnL): string {
         `(${formatUsdValue(pnlData.worstPerformingToken?.pnlUsd || 0)})`;
 }
 
+/**
+ * Removes any empty strings from an array of strings, e.g. ["foo", "", "bar"] becomes ["foo", "bar"].
+ * @param parts The array of strings to filter
+ * @returns The filtered array of strings
+ */
 export function deleteDoubleSpace(parts: string[]): string[] {
     return parts.filter(part => part !== "");
 }
 
 
+/**
+ * Returns the Unix timestamp (in seconds) for 6 days ago at 6:00 AM UTC.
+ * This is used for getting the 7-day OHLCV for a token.
+ * @returns Unix timestamp in seconds
+ */
 export function tokenOHLCV7Days(): string | number {
     const currentDate = new Date();
     // Subtract 6 days
     currentDate.setDate(currentDate.getDate() - 6);
     // Set the time to 6:00 AM
-    currentDate.setHours(6, 0, 0, 0); // hours, minutes, seconds, milliseconds
+    currentDate.setUTCHours(6, 0, 0, 0); // hours, minutes, seconds, milliseconds
     // Get the Unix timestamp (in seconds)
     const timestamp = Math.floor(currentDate.getTime() / 1000); // Convert milliseconds to seconds
     return timestamp;
 }
 
 
+
+
+/**
+ * Sends a message and then deletes it after a specified delay.
+ *
+ * @param bot TelegramBot instance
+ * @param msg Message object containing chatId
+ * @param text Text of message to send
+ * @param delay Number of seconds to wait before deleting the message
+ * @returns Promise that resolves when the message has been deleted
+ */
 export async function sendAndDeleteMessage(
     bot: TelegramBot,
     msg: TelegramBot.Message,

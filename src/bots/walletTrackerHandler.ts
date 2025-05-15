@@ -24,7 +24,7 @@ const DEFAULT_CHECK_INTERVAL_MS = 2 * 60 * 1000;  // 5 minutes default
 const MAX_WALLETS_PER_USER = 5;  // Limit wallets per user
 const SIGNIFICANT_VALUE_CHANGE_PERCENT = 5;  // Alert on 5% value change
 
-export class EnhancedWalletTrackerHandler extends BaseHandler {
+export class WalletTrackerHandler extends BaseHandler {
     private alerts: Map<string, Map<number, WalletAlertSettings>> = new Map();
     private checkInterval: NodeJS.Timeout | null = null;
     private walletAnalysis: WalletAnalysisService;

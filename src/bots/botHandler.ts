@@ -8,7 +8,7 @@ import { WhaleWatcherHandler } from "./whaleWatchHandler";
 import { TokenTimeSeriesAnalysisHandler } from "./tokenTimeSeriesAnalysis";
 import { HolderDistributionHandler } from "./holderDistributionHandler";
 import { TokenAnalysisHandler } from "./tokenAnalysisHandler";
-import { EnhancedWalletTrackerHandler } from "./walletTrackerHandler";
+import { WalletTrackerHandler } from "./walletTrackerHandler";
 import { BOT_MESSAGES } from "../utils/messageTemplates";
 import { ProgramInfoHandler } from "./programInfoHandler";
 import { ProgramActiveUsersHandler } from "./programActiveUsersHandler";
@@ -28,7 +28,7 @@ export class BotHandler {
     private tokenTimeSeriesHandler: TokenTimeSeriesAnalysisHandler;
     private holderDistributionHandler: HolderDistributionHandler;
     private tokenAnalysisHandler: TokenAnalysisHandler;
-    private walletTrackerHandler: EnhancedWalletTrackerHandler;
+    private walletTrackerHandler: WalletTrackerHandler;
     private programInfoHandler: ProgramInfoHandler;
     private programActiveUsersHandler: ProgramActiveUsersHandler;
     private nftPortfolioHandler: NFTPortfolioHandler;
@@ -48,7 +48,7 @@ export class BotHandler {
         this.tokenTimeSeriesHandler = new TokenTimeSeriesAnalysisHandler(this.bot, this.api);
         this.holderDistributionHandler = new HolderDistributionHandler(this.bot, this.api);
         this.tokenAnalysisHandler = new TokenAnalysisHandler(this.bot, this.api);
-        this.walletTrackerHandler = new EnhancedWalletTrackerHandler(this.bot, this.api);
+        this.walletTrackerHandler = new WalletTrackerHandler(this.bot, this.api);
         this.programInfoHandler = new ProgramInfoHandler(this.bot, this.api);
         this.programActiveUsersHandler = new ProgramActiveUsersHandler(this.bot, this.api);
         this.nftPortfolioHandler = new NFTPortfolioHandler(this.bot, this.api);
