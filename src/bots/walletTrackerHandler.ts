@@ -43,17 +43,19 @@ export class WalletTrackerHandler extends BaseHandler {
     private async initRedis(checkIntervalMs: number) {
         try {
             this.redisService = await RedisService.getInstance();
-            logger.info("Redis initialized for EnhancedWalletTrackerHandler");
+            logger.info("Redis initialized for WalletTrackerHandler");
             await this.loadAlerts();
             this.startWatchingWallets(checkIntervalMs);
             this.setupGracefulShutdown();
-            logger.info("Redis initialized for EnhancedWalletTrackerHandler");
+            logger.info("Redis initialized for WalletTrackerHandler");
         } catch (error) {
             logger.error("Failed to initialize Redis:", error);
             // Fallback to empty data
+            this.redisService = null;
             this.alerts = new Map();
             this.historicalValues = new Map();
             this.startWatchingWallets(DEFAULT_CHECK_INTERVAL_MS);
+            this.loadAlerts(); // Still try to load from file system
         }
     }
     private setupDailySnapshot() {
@@ -349,14 +351,16 @@ export class WalletTrackerHandler extends BaseHandler {
                 // Crossed UP through threshold
                 await this.bot.sendMessage(
                     settings.chatId,
-                    `💹 Wallet \`${walletAddress}\` value has risen above your set threshold of ${formatUsdValue(settings.minValueUsd)}!\n\nCurrent value: ${formatUsdValue(totalValue)}`,
+                    `💹 Wallet \`${walletAddress}\` value has risen above your set threshold of ` +
+                     `${formatUsdValue(settings.minValueUsd)}!\n\nCurrent value: ${formatUsdValue(totalValue)}`,
                     { parse_mode: "Markdown" }
                 );
             } else if (totalValue < settings.minValueUsd && settings.lastTotalValue >= settings.minValueUsd) {
                 // Crossed DOWN through threshold
                 await this.bot.sendMessage(
                     settings.chatId,
-                    `⚠️ Wallet \`${walletAddress}\` value has dropped below your set threshold of ${formatUsdValue(settings.minValueUsd)}!\n\nCurrent value: ${formatUsdValue(totalValue)}`,
+                    `⚠️ Wallet \`${walletAddress}\` value has dropped below your set threshold of ` +
+                    ` +${formatUsdValue(settings.minValueUsd)}!\n\nCurrent value: ${formatUsdValue(totalValue)}`,
                     { parse_mode: "Markdown" }
                 );
             }
@@ -367,7 +371,9 @@ export class WalletTrackerHandler extends BaseHandler {
                 const direction = percentChange > 0 ? '📈 increased' : '📉 decreased';
                 await this.bot.sendMessage(
                     settings.chatId,
-                    `${direction === '📈 increased' ? '📈' : '📉'} Wallet \`${walletAddress}\` value has ${direction} by ${Math.abs(percentChange).toFixed(2)}%\n\nPrevious: ${formatUsdValue(settings.lastTotalValue)}\nCurrent: ${formatUsdValue(totalValue)}`,
+                    `${direction === '📈 increased' ? '📈' : '📉'} Wallet \`${walletAddress}\`
+                    value has ${direction} by ${Math.abs(percentChange).toFixed(2)}%\n\nPrevious: ${formatUsdValue(settings.lastTotalValue)}\n
+                    Current: ${formatUsdValue(totalValue)}`,
                     { parse_mode: "Markdown" }
                 );
             }
@@ -767,7 +773,10 @@ export class WalletTrackerHandler extends BaseHandler {
 
             return this.bot.sendMessage(
                 chatId,
-                `✅ *Successfully set up tracking for wallet: *\n\n \`\`\`${walletAddress}\`\`\`\n\n To be triggered with a minimum value of ${formatUsdValue(minValueUsd)}.\n\nYou will receive notifications when significant activity is detected.`,
+                `✅ *Successfully set up tracking for wallet: *\n\n \`\`\`${walletAddress}\`\`\`\n\n` +
+                ` To be triggered with a minimum value of ${formatUsdValue(minValueUsd)}.\n` +
+                `You will receive notifications when significant activity is detected.`,
+
                 { parse_mode: "Markdown" }
             );
 
@@ -1154,6 +1163,7 @@ export class WalletTrackerHandler extends BaseHandler {
                 this.historicalValues = new Map(serializableHistorical);
 
                 logger.info(`Loaded ${this.alerts.size} tracked wallets from storage`);
+                logger.warn('Redis service is not initialized, skipping loadAlerts.');
                 return;
             }
 

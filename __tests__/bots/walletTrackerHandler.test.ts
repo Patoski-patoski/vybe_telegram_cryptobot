@@ -26,7 +26,7 @@ describe('WalletTrackerHandler', () => {
   let walletTracker: WalletTrackerHandler;
 
   // Constants for testing
-  const TEST_WALLET_ADDRESS = 'testWalletAddress123';
+  const TEST_WALLET_ADDRESS = '5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9';
   const TEST_CHAT_ID = 123456789;
   const TEST_MIN_VALUE_USD = 100;
 
@@ -43,8 +43,8 @@ describe('WalletTrackerHandler', () => {
       totalTokenCount: 123,
     data: [
       {
-            ownerAddress: "4cygw9",
-            symbol: "symbol",
+        ownerAddress: "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+            symbol: "TOKEN1",
             name: "paul",
             mintAddress: "mint3",
             amount: "113",
@@ -60,8 +60,8 @@ describe('WalletTrackerHandler', () => {
             slot: 234
       },
       {
-          ownerAddress: "4cygw9",
-          symbol: "symbol",
+        ownerAddress: "5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9",
+          symbol: "TOKEN2",
           name: "paul",
           mintAddress: "mint3",
           amount: "113",
@@ -76,23 +76,6 @@ describe('WalletTrackerHandler', () => {
           verified: true,
           slot: 234
       },
-      {
-          ownerAddress: "4cygw9",
-          symbol: "symbol",
-          name: "paul",
-          mintAddress: "mint3",
-          amount: "113",
-          priceUsd: "113",
-          priceUsd1dChange: "12",
-          priceUsd7dTrend: ["12", "13", "14"],
-          valueUsd: "113",
-          valueUsd1dChange: "1",
-          logoUrl: "http://logourl.png",
-          category: "DEX",
-          decimals: 13.3,
-          verified: true,
-          slot: 234
-      }
     ]
   };
 
@@ -271,7 +254,7 @@ describe('WalletTrackerHandler', () => {
       
       expect(mockBot.sendMessage).toHaveBeenCalledWith(
         TEST_CHAT_ID,
-        expect.stringContaining('TRACK_WALLET_HELP'),
+        expect.stringContaining('Monitors a wallet for balance changes'),
         expect.any(Object)
       );
     });
@@ -369,7 +352,7 @@ describe('WalletTrackerHandler', () => {
 
       const msg = {
         chat: { id: TEST_CHAT_ID },
-        text: `/track_wallet new_wallet 100`
+        text: `/track_wallet 5tzFkiKscXHK5ZXCGbXZxdw7gTjjD1mBwuoFbhUvuAi9 10`
       } as TelegramBot.Message;
 
       // Setup utility functions
@@ -578,13 +561,72 @@ describe('WalletTrackerHandler', () => {
         expect.stringContaining('Starting wallet check cycle'));
     });
 
+
+    // Fix for the incorrect test assertion
+    it('should process the addition of a new token to the list', async () => {
+      // Arrange: Set up initial settings with an existing token list
+      const initialTokenList = ['TOKEN1', 'TOKEN2', 'TOKEN3'];
+      const settings = {
+        walletAddress: TEST_WALLET_ADDRESS,
+        chatId: TEST_CHAT_ID,
+        minValueUsd: TEST_MIN_VALUE_USD,
+        lastTokenList: initialTokenList,
+        lastBalances: new Map()
+      };
+
+      // Arrange: Mock the API response to include a new token ('TOKEN4')
+      const mockNewTokenBalanceResponse = {
+        totalTokenValueUsd: '1100.00',
+        date: 876134322,
+        ownerAddress: "newAddress",
+        stakedSolBalanceUsd: "newStaked",
+        stakedSolBalance: "newStakedBal",
+        activeStakedSolBalanceUsd: "newActiveUsd",
+        activeStakedSolBalance: "newActiveBal",
+        totalTokenValueUsd1dChange: "newChange",
+        totalTokenCount: 4,
+        data: [
+          { symbol: "TOKEN1", name: "Token One", mintAddress: "mint1", amount: "100", priceUsd: "1", valueUsd: "100", dayChange: null },
+          { symbol: "TOKEN2", name: "Token Two", mintAddress: "mint2", amount: "50", priceUsd: "2", valueUsd: "100", dayChange: null },
+          { symbol: "TOKEN3", name: "Token Three", mintAddress: "mint3", amount: "20", priceUsd: "5", valueUsd: "100", dayChange: null },
+          { symbol: "TOKEN4", name: "Token Four", mintAddress: "mint4", amount: "10", priceUsd: "10", valueUsd: "100", dayChange: null },
+        ]
+      };
+
+      // Act: Call the processTokenListChanges method
+      await (walletTracker as any).processTokenListChanges(
+        TEST_WALLET_ADDRESS,
+        settings,
+        mockNewTokenBalanceResponse
+      );
+
+      // Assert: Expect the lastTokenList to now include the new token
+      expect(settings.lastTokenList).toEqual(['TOKEN1', 'TOKEN2', 'TOKEN3', 'TOKEN4']);
+
+      // Assert: Fix the expectation to match the actual function signature
+      expect(mockBot.sendMessage).toHaveBeenCalledWith(
+        TEST_CHAT_ID,
+        expect.stringContaining('Token list changed'),
+        expect.objectContaining({
+          parse_mode: "Markdown",
+          disable_web_page_preview: true
+        })
+      );
+
+      // Additional check for message content
+      const messageArg = mockBot.sendMessage.mock.calls[0][1]; // Get the message argument
+      expect(messageArg).toContain('*Added:*');
+      expect(messageArg).toContain('*TOKEN4*');
+      expect(messageArg).toContain('$100.00');
+    });
+
     it('should process token list changes', async () => {
       // Setup a wallet with old token list
       const settings = {
         walletAddress: TEST_WALLET_ADDRESS,
         chatId: TEST_CHAT_ID,
         minValueUsd: TEST_MIN_VALUE_USD,
-        lastTokenList: ['TOKEN1', 'TOKEN4'], // Different from current
+        lastTokenList: ['TOKEN3', 'TOKEN4'], // Different from current
         lastBalances: new Map()
       };
       
@@ -603,7 +645,7 @@ describe('WalletTrackerHandler', () => {
       );
       
       // Verify list was updated
-      expect(settings.lastTokenList).toEqual(['TOKEN1', 'TOKEN2', 'TOKEN3']);
+      expect(settings.lastTokenList).toEqual(['TOKEN1', 'TOKEN2']);
     });
 
     it('should process wallet value changes and send alerts', async () => {

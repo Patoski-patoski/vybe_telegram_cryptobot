@@ -19,6 +19,9 @@ jobs:
     - name: Build Docker Image
       run: docker compose build
 
+    - name: Run test
+      run: npm test
+
     
   deploy:
     needs: Just build
@@ -28,7 +31,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Deploy to Production
+    - name: Deploy to Production(Render)
       env:
         DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -38,6 +41,6 @@ jobs:
         ssh $DEPLOY_USER@$DEPLOY_HOST << EOF
           cd /path/to/your/project
           git pull origin main
-          docker-compose down
-          docker-compose up -d --build
+          docker compose down
+          docker compose up -d --build
         EOF
