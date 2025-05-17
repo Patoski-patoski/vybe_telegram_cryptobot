@@ -11,6 +11,7 @@
     "build": "npx tsc",
     "start": "node dist/app.js",
     "prestart": "npm run build",
+    "ci": "npm run lint && npm run test && npm run build",
     "serve": "ts-node-dev --respawn --transpile-only --poll --debug src/app.ts"
   },
   "repository": {
