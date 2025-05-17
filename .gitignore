@@ -1,8 +1,12 @@
 node_modules
-.env
 .txt
 *.txt
 *.log
 /dist
 .npmrc
 /log
+
+.env
+*.env
+.env.*
+!.env.example

@@ -75,7 +75,8 @@ export class RedisService {
         }
     }
 
-    // NFT Wallet Management
+    // Main NFT Wallet Management methods
+
     /**
      * Get registered NFT wallet addresses for a chat ID
      * @param chatId Telegram chat ID
@@ -93,26 +94,11 @@ export class RedisService {
     }
 
     /**
-     * Save NFT wallet addresses for a chat ID
-     * @param chatId Telegram chat ID
-     * @param wallets Array of wallet addresses
-     */
-    async saveNFTWallets(chatId: number, wallets: string[]): Promise<void> {
-        try {
-            const key = `nft_wallets:${chatId}`;
-            await this.client.set(key, JSON.stringify(wallets));
-        } catch (error) {
-            logger.error(`Failed to save NFT wallets for chat ID ${chatId} to Redis`, { error });
-            throw error;
-        }
-    }
-
-    /**
-     * Add a new NFT wallet address for a chat ID
-     * @param chatId Telegram chat ID
-     * @param walletAddress Wallet address to add
-     * @returns Boolean indicating success
-     */
+    * Add a new NFT wallet address for a chat ID
+    * @param chatId Telegram chat ID
+    * @param walletAddress Wallet address to add
+    * @returns Boolean indicating success
+    */
     async addNFTWallet(chatId: number, walletAddress: string): Promise<boolean> {
         try {
             // Get existing wallets
@@ -132,6 +118,22 @@ export class RedisService {
             throw error;
         }
     }
+
+    /**
+     * Save NFT wallet addresses for a chat ID
+     * @param chatId Telegram chat ID
+     * @param wallets Array of wallet addresses
+     */
+    async saveNFTWallets(chatId: number, wallets: string[]): Promise<void> {
+        try {
+            const key = `nft_wallets:${chatId}`;
+            await this.client.set(key, JSON.stringify(wallets));
+        } catch (error) {
+            logger.error(`Failed to save NFT wallets for chat ID ${chatId} to Redis`, { error });
+            throw error;
+        }
+    }
+
 
     /**
      * Remove an NFT wallet address for a chat ID
@@ -308,7 +310,11 @@ export class RedisService {
     }
 
     // Wallet Tracking
-    async setTrackedWallet(chatId: number, walletAddress: string, settings: WalletAlertSettings): Promise<void> {
+    async setTrackedWallet(
+        chatId: number,
+        walletAddress: string,
+        settings: WalletAlertSettings): Promise<void> {
+        
         try {
             await this.client.hSet(`tracked_wallets:${chatId}`, {
                 [walletAddress]: JSON.stringify(settings)
@@ -426,7 +432,11 @@ export class RedisService {
     // Program Info Cache
     async setProgramInfo(programId: string, programInfo: any): Promise<void> {
         try {
-            await this.client.set(`program_info:${programId}`, JSON.stringify(programInfo), { EX: this.ONE_DAY }); // Expire after 24 hours
+            await this.client.set(
+                `program_info:${programId}`,
+                JSON.stringify(programInfo),
+                { EX: this.ONE_DAY }
+            ); // Expire after 24 hours
         } catch (error) {
             logger.error('Failed to set program info:', error);
             throw error;

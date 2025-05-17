@@ -89,6 +89,20 @@ export class WalletAnalysisService {
         }
     }
 
+/**
+ * Calculates the profit and loss (PnL) for a specified wallet over a given timeframe.
+ * 
+ * @param walletAddress - The address of the wallet to analyze.
+ * @param timeframe - The timeframe in seconds for which to calculate the PnL. 
+ *                    Defaults to 30 days.
+ * @returns A Promise that resolves to a WalletPnL object containing PnL data, 
+ *          including total PnL, realized and unrealized PnL, win rate, trade count, 
+ *          average trade size, best and worst performing tokens, PnL trend, 
+ *          and token metrics.
+ * @throws Logs an error and returns a default WalletPnL object if an error occurs 
+ *         during the calculation.
+ */
+
     async calculatePnL(walletAddress: string, timeframe: number = 30 * 24 * 60 * 60): Promise<WalletPnL> {
         try {
             const pnlData = await this.api.getWalletPnL(walletAddress, '30d');

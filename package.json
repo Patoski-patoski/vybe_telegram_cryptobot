@@ -4,11 +4,14 @@
   "description": "a Telegram bot using Vybe APIs for actionable, real-time crypto insights, linking users to AlphaVybe for deeper analytics.",
   "main": "app.ts",
   "scripts": {
-    "test": "test",
+    "test": "jest --bail=1 --detectOpenHandles",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "prebuild": "npx rimraf ./dist",
     "build": "npx tsc",
     "start": "node dist/app.js",
     "prestart": "npm run build",
+    "ci": "npm run lint && npm run test && npm run build",
     "serve": "ts-node-dev --respawn --transpile-only --poll --debug src/app.ts"
   },
   "repository": {
@@ -25,13 +28,17 @@
     "Express"
   ],
   "author": "Patrick Okafor",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/patoski-patoski/vybe_telegram_cryptobot/issues"
   },
   "homepage": "https://github.com/patoski-patoski/vybe_telegram_cryptobot#readme",
   "devDependencies": {
+    "@babel/preset-typescript": "7.27.1",
+    "@types/jest": "29.5.14",
     "eslint": "^9.23.0",
+    "jest": "29.7.0",
+    "ts-jest": "29.3.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.2"
   },

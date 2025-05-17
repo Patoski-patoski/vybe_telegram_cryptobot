@@ -185,6 +185,15 @@ For development:
 npm run dev
 ```
 
+5. Docker Deployment
+
+```bash
+# Compose V2
+docker compose up -d
+# Compose V1
+docker-compose up -d
+```
+
 ## 📊 Project Structure
 
 ```bash

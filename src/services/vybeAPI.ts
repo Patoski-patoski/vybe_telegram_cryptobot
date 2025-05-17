@@ -56,7 +56,7 @@ export class VybeApiService {
             validateStatus: (status) => status < 500 // Handle 4xx errors in catch block
 
         });
-        // Add response interceptor for logging
+        // response interceptor for logging
         this.api.interceptors.response.use(
             (response: AxiosResponse) => {
                 logger.debug(`API Response: ${response.status} ${response.config.url}`);
@@ -137,7 +137,7 @@ export class VybeApiService {
         limit?: number
     }): Promise<GetRecentTransferResponse> {
         // Validate limit 
-        if (options.limit && (options.limit <= 0 || options.limit > 10)) {
+        if (typeof options.limit !== 'undefined' && (options.limit <= 0 || options.limit > 10)) {
             throw new Error("Limit must be between 1 and 10");
         }
 
