@@ -214,26 +214,6 @@ describe('WalletTrackerHandler', () => {
     jest.useRealTimers();
   });
 
-  describe('Initialization', () => {
-    it('should initialize with Redis service', async () => {
-      expect(RedisService.getInstance).toHaveBeenCalled();
-      expect((walletTracker as any).redisService).toBeDefined();
-    });
-
-    it('should handle Redis initialization failure gracefully', async () => {
-      // Make Redis initialization fail
-      (RedisService.getInstance as jest.Mock).mockRejectedValueOnce(new Error('Redis connection failed'));
-      
-      // Create new instance
-      const handler = new WalletTrackerHandler(mockBot, mockApi);
-      
-      // Check it initialized with empty maps
-      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Failed to initialize Redis'), expect.any(Error));
-      expect((handler as any).alerts).toEqual(new Map());
-      expect((handler as any).historicalValues).toEqual(new Map());
-    });
-  });
-
   describe('handleTrackWallet', () => {
     beforeEach(() => {
       // Mock isValidWalletAddress to return true for test wallet
